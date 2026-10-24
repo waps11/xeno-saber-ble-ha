@@ -4,6 +4,36 @@ All notable changes to Xeno Saber BLE are listed here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses
 [semantic versioning](https://semver.org/).
 
+## [0.1.1] - 2026-10-23
+
+### Security
+
+- Actions that read or write files on the Home Assistant host, change the
+  saber's storage, or update its firmware or board configuration now require an
+  administrator. `list_sound_fonts`, `list_sound_files` and `play_sound` stay
+  open to every user.
+- The diagnostics file no longer includes the Bluetooth adapter or proxy that
+  heard the saber (`bluetooth.source`, which can be a MAC address).
+- `update_firmware` logs and returns the SHA-256 of the file sent: the
+  manufacturer's firmware is not signed, so this records exactly what was
+  installed.
+- A warning is logged when WLED sync starts without a source address, since it
+  then accepts packets from any device on the network.
+
+### Changed
+
+- The saber is connected in the background after setup instead of during it,
+  so a busy saber no longer slows down Home Assistant's startup.
+
+### Added
+
+- Releases are built by a workflow and published with a build provenance
+  attestation and their SHA-256.
+- SECURITY.md, issue forms that ask for the diagnostics file and the firmware
+  version, and `script/check` to run the CI's checks locally.
+- The tests run on the oldest supported Home Assistant (2026.2) as well as the
+  newest.
+
 ## [0.1.0] - 2026-10-23
 
 First release: an unofficial, fully local Home Assistant integration for
@@ -58,4 +88,5 @@ Home Assistant host's adapter or an ESPHome Bluetooth proxy.
 - PROTOCOL.md: the saber's BLE protocol, file system, file transfer, board
   configuration and custom button and gesture mapping file.
 
+[0.1.1]: https://github.com/waps11/xeno-saber-ble-ha/releases/tag/v0.1.1
 [0.1.0]: https://github.com/waps11/xeno-saber-ble-ha/releases/tag/v0.1.0

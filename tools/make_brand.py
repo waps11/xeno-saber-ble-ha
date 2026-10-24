@@ -59,7 +59,7 @@ def _logo(icon: Image.Image, dark: bool, height: int, font_path: str) -> Image.I
     """Icon on the left, "Xeno Saber BLE" on the right, trimmed."""
     ink = (240, 243, 246, 255) if dark else (31, 35, 40, 255)
     accent = BLADE if dark else BLADE_DEEP
-    accent_rgba = tuple(int(accent[i : i + 2], 16) for i in (1, 3, 5)) + (255,)
+    accent_rgba = (*tuple(int(accent[i : i + 2], 16) for i in (1, 3, 5)), 255)
 
     scale = 4  # draw large, then downscale for clean edges
     h = height * scale
@@ -87,7 +87,7 @@ def _logo(icon: Image.Image, dark: bool, height: int, font_path: str) -> Image.I
 def _save(img: Image.Image, path: Path) -> None:
     img.save(path, optimize=True)
     try:
-        import oxipng
+        import oxipng  # noqa: PLC0415 - optional, only used when installed
 
         oxipng.optimize(path, level=4, interlace=oxipng.Interlacing.Adam7)
     except ImportError:  # still a valid PNG, just larger

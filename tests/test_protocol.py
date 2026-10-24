@@ -48,12 +48,20 @@ def test_bool_is_not_encoded_as_int():
 
 
 def test_all_encoded_messages_are_valid_json():
-    for key, val in [("PowerOn", True), ("Volume", 3), ("BackgroundColor", [1, 2, 3]), ("x", "a\"b")]:
+    for key, val in [
+        ("PowerOn", True),
+        ("Volume", 3),
+        ("BackgroundColor", [1, 2, 3]),
+        ("x", 'a"b'),
+    ]:
         assert json.loads(p.encode_command(key, val)) == [2, {key: val}]
 
 
 def test_parse_state_and_error():
-    assert p.parse_message(b'[3,{"Power":87,"PowerOn":true}]') == (3, {"Power": 87, "PowerOn": True})
+    assert p.parse_message(b'[3,{"Power":87,"PowerOn":true}]') == (
+        3,
+        {"Power": 87, "PowerOn": True},
+    )
     assert p.parse_message('[4,{"Volume":"out of range"}]') == (4, {"Volume": "out of range"})
     assert p.parse_message(b"\x01\x02garbage") is None
     assert p.parse_message(b'{"not":"array"}') is None
@@ -114,7 +122,7 @@ def test_assembler_skips_noise_and_bounds_its_buffer():
     assert a.feed(b"\x00\x01binary noise") == []  # nothing that starts a message
     assert a.feed(b'[3,{"a":1}]  junk [3,{"b":2}]') == [(3, {"a": 1}), (3, {"b": 2})]
     assert a.feed(b'[3,{"c":') == []  # incomplete: kept for the next chunk
-    assert a.feed(b'3}]') == [(3, {"c": 3})]
+    assert a.feed(b"3}]") == [(3, {"c": 3})]
     assert a.feed(b"[" + b"9" * (p._MAX_BUFFER + 10)) == []  # oversized: dropped
     assert a.feed(b'[3,{"d":4}]') == [(3, {"d": 4})]
     assert a.feed(b'[3,{"e":5}] trailing') == [(3, {"e": 5})]

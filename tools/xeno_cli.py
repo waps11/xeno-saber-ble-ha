@@ -25,6 +25,7 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import contextlib
 import importlib
 import json
 import logging
@@ -83,7 +84,7 @@ async def _discover(timeout: float, adapter: str | None, stop_on: str | None = N
             await asyncio.sleep(2)
     try:
         await asyncio.wait_for(done.wait(), timeout)
-    except asyncio.TimeoutError:
+    except TimeoutError:
         pass
     finally:
         try:
@@ -104,11 +105,15 @@ async def scan(timeout: float, adapter: str | None, show_all: bool) -> None:
             hits += 1
         if match or (show_all and (device.name or adv.local_name)):
             tag = "SABER" if match else "     "
-            print(f"{tag} {device.address}  rssi={adv.rssi:>4}  {device.name or adv.local_name or '?'}"
-                  f"  uuids={sorted(uuids)}")
+            print(
+                f"{tag} {device.address}  rssi={adv.rssi:>4}  {device.name or adv.local_name or '?'}"
+                f"  uuids={sorted(uuids)}"
+            )
     if not hits:
-        print(f"No saber found among {len(found)} devices. Wake it up (hold the button), "
-              "close the phone app, or rerun with --all to list every named device.")
+        print(
+            f"No saber found among {len(found)} devices. Wake it up (hold the button), "
+            "close the phone app, or rerun with --all to list every named device."
+        )
 
 
 async def _connect(address: str, adapter: str | None) -> XenoSaber:
@@ -176,7 +181,9 @@ async def run(args: argparse.Namespace) -> None:
 
 
 def main() -> None:
-    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
     ap.add_argument("-v", "--verbose", action="store_true")
     ap.add_argument("--adapter", help="Bluetooth adapter to use, e.g. hci1 (Linux only)")
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -192,7 +199,7 @@ def main() -> None:
     st = sub.add_parser("set")
     st.add_argument("address")
     st.add_argument("key")
-    st.add_argument("value", help="JSON literal: true, 42, \"text\", [1,2,3]")
+    st.add_argument("value", help='JSON literal: true, 42, "text", [1,2,3]')
     r = sub.add_parser("raw")
     r.add_argument("address")
     r.add_argument("payload")
@@ -200,18 +207,18 @@ def main() -> None:
     so = sub.add_parser("sounds")
     so.add_argument("address")
     so.add_argument("font", type=int)
-    for name, src, dst in (("get", "path on the saber", "local file"),
-                           ("put", "local file", "path on the saber")):
+    for name, src, dst in (
+        ("get", "path on the saber", "local file"),
+        ("put", "local file", "path on the saber"),
+    ):
         g = sub.add_parser(name)
         g.add_argument("address")
         g.add_argument("source", help=src)
         g.add_argument("destination", help=dst)
     args = ap.parse_args()
     logging.basicConfig(level=logging.DEBUG if args.verbose else logging.WARNING)
-    try:
+    with contextlib.suppress(KeyboardInterrupt):
         asyncio.run(run(args))
-    except KeyboardInterrupt:
-        pass
 
 
 if __name__ == "__main__":

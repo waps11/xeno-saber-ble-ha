@@ -107,9 +107,7 @@ class WledUdpHub:
             sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             sock.bind((self._host, self._port))
             sock.setblocking(False)
-            transport, _ = await loop.create_datagram_endpoint(
-                lambda: _Protocol(self), sock=sock
-            )
+            transport, _ = await loop.create_datagram_endpoint(lambda: _Protocol(self), sock=sock)
         except OSError:
             sock.close()
             raise
@@ -131,5 +129,5 @@ class WledUdpHub:
                 continue
             try:
                 listener(state)
-            except Exception:  # noqa: BLE001
+            except Exception:
                 _LOGGER.exception("Error in WLED sync listener")

@@ -7,8 +7,8 @@ import sys
 import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from saber_files import SaberFiles  # noqa: E402
-from test_device import FakeSaber, _BLEDevice, dev, p  # noqa: E402
+from saber_files import SaberFiles
+from test_device import FakeSaber, _BLEDevice, dev, p
 
 _FILE_KEYS = (b'"FileTransfer"', b'"ls"', b'"df"', b'"rm"', b'"cp"', b'"setname"', b'"play"')
 
@@ -28,8 +28,10 @@ class FileSaber(FakeSaber):
 
     async def write_gatt_char(self, uuid, data, response=False):
         data = bytes(data)
-        is_file = self.sim.mode is not None or not data.startswith(b"[") or any(
-            k in data for k in _FILE_KEYS
+        is_file = (
+            self.sim.mode is not None
+            or not data.startswith(b"[")
+            or any(k in data for k in _FILE_KEYS)
         )
         if not is_file:
             return await super().write_gatt_char(uuid, data, response)
@@ -87,7 +89,10 @@ def test_file_system_commands(files, monkeypatch) -> None:
         # Replies about other fonts never overwrite the active font's name.
         assert saber.state["fontname"] == "Vader" and "ls" not in saber.state
         assert await saber.list_sounds(3) == {
-            "clash": (1, 4), "hum": (1, 1), "in": (1, 1), "out": (1, 1),
+            "clash": (1, 4),
+            "hum": (1, 1),
+            "in": (1, 1),
+            "out": (1, 1),
         }
         assert await saber.list_sounds(9) == {}
         assert await saber.storage() == (1234, 30000)
@@ -126,7 +131,9 @@ def test_unexpected_replies_raise(files, monkeypatch) -> None:
         await saber.connect()
         sim = files["saber"].sim
         orig = sim.handle
-        sim.handle = lambda packet: [b'[3,{"ls":[1,2,3]}]'] if b'"ls"' in packet else [b'[3,{"df":7}]']
+        sim.handle = lambda packet: (
+            [b'[3,{"ls":[1,2,3]}]'] if b'"ls"' in packet else [b'[3,{"df":7}]']
+        )
         with pytest.raises(dev.XenoSaberError, match="Unexpected sound list"):
             await saber.list_sounds(1)
         with pytest.raises(dev.XenoSaberError, match="Unexpected storage"):
@@ -305,7 +312,10 @@ def test_replies_survive_lost_fragments(files, monkeypatch) -> None:
 
         fw.sim.handle = lose_first
         assert await saber.list_sounds(3) == {
-            "clash": (1, 4), "hum": (1, 1), "in": (1, 1), "out": (1, 1),
+            "clash": (1, 4),
+            "hum": (1, 1),
+            "in": (1, 1),
+            "out": (1, 1),
         }
         assert sum(b'"ls"' in w for _, w in fw.writes) >= 2
         # Changes are never sent twice.

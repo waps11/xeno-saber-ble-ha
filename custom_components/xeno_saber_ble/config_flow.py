@@ -114,9 +114,7 @@ class XenoSaberConfigFlow(ConfigFlow, domain=DOMAIN):
         )
 
     @override
-    async def async_step_user(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_user(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         errors: dict[str, str] = {}
         if user_input is not None:
             address = user_input[CONF_ADDRESS]
@@ -157,9 +155,7 @@ class XenoSaberConfigFlow(ConfigFlow, domain=DOMAIN):
 
 
 class XenoSaberOptionsFlow(OptionsFlow):
-    async def async_step_init(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_init(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         errors: dict[str, str] = {}
         if user_input is not None:
             errors = self._validate(user_input)

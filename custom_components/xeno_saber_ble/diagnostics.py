@@ -11,8 +11,9 @@ from homeassistant.core import HomeAssistant
 from . import XenoConfigEntry
 from .const import CONF_WLED_SOURCE, TESTED_FIRMWARE
 
-# The Bluetooth address identifies the user's saber; the WLED source is a LAN address.
-TO_REDACT = {"address", "unique_id", CONF_WLED_SOURCE}
+# The Bluetooth address identifies the user's saber, the source the adapter
+# (its MAC address) or proxy that heard it, and the WLED source is a LAN address.
+TO_REDACT = {"address", "unique_id", "source", CONF_WLED_SOURCE}
 
 
 async def async_get_config_entry_diagnostics(
@@ -20,9 +21,7 @@ async def async_get_config_entry_diagnostics(
 ) -> dict[str, Any]:
     saber = entry.runtime_data.saber
     sync = entry.runtime_data.sync
-    service_info = bluetooth.async_last_service_info(
-        hass, saber.address.upper(), connectable=True
-    )
+    service_info = bluetooth.async_last_service_info(hass, saber.address.upper(), connectable=True)
     return {
         "entry": async_redact_data(
             {
@@ -43,13 +42,16 @@ async def async_get_config_entry_diagnostics(
         },
         "bluetooth": None
         if service_info is None
-        else {
-            "name": service_info.name,
-            "rssi": service_info.rssi,
-            "source": service_info.source,
-            "connectable": service_info.connectable,
-            "service_uuids": service_info.service_uuids,
-        },
+        else async_redact_data(
+            {
+                "name": service_info.name,
+                "rssi": service_info.rssi,
+                "source": service_info.source,
+                "connectable": service_info.connectable,
+                "service_uuids": service_info.service_uuids,
+            },
+            TO_REDACT,
+        ),
         "color_sync": None
         if sync is None
         else {

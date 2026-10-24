@@ -81,11 +81,7 @@ def crc16_xmodem(data: bytes) -> int:
 
 def _frame(start: int, seq: int, payload: bytes) -> bytes:
     seq &= 0xFF
-    return (
-        bytes((start, seq, seq ^ 0xFF))
-        + payload
-        + crc16_xmodem(payload).to_bytes(2, "big")
-    )
+    return bytes((start, seq, seq ^ 0xFF)) + payload + crc16_xmodem(payload).to_bytes(2, "big")
 
 
 def transfer_command(direction: str, path: str) -> bytes:

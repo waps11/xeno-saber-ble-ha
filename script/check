@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+# Run what the CI runs, in the current Python environment, and stop at the
+# first failure:
+#
+#   pip install -r requirements_test.txt
+#   script/check            everything
+#   script/check --lint     ruff and mypy only
+#   script/check --tests    tests only (the CI runs them on several HA versions)
+#
+# Set HA_CORE to a checkout of home-assistant/core, and HA_CORE_PYTHON to a
+# Python with its requirements installed, to also run hassfest.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+lint=true
+tests=true
+case "${1:-}" in
+  --lint) tests=false ;;
+  --tests) lint=false ;;
+  "") ;;
+  *) echo "usage: $0 [--lint|--tests]" >&2; exit 2 ;;
+esac
+
+if $lint; then
+  echo "== ruff"
+  ruff check .
+  ruff format --check .
+
+  echo "== mypy (strict)"
+  mypy custom_components/xeno_saber_ble
+
+  if [[ -n "${HA_CORE:-}" ]]; then
+    echo "== hassfest"
+    integration="$PWD/custom_components/xeno_saber_ble"
+    (cd "$HA_CORE" && "${HA_CORE_PYTHON:-python3}" -m script.hassfest \
+      --action validate --integration-path "$integration")
+  else
+    echo "== hassfest skipped (set HA_CORE to run it)"
+  fi
+fi
+
+if $tests; then
+  echo "== protocol, BLE client and translation tests"
+  pytest tests/test_*.py -p no:homeassistant -q \
+    --cov=custom_components/xeno_saber_ble --cov-report=
+
+  echo "== Home Assistant integration tests"
+  pytest tests/ha -o asyncio_mode=auto -q \
+    --cov=custom_components/xeno_saber_ble --cov-append \
+    --cov-report=term-missing:skip-covered --cov-fail-under="${COV_FAIL_UNDER:-95}"
+fi
+
+echo "== all checks passed"

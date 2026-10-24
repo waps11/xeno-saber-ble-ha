@@ -1,0 +1,80 @@
+name: Bug report
+description: Something does not work with your saber.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. The saber's protocol is undocumented and can change
+        with any firmware, so the diagnostics file and the firmware version are
+        needed to look into a problem. Security issues: see SECURITY.md instead.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What happened
+      description: What you did, what you expected, and what happened instead.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Integration version
+      description: Settings → Devices & services → Xeno Saber BLE.
+      placeholder: "0.1.1"
+    validations:
+      required: true
+  - type: input
+    id: ha_version
+    attributes:
+      label: Home Assistant version
+      description: Settings → About.
+      placeholder: "2026.10.2"
+    validations:
+      required: true
+  - type: input
+    id: firmware
+    attributes:
+      label: Saber firmware version
+      description: >-
+        The device page shows it as the firmware, or the diagnostics file under
+        firmware → reported. Only DMN_XENO_B_SV1.4.0 has been tested.
+      placeholder: DMN_XENO_B_SV1.4.0
+    validations:
+      required: true
+  - type: dropdown
+    id: connection
+    attributes:
+      label: How Home Assistant reaches the saber
+      options:
+        - Home Assistant host's Bluetooth adapter
+        - ESPHome Bluetooth proxy
+        - Other or not sure
+    validations:
+      required: true
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Diagnostics file
+      description: >-
+        Device page → ⋮ → Download diagnostics, then drag the file here. The
+        Bluetooth addresses are redacted.
+      placeholder: Drop the .json file here.
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Debug logs
+      description: >-
+        Optional but useful: enable debug logging on the integration, reproduce
+        the problem, then disable it and attach the downloaded log.
+      render: text
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: The Xeno Configurator app was closed (the saber accepts one connection at a time).
+          required: true
+        - label: I use this integration with my own saber or with its owner's consent.
+          required: true

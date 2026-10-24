@@ -1,10 +1,51 @@
-# Lint settings matching Home Assistant's import layout.
-target-version = "py313"
+# Lint and format settings following Home Assistant core's (pyproject.toml).
+target-version = "py313"  # Python of the oldest supported Home Assistant (2026.2)
 line-length = 100
 
 [lint]
-select = ["E", "F", "W", "B", "I"]
-ignore = ["E501"]
+select = [
+  "ASYNC", # flake8-async
+  "BLE",   # blind except
+  "B",     # flake8-bugbear
+  "E",     # pycodestyle errors
+  "F",     # pyflakes
+  "I",     # isort
+  "PL",    # pylint
+  "RUF",   # ruff-specific
+  "SIM",   # flake8-simplify
+  "UP",    # pyupgrade
+  "W",     # pycodestyle warnings
+]
+# The same exceptions as Home Assistant core for these rule sets.
+ignore = [
+  "ASYNC109", # timeout parameter on async functions
+  "ASYNC110", # asyncio.sleep in a while loop
+  "ASYNC240", # file system access from async functions (done in the executor)
+  "B008",     # function calls in argument defaults (cv.* validators)
+  "E501",     # line length: left to the formatter
+  "PLC1901",  # empty-string comparisons
+  "PLR0911",  # too many returns
+  "PLR0912",  # too many branches
+  "PLR0913",  # too many arguments
+  "PLR0915",  # too many statements
+  "PLR0917",  # too many positional arguments
+  "PLR2004",  # magic values
+  "PLW0108",  # unnecessary lambda
+  "PLW2901",  # loop variable overwritten
+  "RUF001",   # ambiguous unicode characters
+  "RUF012",   # mutable class attributes without ClassVar
+  "RUF015",   # next(...) over single element slice
+  "RUF043",   # metacharacters in pytest.raises(match=...)
+  "SIM102",   # nested ifs
+  "SIM103",   # return the condition directly
+  "SIM108",   # ternary operator
+  "SIM115",   # context manager for opening files
+  "UP047",    # PEP 695 generic functions (needs Python 3.12 syntax everywhere)
+  "W191", "E111", "E114", "E117", # conflict with the formatter
+]
+
+[lint.per-file-ignores]
+"tests/**" = ["PLC0415"]  # imports inside test functions keep them independent
 
 [lint.isort]
 known-first-party = ["homeassistant"]

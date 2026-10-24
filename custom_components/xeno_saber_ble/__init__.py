@@ -75,9 +75,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: XenoConfigEntry) -> bool
     assert address is not None  # set by the config flow
     # A sleeping saber does not advertise. That is its normal state, not a
     # setup failure: set up now, unavailable, and connect when it wakes up.
-    ble_device = bluetooth.async_ble_device_from_address(
-        hass, address.upper(), connectable=True
-    )
+    ble_device = bluetooth.async_ble_device_from_address(hass, address.upper(), connectable=True)
     saber = XenoSaber(
         ble_device,
         idle_disconnect=entry.options.get(CONF_IDLE_DISCONNECT, DEFAULT_IDLE_DISCONNECT),
@@ -141,9 +139,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: XenoConfigEntry) -> bool
         )
     )
 
-    if not saber.idle_disconnect and ble_device is not None:
-        await _async_connect()  # on failure, retried when the saber advertises
-
     _async_setup_keepalive(hass, entry, saber)
     update_device_info = _device_info_updater(hass, entry, saber)
     entry.async_on_unload(saber.register_callback(update_device_info))
@@ -151,12 +146,18 @@ async def async_setup_entry(hass: HomeAssistant, entry: XenoConfigEntry) -> bool
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     update_device_info()  # versions from the initial state dump; warns on untested firmware
 
+    if not saber.idle_disconnect and ble_device is not None:
+        # In the background: a busy saber (phone app connected) can take several
+        # attempts, and entities already handle "unavailable until connected".
+        # On failure it is retried when the saber advertises.
+        entry.async_create_background_task(
+            hass, _async_connect(), f"xeno_saber_ble connect {address}"
+        )
+
     async def _async_stop(_event: Event) -> None:
         await saber.disconnect()
 
-    entry.async_on_unload(
-        hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, _async_stop)
-    )
+    entry.async_on_unload(hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, _async_stop))
     _async_sync_names(hass, entry, saber)
     entry.async_on_unload(entry.add_update_listener(_async_update_listener))
     return True
@@ -205,9 +206,7 @@ def _rename_entry(hass: HomeAssistant, entry: XenoConfigEntry, title: str) -> No
     hass.config_entries.async_update_entry(entry, title=title)
 
 
-def _async_setup_keepalive(
-    hass: HomeAssistant, entry: XenoConfigEntry, saber: XenoSaber
-) -> None:
+def _async_setup_keepalive(hass: HomeAssistant, entry: XenoConfigEntry, saber: XenoSaber) -> None:
     """Keep the saber awake if asked to, and say loudly that it drains the battery."""
     interval = int(entry.options.get(CONF_KEEPALIVE, DEFAULT_KEEPALIVE) or 0)
     issue_id = _keepalive_issue_id(entry)
@@ -238,9 +237,7 @@ def _async_setup_keepalive(
             hass, saber.keepalive(), f"{DOMAIN} keepalive {saber.address}"
         )
 
-    entry.async_on_unload(
-        async_track_time_interval(hass, _tick, timedelta(seconds=interval))
-    )
+    entry.async_on_unload(async_track_time_interval(hass, _tick, timedelta(seconds=interval)))
 
 
 def _find_device(

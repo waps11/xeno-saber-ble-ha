@@ -35,9 +35,16 @@ class FakeSaber:
 
     def __init__(self, with_handshake=True):
         self.state = {
-            "HardwareVersion": "XENO3", "SoftwareVersion": "1.0", "PowerOn": False,
-            "Power": 82, "Volume": 40, "Brightness": 100, "BackgroundColor": [0, 0, 255],
-            "CurrentSoundPackageNo": 2, "TotalSoundPackage": 34, "fontname": "Vader",
+            "HardwareVersion": "XENO3",
+            "SoftwareVersion": "1.0",
+            "PowerOn": False,
+            "Power": 82,
+            "Volume": 40,
+            "Brightness": 100,
+            "BackgroundColor": [0, 0, 255],
+            "CurrentSoundPackageNo": 2,
+            "TotalSoundPackage": 34,
+            "fontname": "Vader",
         }
         # GATT flags as reported by a real board (firmware DMN_XENO_B_SV1.4.0).
         chars = [_Char(p.DATA_CHAR_UUID, ["read", "write-without-response", "notify"])]
@@ -394,6 +401,7 @@ def test_mtu_lookup_is_best_effort(fake, monkeypatch):
             pass
 
     for cls in (Odd, NoMtu):
+
         async def establish(c, device, name, disconnected_callback=None, max_attempts=3, _cls=cls):
             return _cls()
 

@@ -10,10 +10,10 @@ from homeassistant.const import ATTR_ENTITY_ID, STATE_OFF, STATE_ON
 from homeassistant.core import HomeAssistant
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from test_device import FakeSaber  # noqa: E402
+from test_device import FakeSaber
 
-from custom_components.xeno_saber_ble import device as dev  # noqa: E402
-from custom_components.xeno_saber_ble.const import DOMAIN  # noqa: E402
+from custom_components.xeno_saber_ble import device as dev
+from custom_components.xeno_saber_ble.const import DOMAIN
 
 ADDR = "AA:BB:CC:DD:EE:FF"
 
@@ -43,7 +43,7 @@ async def _setup(hass: HomeAssistant):
         ),
     ):
         assert await hass.config_entries.async_setup(entry.entry_id)
-        await hass.async_block_till_done()
+        await hass.async_block_till_done(wait_background_tasks=True)  # initial connection
     return entry, holder
 
 
@@ -60,7 +60,8 @@ async def test_entities_and_commands(hass: HomeAssistant) -> None:
     assert hass.states.get("number.xeno3_volume").state in ("40", "40.0")
 
     await hass.services.async_call(
-        "light", "turn_on",
+        "light",
+        "turn_on",
         {ATTR_ENTITY_ID: "light.xeno3_blade", "rgb_color": [255, 0, 0], "brightness": 128},
         blocking=True,
     )
@@ -75,8 +76,10 @@ async def test_entities_and_commands(hass: HomeAssistant) -> None:
     assert blade.state == STATE_ON and tuple(blade.attributes["rgb_color"]) == (255, 0, 0)
 
     await hass.services.async_call(
-        "select", "select_option",
-        {ATTR_ENTITY_ID: "select.xeno3_sound_font", "option": "10"}, blocking=True,
+        "select",
+        "select_option",
+        {ATTR_ENTITY_ID: "select.xeno3_sound_font", "option": "10"},
+        blocking=True,
     )
     assert fw.writes[-1][1] == b'[2,{"CurrentSoundPackageNo":9}]'
 
@@ -128,8 +131,10 @@ async def test_command_failure_raises_translated_error(hass: HomeAssistant) -> N
     fw.write_gatt_char = broken_write
     with pytest.raises(HomeAssistantError) as exc_info:
         await hass.services.async_call(
-            "switch", "turn_on",
-            {ATTR_ENTITY_ID: "switch.xeno3_background_music"}, blocking=True,
+            "switch",
+            "turn_on",
+            {ATTR_ENTITY_ID: "switch.xeno3_background_music"},
+            blocking=True,
         )
     err = exc_info.value
     assert err.translation_domain == DOMAIN

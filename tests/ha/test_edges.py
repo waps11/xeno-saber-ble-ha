@@ -14,15 +14,15 @@ from homeassistant.core import HomeAssistant, State
 from homeassistant.exceptions import HomeAssistantError
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from test_ollec_parity import DATA, _sent, _setup  # noqa: E402
+from test_ollec_parity import DATA, _sent, _setup
 
 from custom_components.xeno_saber_ble import (
-    device as dev,  # noqa: E402
-    sync as sync_mod,  # noqa: E402
+    device as dev,
+    sync as sync_mod,
 )
-from custom_components.xeno_saber_ble.binary_sensor import XenoAuthorized  # noqa: E402
-from custom_components.xeno_saber_ble.const import CONF_WLED_UDP  # noqa: E402
-from custom_components.xeno_saber_ble.wled_udp import WledUdpHub  # noqa: E402
+from custom_components.xeno_saber_ble.binary_sensor import XenoAuthorized
+from custom_components.xeno_saber_ble.const import CONF_WLED_UDP
+from custom_components.xeno_saber_ble.wled_udp import WledUdpHub
 
 
 async def test_entities_handle_unknown_and_out_of_range_values(hass: HomeAssistant) -> None:
@@ -73,9 +73,10 @@ async def test_light_and_reconnect_failures_raise_translated_errors(hass: HomeAs
     async def unreachable(*args, **kwargs):
         raise dev.BleakError("Device not found")
 
-    with patch.object(dev, "establish_connection", unreachable), pytest.raises(
-        HomeAssistantError
-    ) as err:
+    with (
+        patch.object(dev, "establish_connection", unreachable),
+        pytest.raises(HomeAssistantError) as err,
+    ):
         await hass.services.async_call(
             "button", "press", {ATTR_ENTITY_ID: "button.xeno3_reconnect"}, blocking=True
         )
@@ -84,8 +85,9 @@ async def test_light_and_reconnect_failures_raise_translated_errors(hass: HomeAs
 
 
 def test_authorized_sensor_is_unknown_while_disconnected() -> None:
-    saber = SimpleNamespace(address="AA:BB:CC:DD:EE:FF", name="Xeno3", state={},
-                            is_connected=False, authorized=True)
+    saber = SimpleNamespace(
+        address="AA:BB:CC:DD:EE:FF", name="Xeno3", state={}, is_connected=False, authorized=True
+    )
     sensor = XenoAuthorized(saber)
     assert sensor.is_on is None
     saber.is_connected = True
@@ -97,9 +99,7 @@ async def test_sync_restore_with_busy_port_comes_back_off(
 ) -> None:
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as taken:
         taken.bind(("127.0.0.1", 0))
-        hass.data[sync_mod.WLED_HUB_KEY] = WledUdpHub(
-            port=taken.getsockname()[1], host="127.0.0.1"
-        )
+        hass.data[sync_mod.WLED_HUB_KEY] = WledUdpHub(port=taken.getsockname()[1], host="127.0.0.1")
         mock_restore_cache(hass, [State("switch.xeno3_color_sync", STATE_ON)])
         _entry, holder = await _setup(hass, {CONF_WLED_UDP: True})
         assert hass.states.get("switch.xeno3_color_sync").state == STATE_OFF
@@ -119,7 +119,9 @@ async def test_color_sync_unit_behaviour(hass: HomeAssistant) -> None:
         await none.async_enable()
 
     hass.states.async_set("light.lamp", STATE_OFF)
-    sync = sync_mod.ColorSync(hass, saber, follow_entity="light.lamp", wled_udp=False, wled_source=None)
+    sync = sync_mod.ColorSync(
+        hass, saber, follow_entity="light.lamp", wled_udp=False, wled_source=None
+    )
     await sync.async_enable()
     await sync.async_enable()  # already on: no second subscription
     assert sync.enabled

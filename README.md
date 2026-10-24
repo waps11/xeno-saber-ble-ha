@@ -99,6 +99,11 @@ handled by actions (*Developer tools → Actions*, or in scripts). Each takes
 the saber as a device (`device_id`): the picker shows the names you gave the
 devices.
 
+Only administrators can run the actions that read or write files on the Home
+Assistant host, change the saber's storage, or update its firmware or board
+configuration. `list_sound_fonts`, `list_sound_files` and `play_sound` are open
+to every user.
+
 Files on the Home Assistant host must be in a folder Home Assistant may read:
 `/media` works out of the box, other folders go in
 [`allowlist_external_dirs`](https://www.home-assistant.io/integrations/homeassistant/#allowlist_external_dirs).
@@ -230,9 +235,11 @@ keeps its state across restarts.
   WLED: *Settings → Sync Interfaces → Send notifications on change*). WLED
   brightness 0 turns the blade off. The port is only open while at least one
   saber has sync on, and one socket is shared by all sabers.
-  **These packets are not authenticated**: any device on your network can
-  drive the blade. Set *WLED source address* to the IPv4 address of your WLED
-  device to ignore everyone else.
+  **These packets are not authenticated**: the port listens on every network
+  interface (WLED broadcasts), so any device on your network can drive the
+  blade. Set *WLED source address* to the IPv4 address of your WLED device to
+  ignore everyone else; without it, Home Assistant logs a warning each time
+  sync starts.
 
 Solid colors sync reliably. Animated WLED effects are approximate: WLED only
 broadcasts its primary color when it changes, and each Bluetooth write takes
@@ -420,23 +427,35 @@ tests: `tests/test_translations.py` checks that every file matches the source.
 
 ```bash
 pip install -r requirements_test.txt
-# Protocol, BLE client and file transfer against a simulated saber, sound font
-# naming, WLED listener, translation files
-pytest tests/test_protocol.py tests/test_device.py tests/test_device_files.py \
-  tests/test_transfer.py tests/test_soundfont.py tests/test_wled_udp.py \
-  tests/test_translations.py -p no:homeassistant
-# Full integration inside a Home Assistant instance
-pytest tests/ha -o asyncio_mode=auto
-ruff check .
-mypy custom_components/xeno_saber_ble   # strict, same settings as Home Assistant core
+script/check            # what the CI runs: ruff, ruff format, strict mypy, all tests
+script/check --tests    # tests only
+pre-commit install      # optional: ruff, format and mypy on every commit
 ```
 
-GitHub Actions runs the same tests (coverage must stay above 95 %), Ruff,
-strict mypy, `hassfest` and the HACS validation on every push and pull request.
+The tests drive the protocol, the Bluetooth client and the file transfer
+against a simulated saber, then the whole integration inside a Home Assistant
+instance. GitHub Actions runs them on the oldest supported Home Assistant
+(2026.2, Python 3.13, `requirements_test_min.txt`) and the newest
+(`requirements_test.txt`, coverage above 95 %), plus Ruff, strict mypy,
+`hassfest` and the HACS validation, on every push and pull request.
 `custom_components/xeno_saber_ble/quality_scale.yaml` records how each rule of
 Home Assistant's
 [Integration Quality Scale](https://developers.home-assistant.io/docs/core/integration-quality-scale/)
 is met (target: Platinum).
+
+## Releases
+
+Releases are built by the *Release* workflow from `main`: it runs the tests and
+validation, builds `xeno_saber_ble-<version>.zip` and publishes it with a
+[build provenance attestation](https://docs.github.com/actions/security-for-github-actions/using-artifact-attestations).
+To check that a downloaded zip was built from this repository:
+
+```bash
+gh attestation verify xeno_saber_ble-0.1.1.zip --repo waps11/xeno-saber-ble-ha
+```
+
+Changes are listed in [CHANGELOG.md](CHANGELOG.md). To report a security
+issue, see [SECURITY.md](SECURITY.md).
 
 ## Credits
 

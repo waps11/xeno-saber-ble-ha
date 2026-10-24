@@ -65,11 +65,34 @@ FILE_TRANSFER = "FileTransfer"  # ["download"|"upload", path], seen from the sab
 
 # Sound types in the order the saber reports their index ranges for `ls "/<n>"`.
 SOUND_TYPES = (
-    "begindrag", "beginlock", "beginmelt", "beginlightningblock", "blaster",
-    "clash", "drag", "enddrag", "endlock", "endmelt", "endlightningblock",
-    "font", "force", "hum", "in", "lock", "lightningblock", "melt", "out",
-    "spin", "stab", "postoff", "preon", "sideout", "swing", "swingh",
-    "swingl", "track",
+    "begindrag",
+    "beginlock",
+    "beginmelt",
+    "beginlightningblock",
+    "blaster",
+    "clash",
+    "drag",
+    "enddrag",
+    "endlock",
+    "endmelt",
+    "endlightningblock",
+    "font",
+    "force",
+    "hum",
+    "in",
+    "lock",
+    "lightningblock",
+    "melt",
+    "out",
+    "spin",
+    "stab",
+    "postoff",
+    "preon",
+    "sideout",
+    "swing",
+    "swingh",
+    "swingl",
+    "track",
 )
 
 _MAX_BUFFER = 8192
@@ -135,7 +158,7 @@ def sound_file_name(sound_type: str, index: int) -> str:
     return f"{sound_type} ({index}).wav"
 
 
-_SOUND_FILE = re.compile(r"^(%s) \((\d+)\)\.wav$" % "|".join(SOUND_TYPES))
+_SOUND_FILE = re.compile(r"^({}) \((\d+)\)\.wav$".format("|".join(SOUND_TYPES)))
 
 
 def parse_sound_file_name(name: str) -> tuple[str, int] | None:
@@ -261,7 +284,7 @@ class MessageAssembler:
                 if restart is None:
                     break  # incomplete, wait for more data
                 _LOGGER.debug("Dropping unparsable data: %r", self._buf[: restart.start()][:64])
-                self._buf = self._buf[restart.start():]
+                self._buf = self._buf[restart.start() :]
                 continue
             self._buf = self._buf[end:]
             msg = _validate(obj)

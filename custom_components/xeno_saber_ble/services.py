@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Awaitable, Callable, Coroutine
+import hashlib
 import json
 import logging
 from pathlib import Path
@@ -26,6 +27,7 @@ from homeassistant.core import (
 )
 from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 from homeassistant.helpers import config_validation as cv, device_registry as dr
+from homeassistant.helpers.service import async_register_admin_service
 
 from . import protocol as p, soundfont
 from .const import DOMAIN
@@ -111,7 +113,11 @@ _BLADE_TYPE = vol.In([t.lower() for t in p.BLADE_TYPES])
 
 SCHEMAS: dict[str, vol.Schema] = {
     SERVICE_UPLOAD_FILE: vol.Schema(
-        {**_ENTRY, vol.Required(ATTR_SOURCE): cv.string, vol.Required(ATTR_DESTINATION): _saber_path}
+        {
+            **_ENTRY,
+            vol.Required(ATTR_SOURCE): cv.string,
+            vol.Required(ATTR_DESTINATION): _saber_path,
+        }
     ),
     SERVICE_DOWNLOAD_FILE: vol.Schema(
         {
@@ -188,7 +194,11 @@ SCHEMAS: dict[str, vol.Schema] = {
         }
     ),
     SERVICE_COPY_FILE: vol.Schema(
-        {**_ENTRY, vol.Required(ATTR_SOURCE): _saber_path, vol.Required(ATTR_DESTINATION): _saber_path}
+        {
+            **_ENTRY,
+            vol.Required(ATTR_SOURCE): _saber_path,
+            vol.Required(ATTR_DESTINATION): _saber_path,
+        }
     ),
     SERVICE_PLAY_SOUND: vol.Schema({**_ENTRY, vol.Optional(ATTR_PATH): _saber_path}),
     SERVICE_UPDATE_FIRMWARE: vol.Schema(
@@ -259,7 +269,9 @@ async def _local_path(hass: HomeAssistant, raw: str, *, kind: str) -> Path:
             return "file_not_found"
         if kind == "dir" and not path.is_dir():
             return "folder_not_found"
-        if kind == "font" and not (path.is_dir() or path.suffix.lower() == ".zip" and path.is_file()):
+        if kind == "font" and not (
+            path.is_dir() or (path.suffix.lower() == ".zip" and path.is_file())
+        ):
             return "folder_not_found"
         if kind == "new" and not path.parent.is_dir():
             return "folder_not_found"
@@ -367,9 +379,7 @@ async def _list_sound_files(hass: HomeAssistant, call: ServiceCall) -> ServiceRe
     return {
         "font": font,
         "sounds": {
-            sound_type: [
-                p.sound_file_name(sound_type, i) for i in range(low, high + 1)
-            ]
+            sound_type: [p.sound_file_name(sound_type, i) for i in range(low, high + 1)]
             for sound_type, (low, high) in ranges.items()
         },
     }
@@ -485,7 +495,10 @@ async def _upload_font_folder(
     await _require_space(saber, size)
     _LOGGER.info(
         "Uploading %d sound files (%d kB) to font %d of %s; this takes a while",
-        len(plan), size // 1024, font, saber.name,
+        len(plan),
+        size // 1024,
+        font,
+        saber.name,
     )
     with saber.batch_progress(len(plan)):
         for item in plan:
@@ -579,7 +592,8 @@ async def _backup_saber(hass: HomeAssistant, call: ServiceCall) -> ServiceRespon
     for font in wanted:
         if font not in fonts:
             raise _invalid(
-                "font_not_found", font=font,
+                "font_not_found",
+                font=font,
                 available=", ".join(str(n) for n in sorted(fonts)) or "-",
                 next=_next_font(fonts),
             )
@@ -597,7 +611,9 @@ async def _backup_saber(hass: HomeAssistant, call: ServiceCall) -> ServiceRespon
 
     _LOGGER.info(
         "Backing up %s: %d files (about %d MB on the saber); this can take hours",
-        saber.name, len(plan), used,
+        saber.name,
+        len(plan),
+        used,
     )
     started = time.monotonic()
     partial = destination.with_name(destination.name + ".part")
@@ -649,7 +665,8 @@ async def _backup_saber(hass: HomeAssistant, call: ServiceCall) -> ServiceRespon
                 },
                 "fonts": {str(n): fonts.get(n) for n in wanted},
                 "settings": {
-                    k: v for k, v in saber.state.items()
+                    k: v
+                    for k, v in saber.state.items()
                     if k not in (p.AUTHORIZE_KEY, p.KEY_BATTERY)
                 },
                 "files": stored,
@@ -657,7 +674,9 @@ async def _backup_saber(hass: HomeAssistant, call: ServiceCall) -> ServiceRespon
                 "system_sounds_skipped": skipped_system,
             }
             await hass.async_add_executor_job(
-                archive.writestr, BACKUP_MANIFEST, json.dumps(manifest, indent=2, ensure_ascii=False)
+                archive.writestr,
+                BACKUP_MANIFEST,
+                json.dumps(manifest, indent=2, ensure_ascii=False),
             )
         await hass.async_add_executor_job(archive.close)
         await hass.async_add_executor_job(partial.replace, destination)
@@ -695,7 +714,8 @@ async def _restore_backup(hass: HomeAssistant, call: ServiceCall) -> ServiceResp
     for font in wanted:
         if font not in index.fonts:
             raise _invalid(
-                "font_not_in_backup", font=font,
+                "font_not_in_backup",
+                font=font,
                 available=", ".join(str(n) for n in sorted(index.fonts)) or "-",
             )
     settings = index.settings if call.data[ATTR_SETTINGS] else []
@@ -715,7 +735,8 @@ async def _restore_backup(hass: HomeAssistant, call: ServiceCall) -> ServiceResp
         if font not in existing:
             if font != _next_font({n: None for n in existing}):
                 raise _invalid(
-                    "font_not_found", font=font,
+                    "font_not_found",
+                    font=font,
                     available=", ".join(str(n) for n in sorted(existing)) or "-",
                     next=_next_font({n: None for n in existing}),
                 )
@@ -755,7 +776,12 @@ async def _restore_backup(hass: HomeAssistant, call: ServiceCall) -> ServiceResp
     total = len(system) + len(settings) + sum(len(index.fonts[f]) for f in wanted)
     _LOGGER.warning(
         "Restoring %s onto %s: %d fonts, %d settings files, %d system sounds (%d files)",
-        source.name, saber.name, len(wanted), len(settings), len(system), total,
+        source.name,
+        saber.name,
+        len(wanted),
+        len(settings),
+        len(system),
+        total,
     )
     try:
         with saber.batch_progress(total):
@@ -852,15 +878,24 @@ async def _update_firmware(hass: HomeAssistant, call: ServiceCall) -> ServiceRes
     if battery is not None and battery < FIRMWARE_MIN_BATTERY:
         raise _invalid("battery_too_low", level=battery, minimum=FIRMWARE_MIN_BATTERY)
     current = saber.state.get(p.KEY_SW_VERSION)
+    # The vendor's firmware is not signed: nothing can check it, but the hash
+    # records exactly which file was sent.
+    sha256 = await hass.async_add_executor_job(lambda: hashlib.sha256(data).hexdigest())
     _LOGGER.warning(
-        "Sending firmware %s (%s, %d bytes) to %s (currently %s). Keep it close "
-        "and powered until it restarts; later firmware may not work with this "
-        "integration",
-        source.name, detected or "version not found in file", len(data), saber.name, current,
+        "Sending firmware %s (%s, %d bytes, SHA-256 %s) to %s (currently %s). Keep "
+        "it close and powered until it restarts; later firmware may not work with "
+        "this integration",
+        source.name,
+        detected or "version not found in file",
+        len(data),
+        sha256,
+        saber.name,
+        current,
     )
     await _on_saber(saber.send_file(FIRMWARE_PATH, data, header_name=FIRMWARE_PATH))
     return {
         "bytes": len(data),
+        "sha256": sha256,
         "previous_version": current,
         "detected_version": detected,
     }
@@ -917,6 +952,13 @@ HANDLERS: dict[str, tuple[_Handler, SupportsResponse]] = {
     SERVICE_SET_HARDWARE_TYPE: (_set_hardware_type, SupportsResponse.OPTIONAL),
 }
 
+# Open to every user: they only read the saber or play a sound. Everything
+# else reads or writes files on the Home Assistant host, changes the saber's
+# storage, firmware or board configuration, and needs an administrator.
+PUBLIC_SERVICES = frozenset(
+    {SERVICE_LIST_SOUND_FONTS, SERVICE_LIST_SOUND_FILES, SERVICE_PLAY_SOUND}
+)
+
 
 def async_setup_services(hass: HomeAssistant) -> None:
     """Register the integration's actions (once, not per saber)."""
@@ -925,6 +967,11 @@ def async_setup_services(hass: HomeAssistant) -> None:
         async def _call(call: ServiceCall, handler: _Handler = handler) -> ServiceResponse:
             return await handler(hass, call)
 
-        hass.services.async_register(
-            DOMAIN, name, _call, schema=SCHEMAS[name], supports_response=supports_response
-        )
+        if name in PUBLIC_SERVICES:
+            hass.services.async_register(
+                DOMAIN, name, _call, schema=SCHEMAS[name], supports_response=supports_response
+            )
+        else:
+            async_register_admin_service(
+                hass, DOMAIN, name, _call, schema=SCHEMAS[name], supports_response=supports_response
+            )

@@ -29,9 +29,7 @@ establish_connection: EstablishConnection | None = (
     _retry_connector.establish_connection if _retry_connector is not None else None
 )
 BleakClientWithServiceCache: type[BleakClient] = (
-    _retry_connector.BleakClientWithServiceCache
-    if _retry_connector is not None
-    else BleakClient
+    _retry_connector.BleakClientWithServiceCache if _retry_connector is not None else BleakClient
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -189,7 +187,7 @@ class XenoSaber:
         for callback in list(self._listeners):
             try:
                 callback()
-            except Exception:  # noqa: BLE001
+            except Exception:
                 _LOGGER.exception("Error in Xeno Saber BLE listener")
 
     # ------------------------------------------------------------- connection
@@ -216,7 +214,10 @@ class XenoSaber:
                 last_err = err
                 _LOGGER.debug(
                     "%s: attempt %d/%d failed: %s",
-                    self.address, attempt, SESSION_ATTEMPTS, err,
+                    self.address,
+                    attempt,
+                    SESSION_ATTEMPTS,
+                    err,
                 )
                 if attempt < SESSION_ATTEMPTS:
                     await asyncio.sleep(RETRY_DELAY)
@@ -233,7 +234,7 @@ class XenoSaber:
         try:
             async with _connect_lock():
                 client = await self._establish()
-        except (BleakError, asyncio.TimeoutError) as err:
+        except (TimeoutError, BleakError) as err:
             raise XenoSaberUnreachable(f"Connection failed: {err}") from err
 
         self._client = client
@@ -262,7 +263,7 @@ class XenoSaber:
         handshake = asyncio.ensure_future(self._handshake_event.wait())
         dropped = asyncio.ensure_future(self._disconnected_event.wait())
         try:
-            done, _ = await asyncio.wait(
+            await asyncio.wait(
                 {handshake, dropped},
                 timeout=HANDSHAKE_TIMEOUT,
                 return_when=asyncio.FIRST_COMPLETED,
@@ -290,7 +291,7 @@ class XenoSaber:
                 return None
         try:
             return client.mtu_size
-        except Exception:  # noqa: BLE001
+        except Exception:  # noqa: BLE001 - not every backend reports it
             return None
 
     async def _setup_session(self, client: BleakClient) -> None:
@@ -309,7 +310,7 @@ class XenoSaber:
             await client.start_notify(p.DATA_CHAR_UUID, self._on_data_notify)
             await self._write(client, p.DATA_CHAR_UUID, p.authorize_message())
             raw = await client.read_gatt_char(p.DATA_CHAR_UUID)
-        except (BleakError, asyncio.TimeoutError) as err:
+        except (TimeoutError, BleakError) as err:
             raise XenoSaberError(f"Session setup failed: {err}") from err
 
         self._assembler.reset()
@@ -325,9 +326,7 @@ class XenoSaber:
                 self.address,
                 self.state.get(p.AUTHORIZE_KEY),
             )
-        _LOGGER.debug(
-            "%s: session ready (mtu=%s)", self.address, await self._resolve_mtu(client)
-        )
+        _LOGGER.debug("%s: session ready (mtu=%s)", self.address, await self._resolve_mtu(client))
         await asyncio.sleep(STATE_SETTLE)  # let the initial state dump arrive
         if self._unavailable_logged:
             _LOGGER.info("%s: connection restored", self.address)
@@ -344,10 +343,8 @@ class XenoSaber:
         if client is None:
             return
         self._expected_disconnect = True
-        try:
+        with contextlib.suppress(BleakError):
             await client.disconnect()
-        except BleakError:
-            pass
 
     def _on_disconnect(self, client: BleakClient) -> None:
         # Ignore late callbacks from a client we already replaced (retries).
@@ -472,7 +469,7 @@ class XenoSaber:
             assert self._client is not None
             try:
                 await self._write(self._client, p.DATA_CHAR_UUID, data)
-            except (BleakError, asyncio.TimeoutError) as err:
+            except (TimeoutError, BleakError) as err:
                 await self._disconnect_client()
                 raise XenoSaberError(f"Write failed: {err}") from err
             if key is not None:
@@ -512,7 +509,7 @@ class XenoSaber:
                 await self._write(
                     self._client, p.DATA_CHAR_UUID, p.encode_command(p.KEY_BRIGHTNESS, value)
                 )
-            except (BleakError, asyncio.TimeoutError) as err:
+            except (TimeoutError, BleakError) as err:
                 _LOGGER.debug("%s: keepalive failed: %s", self.address, err)
                 return False
             return True
@@ -551,9 +548,7 @@ class XenoSaber:
         return None
 
     # ----------------------------------------------------------- file system
-    async def file_command(
-        self, key: str, value: Any, timeout: float | None = None
-    ) -> Any:
+    async def file_command(self, key: str, value: Any, timeout: float | None = None) -> Any:
         """Send a file-system command and return the saber's reply for ``key``."""
         wait = REPLY_TIMEOUT if timeout is None else timeout
         queue: asyncio.Queue[Any] = asyncio.Queue()
@@ -592,8 +587,8 @@ class XenoSaber:
                     break
                 if parsed is not None and parsed[0] in fonts:
                     fonts[parsed[0]] = parsed[1]
-            for number in fonts:
-                if fonts[number] is None:
+            for number, name in fonts.items():
+                if name is None:
                     fonts[number] = self.font_names.get(number)
             # The active font's name is in the state; its index is 0-based.
             active, name = self.state.get(p.KEY_FONT), self.state.get(p.KEY_FONT_NAME)
@@ -621,15 +616,17 @@ class XenoSaber:
         return int(reply[0]), int(reply[1])
 
     # --------------------------------------------------------- file transfer
-    async def send_file(
-        self, path: str, data: bytes, *, header_name: str | None = None
-    ) -> None:
+    async def send_file(self, path: str, data: bytes, *, header_name: str | None = None) -> None:
         """Write ``data`` to ``path`` on the saber (sound file, config, firmware)."""
 
         async def run(send: t.Send, receive: t.Receive, status: TransferStatus) -> None:
             await t.send_file(
-                send, receive, path, data,
-                header_name=header_name, progress=self._progress_updater(status),
+                send,
+                receive,
+                path,
+                data,
+                header_name=header_name,
+                progress=self._progress_updater(status),
             )
 
         await self._run_transfer(TransferStatus(t.TO_SABER, path, 0, len(data)), run)
@@ -641,8 +638,11 @@ class XenoSaber:
         async def run(send: t.Send, receive: t.Receive, status: TransferStatus) -> None:
             result.extend(
                 await t.receive_file(
-                    send, receive, path,
-                    progress=self._progress_updater(status), attempts=attempts,
+                    send,
+                    receive,
+                    path,
+                    progress=self._progress_updater(status),
+                    attempts=attempts,
                 )
             )
 

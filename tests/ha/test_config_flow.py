@@ -12,10 +12,10 @@ from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from test_device import FakeSaber  # noqa: E402
+from test_device import FakeSaber
 
-from custom_components.xeno_saber_ble import device as dev  # noqa: E402
-from custom_components.xeno_saber_ble.const import DOMAIN  # noqa: E402
+from custom_components.xeno_saber_ble import device as dev
+from custom_components.xeno_saber_ble.const import DOMAIN
 
 ADDR = "AA:BB:CC:DD:EE:FF"
 OTHER = "11:22:33:44:55:66"
@@ -110,9 +110,7 @@ async def test_bluetooth_discovery_aborts_when_already_configured(
     assert result["reason"] == "already_configured"
 
 
-async def test_bluetooth_title_falls_back_to_address(
-    hass: HomeAssistant, saber_link
-) -> None:
+async def test_bluetooth_title_falls_back_to_address(hass: HomeAssistant, saber_link) -> None:
     result = await hass.config_entries.flow.async_init(
         DOMAIN, context={"source": SOURCE_BLUETOOTH}, data=_info(name=None)
     )
@@ -140,17 +138,13 @@ async def test_user_flow_lists_only_new_sabers_and_creates_entry(
         _info("99:99:99:99:99:99", "Already added"),
     )
     with _discovered(*infos):
-        result = await hass.config_entries.flow.async_init(
-            DOMAIN, context={"source": SOURCE_USER}
-        )
+        result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": SOURCE_USER})
     assert result["type"] is FlowResultType.FORM
     assert result["step_id"] == "user"
     choices = result["data_schema"].schema["address"].container
     assert set(choices) == {ADDR, OTHER}
 
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"], {"address": OTHER}
-    )
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], {"address": OTHER})
     await hass.async_block_till_done()
     assert result["type"] is FlowResultType.CREATE_ENTRY
     # Every board advertises "Saber": the end of the address tells them apart.
@@ -158,13 +152,9 @@ async def test_user_flow_lists_only_new_sabers_and_creates_entry(
     assert result["result"].unique_id == OTHER
 
 
-async def test_user_flow_cannot_connect_shows_error(
-    hass: HomeAssistant, saber_link
-) -> None:
+async def test_user_flow_cannot_connect_shows_error(hass: HomeAssistant, saber_link) -> None:
     with _discovered(_info()):
-        result = await hass.config_entries.flow.async_init(
-            DOMAIN, context={"source": SOURCE_USER}
-        )
+        result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": SOURCE_USER})
         saber_link["fail"] = True
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], {"address": ADDR}
@@ -180,27 +170,17 @@ async def test_user_flow_cannot_connect_shows_error(
     assert result["type"] is FlowResultType.CREATE_ENTRY
 
 
-async def test_user_flow_aborts_when_nothing_found(
-    hass: HomeAssistant, saber_link
-) -> None:
+async def test_user_flow_aborts_when_nothing_found(hass: HomeAssistant, saber_link) -> None:
     with _discovered(_info("22:22:22:22:22:22", "Phone", uuids=())):
-        result = await hass.config_entries.flow.async_init(
-            DOMAIN, context={"source": SOURCE_USER}
-        )
+        result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": SOURCE_USER})
     assert result["type"] is FlowResultType.ABORT
     assert result["reason"] == "no_devices_found"
 
 
-async def test_user_flow_aborts_if_configured_meanwhile(
-    hass: HomeAssistant, saber_link
-) -> None:
+async def test_user_flow_aborts_if_configured_meanwhile(hass: HomeAssistant, saber_link) -> None:
     with _discovered(_info()):
-        result = await hass.config_entries.flow.async_init(
-            DOMAIN, context={"source": SOURCE_USER}
-        )
+        result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": SOURCE_USER})
     MockConfigEntry(domain=DOMAIN, unique_id=ADDR).add_to_hass(hass)
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"], {"address": ADDR}
-    )
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], {"address": ADDR})
     assert result["type"] is FlowResultType.ABORT
     assert result["reason"] == "already_configured"

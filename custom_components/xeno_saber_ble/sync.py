@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import Callable
+import contextlib
 from dataclasses import dataclass
 import logging
 
@@ -132,15 +133,23 @@ class ColorSync:
         if self.wled_udp:
             try:
                 self._unsubs.append(
-                    await wled_hub(self._hass).add_listener(
-                        self._on_wled, self.wled_source
-                    )
+                    await wled_hub(self._hass).add_listener(self._on_wled, self.wled_source)
                 )
                 started = True
+                if not self.wled_source:
+                    _LOGGER.warning(
+                        "%s: following WLED sync packets from any device on the "
+                        "network (UDP %s, not authenticated); set a WLED source "
+                        "address in the options to accept only your WLED",
+                        self._saber.name,
+                        wled_hub(self._hass).port,
+                    )
             except OSError as err:
                 _LOGGER.warning(
                     "%s: cannot listen for WLED sync on UDP port %s: %s",
-                    self._saber.address, wled_hub(self._hass).port, err,
+                    self._saber.address,
+                    wled_hub(self._hass).port,
+                    err,
                 )
                 if not started:
                     raise SyncSourceError(str(err)) from err
@@ -164,10 +173,8 @@ class ColorSync:
         await self.async_disable()
         if self._task is not None and not self._task.done():
             self._task.cancel()
-            try:
+            with contextlib.suppress(asyncio.CancelledError):
                 await self._task
-            except asyncio.CancelledError:
-                pass
 
     # ------------------------------------------------------------- sources
     @callback
@@ -212,7 +219,9 @@ class ColorSync:
             except XenoSaberUnreachable as err:
                 self._retry_at = self._hass.loop.time() + UNREACHABLE_BACKOFF
                 self._pending = None
-                _LOGGER.debug("%s: colour sync paused, saber unreachable: %s", self._saber.address, err)
+                _LOGGER.debug(
+                    "%s: colour sync paused, saber unreachable: %s", self._saber.address, err
+                )
                 return
             except XenoSaberError as err:
                 # Saber asleep or out of range: drop this update, keep listening.
@@ -228,10 +237,7 @@ class ColorSync:
             return
         if target.rgb is not None and saber.color != target.rgb:
             await saber.set_color(*target.rgb)
-        if (
-            target.brightness is not None
-            and saber.state.get(p.KEY_BRIGHTNESS) != target.brightness
-        ):
+        if target.brightness is not None and saber.state.get(p.KEY_BRIGHTNESS) != target.brightness:
             await saber.send(p.KEY_BRIGHTNESS, target.brightness)
         if saber.blade_on is not True:
             await saber.set_blade(True)

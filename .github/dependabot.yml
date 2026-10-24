@@ -1,0 +1,21 @@
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ["*"]
+
+  - package-ecosystem: pip
+    directory: /
+    # The oldest supported Home Assistant stays pinned.
+    exclude-paths:
+      - requirements_test_min.txt
+    schedule:
+      interval: weekly
+    groups:
+      # The plugin and the bluetooth requirements must move together.
+      test-dependencies:
+        patterns: ["*"]

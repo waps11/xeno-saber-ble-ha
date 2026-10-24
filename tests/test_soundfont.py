@@ -30,7 +30,13 @@ def targets(plan) -> list[tuple[str, str]]:
 
 
 def test_xeno_pack_keeps_its_names(tmp_path: Path) -> None:
-    for name in ("hum (1).wav", "clash (2).wav", "clash (1).wav", "swingh (1).wav", "swing (1).wav"):
+    for name in (
+        "hum (1).wav",
+        "clash (2).wav",
+        "clash (1).wav",
+        "swingh (1).wav",
+        "swing (1).wav",
+    ):
         wav(tmp_path / name)
     plan, skipped = sf.plan_font(tmp_path)
     assert skipped == []
@@ -44,9 +50,24 @@ def test_xeno_pack_keeps_its_names(tmp_path: Path) -> None:
 
 
 def test_numbered_and_aliased_names_are_renumbered_without_gaps(tmp_path: Path) -> None:
-    for name in ("Clash03.WAV", "clash1.wav", "clash_10.wav", "poweron.wav", "pwroff2.wav",
-                 "blst01.wav", "bgnlock.wav", "font.wav", "readme.wav", "notes.txt", ".hidden.wav"):
-        (wav(tmp_path / name) if name.lower().endswith(".wav") else (tmp_path / name).write_text("x"))
+    for name in (
+        "Clash03.WAV",
+        "clash1.wav",
+        "clash_10.wav",
+        "poweron.wav",
+        "pwroff2.wav",
+        "blst01.wav",
+        "bgnlock.wav",
+        "font.wav",
+        "readme.wav",
+        "notes.txt",
+        ".hidden.wav",
+    ):
+        (
+            wav(tmp_path / name)
+            if name.lower().endswith(".wav")
+            else (tmp_path / name).write_text("x")
+        )
     plan, skipped = sf.plan_font(tmp_path)
     assert skipped == ["readme.wav"]
     assert targets(plan) == [
@@ -71,7 +92,11 @@ def test_proffie_layout_reads_type_folders(tmp_path: Path) -> None:
     plan, skipped = sf.plan_font(tmp_path)
     assert skipped == ["extras/whatever.wav"]
     assert [i.target_name for i in plan] == [
-        "clash (1).wav", "clash (2).wav", "hum (1).wav", "swingl (1).wav", "swingl (2).wav",
+        "clash (1).wav",
+        "clash (2).wav",
+        "hum (1).wav",
+        "swingl (1).wav",
+        "swingl (2).wav",
     ]
     assert plan[0].source.name == "clsh01.wav"
 
@@ -92,7 +117,10 @@ def test_leftovers_lists_old_files_not_overwritten(tmp_path: Path) -> None:
     plan, _ = sf.plan_font(tmp_path)
     old = {"clash": (1, 4), "hum": (1, 1), "lock": (1, 2)}
     assert sf.leftovers(old, plan) == [
-        "clash (3).wav", "clash (4).wav", "lock (1).wav", "lock (2).wav",
+        "clash (3).wav",
+        "clash (4).wav",
+        "lock (1).wav",
+        "lock (2).wav",
     ]
     assert sf.leftovers({}, plan) == []
 
@@ -117,16 +145,20 @@ def _zip(path: Path, entries: dict[str, bytes]) -> Path:
 
 def test_extract_wavs_keeps_only_safe_wav_files(tmp_path: Path) -> None:
     good = wav(tmp_path / "src" / "hum.wav").read_bytes()
-    archive = _zip(tmp_path / "font.zip", {
-        "My Font/hum.wav": good,
-        "My Font/clsh/clsh01.wav": good,
-        "My Font/config.txt": b"x",
-        "__MACOSX/My Font/._hum.wav": b"junk",
-    })
+    archive = _zip(
+        tmp_path / "font.zip",
+        {
+            "My Font/hum.wav": good,
+            "My Font/clsh/clsh01.wav": good,
+            "My Font/config.txt": b"x",
+            "__MACOSX/My Font/._hum.wav": b"junk",
+        },
+    )
     out = tmp_path / "out"
     sf.extract_wavs(archive, out)
     assert sorted(p.relative_to(out).as_posix() for p in out.rglob("*.wav")) == [
-        "My Font/clsh/clsh01.wav", "My Font/hum.wav",
+        "My Font/clsh/clsh01.wav",
+        "My Font/hum.wav",
     ]
     root = sf.font_root(out)
     assert root == out / "My Font"
@@ -180,9 +212,18 @@ def test_read_backup(tmp_path: Path) -> None:
 
     archive = tmp_path / "b.zip"
     with zipfile.ZipFile(archive, "w") as zf:
-        for name in ("2/swing (1).wav", "2/clash (2).wav", "2/clash (1).wav", "2/hum (1).wav",
-                     "setting/config.ini", "setting/customfunction.diy", "setting/ready.wav",
-                     "2/notes.txt", "__MACOSX/2/._hum (1).wav", "setting/other.ini"):
+        for name in (
+            "2/swing (1).wav",
+            "2/clash (2).wav",
+            "2/clash (1).wav",
+            "2/hum (1).wav",
+            "setting/config.ini",
+            "setting/customfunction.diy",
+            "setting/ready.wav",
+            "2/notes.txt",
+            "__MACOSX/2/._hum (1).wav",
+            "setting/other.ini",
+        ):
             zf.writestr(name, b"x")
         zf.writestr(sf.BACKUP_MANIFEST, json.dumps({"fonts": {"2": "Luke"}}))
     index = sf.read_backup(archive)

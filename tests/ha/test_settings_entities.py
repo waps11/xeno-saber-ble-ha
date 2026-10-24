@@ -8,21 +8,40 @@ from homeassistant.const import ATTR_ENTITY_ID, STATE_OFF, STATE_UNAVAILABLE
 from homeassistant.core import HomeAssistant
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from test_ollec_parity import DATA, _sent, _setup  # noqa: E402
+from test_ollec_parity import DATA, _sent, _setup
 
-from custom_components.xeno_saber_ble.device import TransferStatus  # noqa: E402
-from custom_components.xeno_saber_ble.number import NUMBERS, XenoNumber  # noqa: E402
-from custom_components.xeno_saber_ble.sensor import XenoFileTransfer  # noqa: E402
+from custom_components.xeno_saber_ble.device import TransferStatus
+from custom_components.xeno_saber_ble.number import NUMBERS, XenoNumber
+from custom_components.xeno_saber_ble.sensor import XenoFileTransfer
 
 # What a real saber reports (firmware DMN_XENO_B_SV1.4.0), beyond FakeSaber's basics.
 REPORTED = {
-    "AwakenTime": 1000, "SleepTime": 10000, "IdleSleepTime": 5, "OnTime": 200,
-    "OffTime": 1000, "ClashSensitivity": 13, "SwingSensitivity": 400,
-    "TwistSensitivity": 220, "PushSensitivity": 18, "PullSensitivity": 13,
-    "SwingSoundSensitivity": 4, "ClashOn": True, "Countdown": False, "TorchMode": False,
-    "PullPushSwitchOn": True, "HardwareType": "RGB", "SoftwareType": "Pixel", "ButtonNum": 1,
-    "CurrentBlaster": 0, "TotalBlaster": 1, "CurrentPostOff": 0, "TotalPostOff": 0,
-    "CurrentMode": 0, "TotalMode": 1, "MainBlade": False, "SideBlade": False,
+    "AwakenTime": 1000,
+    "SleepTime": 10000,
+    "IdleSleepTime": 5,
+    "OnTime": 200,
+    "OffTime": 1000,
+    "ClashSensitivity": 13,
+    "SwingSensitivity": 400,
+    "TwistSensitivity": 220,
+    "PushSensitivity": 18,
+    "PullSensitivity": 13,
+    "SwingSoundSensitivity": 4,
+    "ClashOn": True,
+    "Countdown": False,
+    "TorchMode": False,
+    "PullPushSwitchOn": True,
+    "HardwareType": "RGB",
+    "SoftwareType": "Pixel",
+    "ButtonNum": 1,
+    "CurrentBlaster": 0,
+    "TotalBlaster": 1,
+    "CurrentPostOff": 0,
+    "TotalPostOff": 0,
+    "CurrentMode": 0,
+    "TotalMode": 1,
+    "MainBlade": False,
+    "SideBlade": False,
 }
 
 
@@ -72,7 +91,10 @@ async def test_numbers_use_app_ranges_and_inversion(hass: HomeAssistant) -> None
 def test_numbers_follow_the_app_availability_rules() -> None:
     by_key = {d.key: d for d in NUMBERS}
     saber = SimpleNamespace(
-        address="AA", name="X", is_connected=True, idle_disconnect=0,
+        address="AA",
+        name="X",
+        is_connected=True,
+        idle_disconnect=0,
         state={"SideBlade": False, "MainBlade": True, "HardwareType": "RGB", "MotorSpeed": True},
     )
     assert not XenoNumber(saber, by_key["side_blade_length"]).available
@@ -131,8 +153,11 @@ def test_file_transfer_sensor_attributes() -> None:
     saber.transfer = TransferStatus("download", "/3/hum (1).wav", 250, 1000)
     assert sensor.native_value == 25
     assert sensor.extra_state_attributes == {
-        "active": True, "direction": "to_saber", "path": "/3/hum (1).wav",
-        "bytes_done": 250, "bytes_total": 1000,
+        "active": True,
+        "direction": "to_saber",
+        "path": "/3/hum (1).wav",
+        "bytes_done": 250,
+        "bytes_total": 1000,
     }
     saber.transfer = TransferStatus("upload", "config.ini", 1, 2)
     assert sensor.extra_state_attributes["direction"] == "from_saber"

@@ -63,7 +63,8 @@ def test_blocks_are_framed_like_the_app() -> None:
 
 def test_parse_blocks_from_the_saber() -> None:
     assert t.parse_header_block(t.header_block("/setting/config.ini", 42)) == (
-        "/setting/config.ini", 42
+        "/setting/config.ini",
+        42,
     )
     with pytest.raises(t.TransferError):
         t.parse_header_block(b"\x01\x00\x00" + bytes(130))
@@ -87,8 +88,15 @@ def test_send_file_round_trip(size: int) -> None:
     link = Link(sim)
     data = bytes(i % 251 for i in range(size))
     progress = []
-    run(t.send_file(link.send, link.receive, "/3/hum (1).wav", data,
-                    progress=lambda done, total: progress.append((done, total))))
+    run(
+        t.send_file(
+            link.send,
+            link.receive,
+            "/3/hum (1).wav",
+            data,
+            progress=lambda done, total: progress.append((done, total)),
+        )
+    )
     assert sim.files["/3/hum (1).wav"] == data
     assert sim.headers == [("/3/hum (1).wav", size, "")]
     if size:
@@ -164,9 +172,15 @@ def test_send_file_corner_cases(monkeypatch) -> None:
     # Header NAKked, then accepted (a long message containing "C" between ACK
     # and C is not taken for the C); 'C' noise around a block; first EOT
     # answered by ACK directly.
-    link = Scripted([
-        [ok], [b"\x15"], [ok, b"\x06", b'"CurrentClash"', b"C"], [b"C", b"\x06"], [b"\x06"],
-    ])
+    link = Scripted(
+        [
+            [ok],
+            [b"\x15"],
+            [ok, b"\x06", b'"CurrentClash"', b"C"],
+            [b"C", b"\x06"],
+            [b"\x06"],
+        ]
+    )
     run(t.send_file(link.send, link.receive, "f", b"1"))
     # Header never acknowledged.
     link = Scripted([[b"C"], [b"\x06"], [], []])
@@ -201,8 +215,11 @@ def test_receive_file_round_trip(size: int, fragment) -> None:
     sim.fragment = fragment
     link = Link(sim)
     progress = []
-    got = run(t.receive_file(link.send, link.receive, "config.ini",
-                             progress=lambda d, n: progress.append((d, n))))
+    got = run(
+        t.receive_file(
+            link.send, link.receive, "config.ini", progress=lambda d, n: progress.append((d, n))
+        )
+    )
     assert got == data and progress[-1] == (size, size)
     assert sim.mode is None  # the saber saw the full EOT/NAK/EOT/ACK exchange
 

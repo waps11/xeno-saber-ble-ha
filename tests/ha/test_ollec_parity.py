@@ -19,13 +19,13 @@ from homeassistant.helpers import device_registry as dr, issue_registry as ir
 from homeassistant.util import dt as dt_util
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from test_device import FakeSaber  # noqa: E402
+from test_device import FakeSaber
 
 from custom_components.xeno_saber_ble import (
-    device as dev,  # noqa: E402
-    sync as sync_mod,  # noqa: E402
+    device as dev,
+    sync as sync_mod,
 )
-from custom_components.xeno_saber_ble.const import (  # noqa: E402
+from custom_components.xeno_saber_ble.const import (
     CONF_IDLE_DISCONNECT,
     CONF_KEEPALIVE,
     CONF_SYNC_LIGHT,
@@ -34,7 +34,7 @@ from custom_components.xeno_saber_ble.const import (  # noqa: E402
     DOMAIN,
     ISSUE_KEEPALIVE,
 )
-from custom_components.xeno_saber_ble.wled_udp import WledUdpHub  # noqa: E402
+from custom_components.xeno_saber_ble.wled_udp import WledUdpHub
 
 ADDR = "AA:BB:CC:DD:EE:FF"
 DATA = "00003ab1-0000-1000-8000-00805f9b34fb"
@@ -54,9 +54,7 @@ async def _setup(hass: HomeAssistant, options: dict | None = None):
 
     ble_device = MagicMock(address=ADDR)
     ble_device.name = "Xeno3"
-    entry = MockConfigEntry(
-        domain=DOMAIN, unique_id=ADDR, title="Xeno3", options=options or {}
-    )
+    entry = MockConfigEntry(domain=DOMAIN, unique_id=ADDR, title="Xeno3", options=options or {})
     entry.add_to_hass(hass)
     patches = (
         patch.object(dev, "establish_connection", fake_establish),
@@ -74,7 +72,7 @@ async def _setup(hass: HomeAssistant, options: dict | None = None):
     for p in patches:
         p.start()
     assert await hass.config_entries.async_setup(entry.entry_id)
-    await hass.async_block_till_done()
+    await hass.async_block_till_done(wait_background_tasks=True)  # initial connection
     holder["stop"] = lambda: [p.stop() for p in patches]
     return entry, holder
 
@@ -231,14 +229,16 @@ async def test_sync_follows_a_light(hass: HomeAssistant) -> None:
     hass.states.async_set(
         "light.living_room", STATE_ON, {"rgb_color": (0, 255, 0), "brightness": 128}
     )
-    entry, holder = await _setup(hass, {CONF_SYNC_LIGHT: "light.living_room"})
+    _entry, holder = await _setup(hass, {CONF_SYNC_LIGHT: "light.living_room"})
     fw = holder["fw"]
     sync_switch = "switch.xeno3_color_sync"
     assert hass.states.get(sync_switch).state == STATE_OFF
 
     # Off: changes to the light are ignored.
     n = len(fw.writes)
-    hass.states.async_set("light.living_room", STATE_ON, {"rgb_color": (1, 2, 3), "brightness": 255})
+    hass.states.async_set(
+        "light.living_room", STATE_ON, {"rgb_color": (1, 2, 3), "brightness": 255}
+    )
     await hass.async_block_till_done()
     assert len(fw.writes) == n
 
@@ -253,7 +253,9 @@ async def test_sync_follows_a_light(hass: HomeAssistant) -> None:
     ]
 
     n = len(fw.writes)
-    hass.states.async_set("light.living_room", STATE_ON, {"rgb_color": (255, 0, 0), "brightness": 128})
+    hass.states.async_set(
+        "light.living_room", STATE_ON, {"rgb_color": (255, 0, 0), "brightness": 128}
+    )
     await hass.async_block_till_done()
     assert _sent(fw, n) == [b'[2,{"BackgroundColor":[255,0,0]}]', b'[2,{"Brightness":50}]']
 
@@ -279,9 +281,7 @@ async def test_sync_follows_a_light(hass: HomeAssistant) -> None:
 async def test_sync_from_wled_udp(hass: HomeAssistant, socket_enabled) -> None:
     hub = WledUdpHub(port=0, host="127.0.0.1")
     hass.data[sync_mod.WLED_HUB_KEY] = hub
-    entry, holder = await _setup(
-        hass, {CONF_WLED_UDP: True, CONF_WLED_SOURCE: "127.0.0.1"}
-    )
+    entry, holder = await _setup(hass, {CONF_WLED_UDP: True, CONF_WLED_SOURCE: "127.0.0.1"})
     fw = holder["fw"]
     assert hub._transport is None  # socket only open while sync is on
 
@@ -324,14 +324,30 @@ async def test_sync_from_wled_udp(hass: HomeAssistant, socket_enabled) -> None:
     holder["stop"]()
 
 
-async def test_sync_udp_port_busy_raises_translated_error(hass: HomeAssistant, socket_enabled) -> None:
+async def test_wled_sync_without_source_filter_is_warned(
+    hass: HomeAssistant, socket_enabled, caplog
+) -> None:
+    hass.data[sync_mod.WLED_HUB_KEY] = WledUdpHub(port=0, host="127.0.0.1")
+    entry, holder = await _setup(hass, {CONF_WLED_UDP: True})
+    await hass.services.async_call(
+        "switch", "turn_on", {ATTR_ENTITY_ID: "switch.xeno3_color_sync"}, blocking=True
+    )
+    assert "following WLED sync packets from any device" in caplog.text
+    await hass.services.async_call(
+        "switch", "turn_off", {ATTR_ENTITY_ID: "switch.xeno3_color_sync"}, blocking=True
+    )
+    assert await hass.config_entries.async_unload(entry.entry_id)
+    holder["stop"]()
+
+
+async def test_sync_udp_port_busy_raises_translated_error(
+    hass: HomeAssistant, socket_enabled
+) -> None:
     from homeassistant.exceptions import HomeAssistantError
 
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as taken:
         taken.bind(("127.0.0.1", 0))
-        hass.data[sync_mod.WLED_HUB_KEY] = WledUdpHub(
-            port=taken.getsockname()[1], host="127.0.0.1"
-        )
+        hass.data[sync_mod.WLED_HUB_KEY] = WledUdpHub(port=taken.getsockname()[1], host="127.0.0.1")
         _entry, holder = await _setup(hass, {CONF_WLED_UDP: True})
         with pytest.raises(HomeAssistantError) as exc_info:
             await hass.services.async_call(
@@ -402,9 +418,12 @@ async def test_sync_backs_off_from_unreachable_saber_in_on_demand_mode(hass: Hom
         attempts.append(1)
         raise BleakError("Device with address AA:BB:CC:DD:EE:FF was not found")
 
-    with patch.object(dev, "establish_connection", unreachable), patch(
-        "custom_components.xeno_saber_ble.entity.bluetooth.async_address_present",
-        return_value=True,
+    with (
+        patch.object(dev, "establish_connection", unreachable),
+        patch(
+            "custom_components.xeno_saber_ble.entity.bluetooth.async_address_present",
+            return_value=True,
+        ),
     ):
         await hass.services.async_call(
             "switch", "turn_on", {ATTR_ENTITY_ID: "switch.xeno3_color_sync"}, blocking=True

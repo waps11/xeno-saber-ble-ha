@@ -1,0 +1,12 @@
+# Tests on the oldest supported Home Assistant (hacs.json: 2026.2.0), Python 3.13.
+# Pinned on purpose: Dependabot leaves this file alone.
+pytest-homeassistant-custom-component==0.13.316
+aiousbwatcher==1.1.1
+pyserial==3.5
+bleak==2.1.1
+bleak-retry-connector==4.4.3
+bluetooth-adapters==2.1.0
+bluetooth-auto-recovery==1.5.3
+bluetooth-data-tools==1.28.4
+dbus-fast==3.1.2
+habluetooth==5.8.0

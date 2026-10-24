@@ -12,10 +12,10 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from test_device_files import FileSaber  # noqa: E402
+from test_device_files import FileSaber
 
-from custom_components.xeno_saber_ble import device as dev  # noqa: E402
-from custom_components.xeno_saber_ble.const import DOMAIN  # noqa: E402
+from custom_components.xeno_saber_ble import device as dev
+from custom_components.xeno_saber_ble.const import DOMAIN
 
 ADDR = "AA:BB:CC:DD:EE:FF"
 DATA = "00003ab1-0000-1000-8000-00805f9b34fb"
@@ -56,7 +56,7 @@ async def _setup(hass: HomeAssistant, tmp_path: Path):
     for p in patches:
         p.start()
     assert await hass.config_entries.async_setup(entry.entry_id)
-    await hass.async_block_till_done()
+    await hass.async_block_till_done(wait_background_tasks=True)  # initial connection
     holder["stop"] = lambda: [p.stop() for p in patches]
     return entry, holder
 
@@ -112,11 +112,22 @@ async def _expect_invalid(coro, key: str) -> None:
 
 async def test_all_actions_registered(hass: HomeAssistant, saber) -> None:
     assert set(hass.services.async_services()[DOMAIN]) == {
-        "upload_sound_font", "export_sound_font", "copy_sound_font", "backup_saber",
+        "upload_sound_font",
+        "export_sound_font",
+        "copy_sound_font",
+        "backup_saber",
         "restore_backup",
-        "list_sound_fonts", "list_sound_files", "rename_sound_font",
-        "play_sound", "upload_file", "download_file", "copy_file", "delete_file",
-        "update_firmware", "set_blade_firmware", "set_hardware_type",
+        "list_sound_fonts",
+        "list_sound_files",
+        "rename_sound_font",
+        "play_sound",
+        "upload_file",
+        "download_file",
+        "copy_file",
+        "delete_file",
+        "update_firmware",
+        "set_blade_firmware",
+        "set_hardware_type",
     }
 
 
@@ -148,7 +159,9 @@ async def test_upload_sound_font(hass: HomeAssistant, saber) -> None:
     assert hass.states.get("sensor.xeno3_file_transfer").state == "0"
 
     # Without replace, the old files stay.
-    result = await _call(hass, saber, "upload_sound_font", folder=str(folder), font=2, replace=False)
+    result = await _call(
+        hass, saber, "upload_sound_font", folder=str(folder), font=2, replace=False
+    )
     assert result["deleted"] == [] and "/2/in (1).wav" in sim.files
 
 
@@ -181,16 +194,24 @@ async def test_upload_and_download_files(hass: HomeAssistant, saber) -> None:
     tmp, sim = saber["tmp"], saber["sim"]
     backup = tmp / "config-backup.ini"
     result = await _call(hass, saber, "download_file", source="config.ini", destination=str(backup))
-    assert backup.read_bytes() == sim.files["config.ini"] and result["bytes"] == backup.stat().st_size
+    assert (
+        backup.read_bytes() == sim.files["config.ini"] and result["bytes"] == backup.stat().st_size
+    )
     await _expect_invalid(
         _call(hass, saber, "download_file", source="config.ini", destination=str(backup)),
         "file_exists",
     )
-    await _call(hass, saber, "download_file", source="config.ini", destination=str(backup),
-                overwrite=True)
+    await _call(
+        hass, saber, "download_file", source="config.ini", destination=str(backup), overwrite=True
+    )
     await _expect_invalid(
-        _call(hass, saber, "download_file", source="config.ini",
-              destination=str(tmp / "nope" / "x.ini")),
+        _call(
+            hass,
+            saber,
+            "download_file",
+            source="config.ini",
+            destination=str(tmp / "nope" / "x.ini"),
+        ),
         "folder_not_found",
     )
 
@@ -226,7 +247,8 @@ async def test_file_system_actions(hass: HomeAssistant, saber) -> None:
     assert files["sounds"]["clash"] == [f"clash ({i}).wav" for i in range(1, 5)]
 
     assert await _call(hass, saber, "rename_sound_font", font=2, name="Skywalker") == {
-        "font": 2, "name": "Skywalker",
+        "font": 2,
+        "name": "Skywalker",
     }
     assert sim.names[2] == "Skywalker"
 
@@ -293,8 +315,11 @@ async def test_update_firmware(hass: HomeAssistant, saber) -> None:
     result = await _call(hass, saber, "update_firmware", file=str(image), confirm=True)
     assert sim.files["update.bin"] == image.read_bytes()
     assert sim.headers[-1] == ("update.bin", image.stat().st_size, "")
+    import hashlib
+
     assert result == {
         "bytes": image.stat().st_size,
+        "sha256": hashlib.sha256(image.read_bytes()).hexdigest(),
         "previous_version": "1.0",
         "detected_version": "DMN_XENO_B_SV1.5.0",
     }
@@ -307,7 +332,8 @@ async def test_blade_firmware_and_hardware_type(hass: HomeAssistant, saber) -> N
     )
     n = len(fw.writes)
     assert await _call(hass, saber, "set_blade_firmware", type="rgb", confirm=True) == {
-        "type": "RGB", "changed": True,
+        "type": "RGB",
+        "changed": True,
     }
     assert [w[1] for w in fw.writes[n:]] == [
         b'[2,{"SoftwareType":"RGB"}]',
@@ -315,7 +341,8 @@ async def test_blade_firmware_and_hardware_type(hass: HomeAssistant, saber) -> N
     ]
     n = len(fw.writes)
     assert await _call(hass, saber, "set_blade_firmware", type="rgb", confirm=True) == {
-        "type": "RGB", "changed": False,
+        "type": "RGB",
+        "changed": False,
     }
     assert len(fw.writes) == n
 
@@ -345,7 +372,10 @@ async def test_upload_sound_font_from_zip(hass: HomeAssistant, saber) -> None:
             zf.write(f, f"Kyber Workshop/{f.relative_to(folder).as_posix()}")
     result = await _call(hass, saber, "upload_sound_font", folder=str(archive), font=1)
     assert [f["target"] for f in result["files"]] == [
-        "clash (1).wav", "clash (2).wav", "hum (1).wav", "swingl (1).wav",
+        "clash (1).wav",
+        "clash (2).wav",
+        "hum (1).wav",
+        "swingl (1).wav",
     ]
     assert result["skipped"] == ["readme.wav"]  # a .wav whose sound type is unknown
     assert saber["sim"].files["/1/hum (1).wav"] == (folder / "hum.wav").read_bytes()
@@ -370,7 +400,10 @@ async def test_export_then_reimport_sound_font(hass: HomeAssistant, saber) -> No
     target = tmp / "luke.zip"
     result = await _call(hass, saber, "export_sound_font", font=2, destination=str(target))
     assert result == {
-        "font": 2, "name": "Luke", "path": str(target), "files": 7,
+        "font": 2,
+        "name": "Luke",
+        "path": str(target),
+        "files": 7,
         "bytes": sum(len(sim.files[f"/2/{n}"]) for n in zipfile.ZipFile(target).namelist()),
     }
     assert zipfile.ZipFile(target).read("hum (1).wav") == b"luke hum" * 100
@@ -403,16 +436,20 @@ async def test_copy_sound_font(hass: HomeAssistant, saber) -> None:
         del sim.files[f"/2/clash ({i}).wav"]
     result = await _call(hass, saber, "copy_sound_font", source_font=2, destination_font=1)
     assert result == {
-        "source_font": 2, "destination_font": 1, "files": 5,
-        "deleted": ["clash (3).wav", "clash (4).wav", "lock (1).wav"], "name": "Luke",
+        "source_font": 2,
+        "destination_font": 1,
+        "files": 5,
+        "deleted": ["clash (3).wav", "clash (4).wav", "lock (1).wav"],
+        "name": "Luke",
     }
     assert sorted(f for f in sim.files if f.startswith("/1/")) == sorted(
         f.replace("/2/", "/1/") for f in sim.files if f.startswith("/2/")
     )
     assert sim.names[1] == "Luke"
 
-    result = await _call(hass, saber, "copy_sound_font", source_font=3, destination_font=1,
-                         name="Ben", replace=False)
+    result = await _call(
+        hass, saber, "copy_sound_font", source_font=3, destination_font=1, name="Ben", replace=False
+    )
     assert result["deleted"] == [] and sim.names[1] == "Ben"
 
     await _expect_invalid(
@@ -461,7 +498,10 @@ async def test_upload_creates_next_font_and_checks_space(hass: HomeAssistant, sa
     )
     assert result["deleted"] == [] and result["created"] is False
     assert sorted(f for f in sim.files if f.startswith("/1/")) == [
-        "/1/clash (1).wav", "/1/clash (2).wav", "/1/hum (1).wav", "/1/swingl (1).wav",
+        "/1/clash (1).wav",
+        "/1/clash (2).wav",
+        "/1/hum (1).wav",
+        "/1/swingl (1).wav",
     ]
 
 
@@ -488,8 +528,13 @@ async def test_backup_saber(hass: HomeAssistant, saber) -> None:
     names = set(zipfile.ZipFile(target).namelist())
     fonts = {f"{n}/{f.split('/')[2]}" for f in sim.files if f[1].isdigit() for n in [f[1]]}
     assert names == {
-        "setting/config.ini", "setting/customfunction.diy", "setting/appconnected.wav",
-        "setting/blade (1).wav", "setting/blade (2).wav", "xeno_backup.json", *fonts,
+        "setting/config.ini",
+        "setting/customfunction.diy",
+        "setting/appconnected.wav",
+        "setting/blade (1).wav",
+        "setting/blade (2).wav",
+        "xeno_backup.json",
+        *fonts,
     }
     assert zipfile.ZipFile(target).read("1/hum (1).wav") == sim.files["/1/hum (1).wav"]
     manifest = json.loads(zipfile.ZipFile(target).read("xeno_backup.json"))
@@ -512,17 +557,21 @@ async def test_backup_saber_options_and_failures(hass: HomeAssistant, saber) -> 
     sim, tmp = saber["sim"], saber["tmp"]
     # No system sounds readable: given up after a few misses.
     with patch.object(dev.t, "REPLY_TIMEOUT", 0.01):
-        result = await _call(hass, saber, "backup_saber", destination=str(tmp / "a.zip"),
-                             fonts=["2"])
+        result = await _call(
+            hass, saber, "backup_saber", destination=str(tmp / "a.zip"), fonts=["2"]
+        )
     assert result["system_sounds_skipped"] is True and result["fonts"] == [2]
     requested = [c["FileTransfer"][1] for c in sim.commands if "FileTransfer" in c]
-    assert sum(r.startswith("/setting/") and r != "/setting/customfunction.diy"
-               for r in requested) == 5
+    assert (
+        sum(r.startswith("/setting/") and r != "/setting/customfunction.diy" for r in requested)
+        == 5
+    )
     assert all(not n.startswith(("1/", "3/")) for n in zipfile.ZipFile(tmp / "a.zip").namelist())
 
     # Settings and fonts only, no custom mapping installed.
-    result = await _call(hass, saber, "backup_saber", destination=str(tmp / "b.zip"),
-                         include_system_sounds=False)
+    result = await _call(
+        hass, saber, "backup_saber", destination=str(tmp / "b.zip"), include_system_sounds=False
+    )
     assert "setting/customfunction.diy" not in zipfile.ZipFile(tmp / "b.zip").namelist()
 
     await _expect_invalid(
@@ -535,8 +584,9 @@ async def test_backup_saber_options_and_failures(hass: HomeAssistant, saber) -> 
     # A required file that cannot be read fails the backup and leaves nothing.
     del sim.files["config.ini"]
     with patch.object(dev.t, "REPLY_TIMEOUT", 0.01), pytest.raises(HomeAssistantError):
-        await _call(hass, saber, "backup_saber", destination=str(tmp / "d.zip"),
-                    include_system_sounds=False)
+        await _call(
+            hass, saber, "backup_saber", destination=str(tmp / "d.zip"), include_system_sounds=False
+        )
     assert not (tmp / "d.zip").exists() and not (tmp / "d.zip.part").exists()
 
 
@@ -558,8 +608,13 @@ async def test_backup_then_restore(hass: HomeAssistant, saber) -> None:
     saber["fw"]._push(DATA, [3, {"FileID": [1, 305419896]}])
     await hass.async_block_till_done()
     with patch.object(dev.t, "REPLY_TIMEOUT", 0.01):
-        await _call(hass, saber, "backup_saber", destination=str(tmp / "full.zip"),
-                    include_system_sounds=False)
+        await _call(
+            hass,
+            saber,
+            "backup_saber",
+            destination=str(tmp / "full.zip"),
+            include_system_sounds=False,
+        )
     original = dict(sim.files)
     names = dict(sim.names)
 
@@ -582,8 +637,7 @@ async def test_backup_then_restore(hass: HomeAssistant, saber) -> None:
     await _expect_invalid(
         _call(hass, saber, "restore_backup", source=str(tmp / "full.zip")), "confirm_required"
     )
-    result = await _call(hass, saber, "restore_backup", source=str(tmp / "full.zip"),
-                         confirm=True)
+    result = await _call(hass, saber, "restore_backup", source=str(tmp / "full.zip"), confirm=True)
     assert result["restored"] is True
     assert sim.files == original and sim.names == names
     # Settings are written last, under the names the saber uses for them.
@@ -595,21 +649,44 @@ async def test_backup_then_restore(hass: HomeAssistant, saber) -> None:
 async def test_restore_selected_fonts_and_new_folders(hass: HomeAssistant, saber) -> None:
     sim, tmp = saber["sim"], saber["tmp"]
     wav = b"RIFF" + bytes(10)
-    source = _backup_zip(tmp / "sd.zip", {  # an SD card: no manifest, extra files
-        "3/hum (1).wav": wav, "4/hum (1).wav": wav, "4/clash (1).wav": wav,
-        "5/out (1).wav": wav, "setting/config.ini": b"volume=10\n",
-        "setting/poweron.wav": b"on", "readme.txt": b"hi",
-    })
-    plan = await _call(hass, saber, "restore_backup", source=str(source), dry_run=True,
-                       fonts=[4, 5], include_settings=False, include_system_sounds=True)
+    source = _backup_zip(
+        tmp / "sd.zip",
+        {  # an SD card: no manifest, extra files
+            "3/hum (1).wav": wav,
+            "4/hum (1).wav": wav,
+            "4/clash (1).wav": wav,
+            "5/out (1).wav": wav,
+            "setting/config.ini": b"volume=10\n",
+            "setting/poweron.wav": b"on",
+            "readme.txt": b"hi",
+        },
+    )
+    plan = await _call(
+        hass,
+        saber,
+        "restore_backup",
+        source=str(source),
+        dry_run=True,
+        fonts=[4, 5],
+        include_settings=False,
+        include_system_sounds=True,
+    )
     assert plan["fonts"]["4"]["created"] and plan["fonts"]["5"]["created"]
     assert plan["fonts"]["4"]["name"] is None
     assert plan["settings"] == [] and plan["system_sounds"] == 1
     assert plan["ignored"] == ["readme.txt"]
 
     before = sim.files["config.ini"]
-    await _call(hass, saber, "restore_backup", source=str(source), fonts=[4, 5],
-                include_settings=False, include_system_sounds=True, confirm=True)
+    await _call(
+        hass,
+        saber,
+        "restore_backup",
+        source=str(source),
+        fonts=[4, 5],
+        include_settings=False,
+        include_system_sounds=True,
+        confirm=True,
+    )
     assert sim.names[4] == "4" and sim.names[5] == "5"
     assert sim.files["/4/clash (1).wav"] == wav and sim.files["/5/out (1).wav"] == wav
     assert sim.files["/setting/poweron.wav"] == b"on"
@@ -620,17 +697,26 @@ async def test_restore_selected_fonts_and_new_folders(hass: HomeAssistant, saber
 async def test_restore_backup_guards(hass: HomeAssistant, saber) -> None:
     sim, tmp = saber["sim"], saber["tmp"]
     wav = b"RIFF" + bytes(10)
-    source = _backup_zip(tmp / "b.zip", {"1/hum (1).wav": wav, "7/hum (1).wav": wav,
-                                         "setting/config.ini": b"x"},
-                         {"saber": {"hardware_version": "OTHER"}, "fonts": {"1": "A"}})
+    source = _backup_zip(
+        tmp / "b.zip",
+        {"1/hum (1).wav": wav, "7/hum (1).wav": wav, "setting/config.ini": b"x"},
+        {"saber": {"hardware_version": "OTHER"}, "fonts": {"1": "A"}},
+    )
     await _expect_invalid(
         _call(hass, saber, "restore_backup", source=str(source), fonts=[2], dry_run=True),
         "font_not_in_backup",
     )
     # Folder 7 cannot be created: 4 is the next free one.
     await _expect_invalid(
-        _call(hass, saber, "restore_backup", source=str(source), fonts=[7], dry_run=True,
-              include_settings=False),
+        _call(
+            hass,
+            saber,
+            "restore_backup",
+            source=str(source),
+            fonts=[7],
+            dry_run=True,
+            include_settings=False,
+        ),
         "font_not_found",
     )
     # Settings of a board with another hardware version are refused...
@@ -639,8 +725,15 @@ async def test_restore_backup_guards(hass: HomeAssistant, saber) -> None:
         "backup_other_saber",
     )
     # ...but its fonts can still be restored.
-    plan = await _call(hass, saber, "restore_backup", source=str(source), fonts=[1],
-                       include_settings=False, dry_run=True)
+    plan = await _call(
+        hass,
+        saber,
+        "restore_backup",
+        source=str(source),
+        fonts=[1],
+        include_settings=False,
+        dry_run=True,
+    )
     assert plan["fonts"]["1"]["name"] == "A"
 
     (tmp / "bad.zip").write_bytes(b"not a zip")
@@ -663,8 +756,15 @@ async def test_restore_backup_guards(hass: HomeAssistant, saber) -> None:
     orig = sim.handle
     sim.handle = lambda pk: [b'[3,{"df":[479,479]}]'] if b'"df"' in pk else orig(pk)
     with pytest.raises(ServiceValidationError):
-        await _call(hass, saber, "restore_backup", source=str(source), fonts=[1],
-                    include_settings=False, confirm=True)
+        await _call(
+            hass,
+            saber,
+            "restore_backup",
+            source=str(source),
+            fonts=[1],
+            include_settings=False,
+            confirm=True,
+        )
     assert "/1/hum (1).wav" not in sim.files or sim.files["/1/hum (1).wav"] != wav
 
 
@@ -689,3 +789,56 @@ async def test_saber_picked_by_device(hass: HomeAssistant, saber) -> None:
     other.add_to_hass(hass)
     lamp = registry.async_get_or_create(config_entry_id=other.entry_id, identifiers={("demo", "x")})
     await _expect_invalid(call(device_id=lamp.id), "device_not_saber")
+
+
+async def test_sensitive_actions_need_an_admin(
+    hass: HomeAssistant, saber, hass_read_only_user
+) -> None:
+    """Host files, firmware, board configuration and saber storage: admins only."""
+    from homeassistant.core import Context
+    from homeassistant.exceptions import Unauthorized
+
+    from custom_components.xeno_saber_ble import services as svc
+
+    user = Context(user_id=hass_read_only_user.id)
+    device_id = _device_id(hass, saber)
+    tmp = str(saber["tmp"])
+    valid = {  # schema-valid calls, so only the permission check can stop them
+        "upload_file": {"source": f"{tmp}/x", "destination": "config.ini"},
+        "download_file": {"source": "config.ini", "destination": f"{tmp}/x"},
+        "upload_sound_font": {"folder": tmp, "font": 1},
+        "export_sound_font": {"font": 1, "destination": f"{tmp}/x.zip"},
+        "copy_sound_font": {"source_font": 1, "destination_font": 2},
+        "backup_saber": {"destination": f"{tmp}/b.zip"},
+        "restore_backup": {"source": f"{tmp}/b.zip"},
+        "rename_sound_font": {"font": 1, "name": "x"},
+        "delete_file": {"path": "/1/hum (1).wav"},
+        "copy_file": {"source": "/1/hum (1).wav", "destination": "/2/hum (9).wav"},
+        "update_firmware": {"file": f"{tmp}/x", "confirm": True},
+        "set_blade_firmware": {"type": "rgb", "confirm": True},
+        "set_hardware_type": {"type": "rgb", "confirm": True},
+    }
+    assert set(valid) == set(svc.HANDLERS) - svc.PUBLIC_SERVICES
+    before = dict(saber["sim"].files)
+    for name, data in valid.items():
+        with pytest.raises(Unauthorized):
+            await hass.services.async_call(
+                DOMAIN,
+                name,
+                {"device_id": device_id, **data},
+                blocking=True,
+                context=user,
+                return_response=svc.HANDLERS[name][1] is not svc.SupportsResponse.NONE,
+            )
+    assert saber["sim"].files == before
+    # Reading the saber stays open to everyone.
+    result = await hass.services.async_call(
+        DOMAIN,
+        "list_sound_fonts",
+        {"device_id": device_id},
+        blocking=True,
+        context=user,
+        return_response=True,
+    )
+    assert len(result["fonts"]) == 3
+    assert {"list_sound_fonts", "list_sound_files", "play_sound"} == svc.PUBLIC_SERVICES

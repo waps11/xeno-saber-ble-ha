@@ -1,0 +1,16 @@
+name: Feature request
+description: Something the integration should do.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: idea
+    attributes:
+      label: What you would like
+      description: What you want to do with your saber, and why.
+    validations:
+      required: true
+  - type: textarea
+    id: app
+    attributes:
+      label: Does the Xeno Configurator app do it?
+      description: If so, where in the app. The integration can only do what the saber's protocol allows.

@@ -110,9 +110,7 @@ def plan_font(root: Path) -> tuple[list[PlannedFile], list[str]]:
             skipped.append(str(path.relative_to(root)))
             continue
         sound_type, number = found
-        by_type.setdefault(sound_type, []).append(
-            (number, str(path.relative_to(root)), path)
-        )
+        by_type.setdefault(sound_type, []).append((number, str(path.relative_to(root)), path))
     plan: list[PlannedFile] = []
     for sound_type in p.SOUND_TYPES:
         files = by_type.get(sound_type, [])
@@ -126,9 +124,7 @@ def wav_problem(path: Path) -> str | None:
     """Why the saber cannot play this file, or None if it is 44.1 kHz 16-bit mono PCM."""
     try:
         with wave.open(str(path), "rb") as wav:
-            rate, width, channels = (
-                wav.getframerate(), wav.getsampwidth(), wav.getnchannels()
-            )
+            rate, width, channels = (wav.getframerate(), wav.getsampwidth(), wav.getnchannels())
     except (wave.Error, EOFError, OSError) as err:
         return f"not a PCM WAV file ({err})"
     problems = []
@@ -141,9 +137,7 @@ def wav_problem(path: Path) -> str | None:
     return ", ".join(problems) or None
 
 
-def leftovers(
-    old: dict[str, tuple[int, int]], plan: list[PlannedFile]
-) -> list[str]:
+def leftovers(old: dict[str, tuple[int, int]], plan: list[PlannedFile]) -> list[str]:
     """Files of the old font that the new one does not overwrite."""
     new_count: dict[str, int] = {}
     for item in plan:
@@ -211,7 +205,6 @@ def font_root(folder: Path) -> Path:
     return root
 
 
-
 # System sounds of a Xeno3 card's "setting" folder (voice prompts and menus),
 # as in the vendor's default card. The saber cannot list that folder, so a
 # backup tries these names; firmwares may have fewer.
@@ -219,17 +212,42 @@ SYSTEM_SOUNDS: tuple[str, ...] = (
     *(
         f"{name}.wav"
         for name in (
-            "appconnected", "batterylevel", "beginningupdate", "blade", "charging",
-            "clashoff", "clashon", "colorchange", "colorselected", "countdown",
-            "entermultiblockmode", "entermultilockmode", "exitmultiblockmode",
-            "exitmultilockmode", "lighteffect", "lowbattery", "motioncontroloff",
-            "motioncontrolon", "percent", "pixeltoRGB", "poweroff", "poweron", "ready",
-            "RGBtopixel", "SDcarderror", "sensorerror", "updatesuccessful", "volumelevel",
+            "appconnected",
+            "batterylevel",
+            "beginningupdate",
+            "blade",
+            "charging",
+            "clashoff",
+            "clashon",
+            "colorchange",
+            "colorselected",
+            "countdown",
+            "entermultiblockmode",
+            "entermultilockmode",
+            "exitmultiblockmode",
+            "exitmultilockmode",
+            "lighteffect",
+            "lowbattery",
+            "motioncontroloff",
+            "motioncontrolon",
+            "percent",
+            "pixeltoRGB",
+            "poweroff",
+            "poweron",
+            "ready",
+            "RGBtopixel",
+            "SDcarderror",
+            "sensorerror",
+            "updatesuccessful",
+            "volumelevel",
         )
     ),
     *(f"saber ({i}).wav" for i in range(1, 8)),
-    *(f"{name} ({i}).wav" for name in ("blade", "lighteffect", "power", "volume")
-      for i in range(1, 101)),
+    *(
+        f"{name} ({i}).wav"
+        for name in ("blade", "lighteffect", "power", "volume")
+        for i in range(1, 101)
+    ),
 )
 
 
@@ -281,7 +299,9 @@ def read_backup(archive: Path) -> BackupIndex:
             index.fonts.setdefault(int(parts[0]), []).append(parts[1])
         elif len(parts) == 2 and parts[0].lower() == "setting" and parts[1] in SETTINGS_FILES:
             index.settings.append(parts[1])
-        elif len(parts) == 2 and parts[0].lower() == "setting" and parts[1].lower().endswith(".wav"):
+        elif (
+            len(parts) == 2 and parts[0].lower() == "setting" and parts[1].lower().endswith(".wav")
+        ):
             index.system.append(parts[1])
         else:
             index.ignored.append(name)

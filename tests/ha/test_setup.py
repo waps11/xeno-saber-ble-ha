@@ -15,19 +15,19 @@ from homeassistant.core import HomeAssistant
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from test_device import FakeSaber  # noqa: E402
-from test_ollec_parity import ADDR, _setup  # noqa: E402
+from test_device import FakeSaber
+from test_ollec_parity import ADDR, _setup
 
-import custom_components.xeno_saber_ble as integration  # noqa: E402
-from custom_components.xeno_saber_ble import device as dev  # noqa: E402
-from custom_components.xeno_saber_ble.const import (  # noqa: E402
+import custom_components.xeno_saber_ble as integration
+from custom_components.xeno_saber_ble import device as dev
+from custom_components.xeno_saber_ble.const import (
     CONF_IDLE_DISCONNECT,
     CONF_SYNC_LIGHT,
     CONF_WLED_SOURCE,
     CONF_WLED_UDP,
     DOMAIN,
 )
-from custom_components.xeno_saber_ble.diagnostics import (  # noqa: E402
+from custom_components.xeno_saber_ble.diagnostics import (
     async_get_config_entry_diagnostics,
 )
 
@@ -146,9 +146,15 @@ async def test_device_name_given_earlier_becomes_the_title(hass: HomeAssistant) 
         config_entry_id=entry.entry_id, identifiers={(DOMAIN, ADDR)}, name="Xeno3"
     )
     registry.async_update_device(device.id, name_by_user="Black Saber")
-    with patch(
-        "custom_components.xeno_saber_ble.bluetooth.async_ble_device_from_address",
-        return_value=None,
+    with (
+        patch(
+            "custom_components.xeno_saber_ble.bluetooth.async_ble_device_from_address",
+            return_value=None,
+        ),
+        patch(
+            "custom_components.xeno_saber_ble.bluetooth.async_register_callback",
+            return_value=lambda: None,
+        ),
     ):
         assert await hass.config_entries.async_setup(entry.entry_id)
         await hass.async_block_till_done()
@@ -246,10 +252,17 @@ async def test_advertisement_triggers_background_reconnect(hass: HomeAssistant) 
 async def test_diagnostics_redact_identifiers(hass: HomeAssistant) -> None:
     entry, holder = await _setup(
         hass,
-        {CONF_SYNC_LIGHT: "light.living_room", CONF_WLED_UDP: True, CONF_WLED_SOURCE: "192.168.1.50"},
+        {
+            CONF_SYNC_LIGHT: "light.living_room",
+            CONF_WLED_UDP: True,
+            CONF_WLED_SOURCE: "192.168.1.50",
+        },
     )
     info = SimpleNamespace(
-        name="Saber", rssi=-78, source="esp32-proxy", connectable=True,
+        name="Saber",
+        rssi=-78,
+        source="esp32-proxy",
+        connectable=True,
         service_uuids=["00003ab0-0000-1000-8000-00805f9b34fb"],
     )
     with patch(
@@ -261,9 +274,13 @@ async def test_diagnostics_redact_identifiers(hass: HomeAssistant) -> None:
     assert diag["entry"]["options"][CONF_WLED_SOURCE] == "**REDACTED**"
     assert diag["entry"]["options"][CONF_SYNC_LIGHT] == "light.living_room"
     assert diag["connection"] == {"connected": True, "authorized": True, "idle_disconnect": 0}
-    assert diag["bluetooth"]["rssi"] == -78 and diag["bluetooth"]["source"] == "esp32-proxy"
+    assert diag["bluetooth"]["rssi"] == -78 and diag["bluetooth"]["source"] == "**REDACTED**"
+    assert "esp32-proxy" not in str(diag)
     assert diag["color_sync"] == {
-        "enabled": False, "follows_light": True, "wled_udp": True, "wled_source_filter": True,
+        "enabled": False,
+        "follows_light": True,
+        "wled_udp": True,
+        "wled_source_filter": True,
     }
     assert diag["saber_state"]["SoftwareVersion"] == "1.0"
     assert ADDR not in str(diag)
@@ -338,3 +355,37 @@ async def test_untested_firmware_is_warned_once_per_version(hass: HomeAssistant,
         diag = await async_get_config_entry_diagnostics(hass, entry)
     assert diag["firmware"] == {"reported": "DMN_XENO_B_SV1.5.0", "tested": ["DMN_XENO_B_SV1.4.0"]}
     holder["stop"]()
+
+
+async def test_setup_does_not_wait_for_the_connection(hass: HomeAssistant) -> None:
+    """A busy saber can take several attempts: setup returns at once."""
+    release = asyncio.Event()
+
+    async def slow(cls, device, name, disconnected_callback=None, max_attempts=3):
+        await release.wait()
+        fw = FakeSaber()
+        fw.on_disconnect = disconnected_callback
+        return fw
+
+    entry = _entry(hass)
+    ble_device = MagicMock(address=ADDR)
+    ble_device.name = "Saber"
+    with (
+        patch.object(dev, "establish_connection", slow),
+        patch.object(dev, "STATE_SETTLE", 0),
+        patch(
+            "custom_components.xeno_saber_ble.bluetooth.async_ble_device_from_address",
+            return_value=ble_device,
+        ),
+        patch(
+            "custom_components.xeno_saber_ble.bluetooth.async_register_callback",
+            return_value=lambda: None,
+        ),
+    ):
+        assert await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
+        assert entry.state is ConfigEntryState.LOADED
+        assert not entry.runtime_data.saber.is_connected
+        release.set()
+        await hass.async_block_till_done(wait_background_tasks=True)
+        assert entry.runtime_data.saber.is_connected

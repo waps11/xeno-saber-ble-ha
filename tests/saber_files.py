@@ -11,11 +11,34 @@ import json
 
 SOH, BLOCK, EOT, ACK, NAK, CAN, C = 0x01, 0x11, 0x04, 0x06, 0x15, 0x18, 0x43
 SOUND_TYPES = (
-    "begindrag", "beginlock", "beginmelt", "beginlightningblock", "blaster",
-    "clash", "drag", "enddrag", "endlock", "endmelt", "endlightningblock",
-    "font", "force", "hum", "in", "lock", "lightningblock", "melt", "out",
-    "spin", "stab", "postoff", "preon", "sideout", "swing", "swingh",
-    "swingl", "track",
+    "begindrag",
+    "beginlock",
+    "beginmelt",
+    "beginlightningblock",
+    "blaster",
+    "clash",
+    "drag",
+    "enddrag",
+    "endlock",
+    "endmelt",
+    "endlightningblock",
+    "font",
+    "force",
+    "hum",
+    "in",
+    "lock",
+    "lightningblock",
+    "melt",
+    "out",
+    "spin",
+    "stab",
+    "postoff",
+    "preon",
+    "sideout",
+    "swing",
+    "swingh",
+    "swingl",
+    "track",
 )
 
 
@@ -30,8 +53,12 @@ def _block(start: int, seq: int, payload: bytes) -> bytes:
 def default_files() -> dict[str, bytes]:
     files = {"config.ini": b"volume=50\nend=1\n" * 70}  # ~1.1 kB: three blocks
     for font in (1, 2, 3):
-        for name in ("hum (1).wav", "in (1).wav", "out (1).wav",
-                     *(f"clash ({i}).wav" for i in range(1, 5))):
+        for name in (
+            "hum (1).wav",
+            "in (1).wav",
+            "out (1).wav",
+            *(f"clash ({i}).wav" for i in range(1, 5)),
+        ):
             files[f"/{font}/{name}"] = b"RIFF" + bytes(40)
     return files
 

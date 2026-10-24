@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import contextlib
 from dataclasses import dataclass
 from typing import Any, override
 
@@ -164,10 +165,9 @@ class XenoColorSyncSwitch(XenoEntity, SwitchEntity, RestoreEntity):
         await super().async_added_to_hass()
         last = await self.async_get_last_state()
         if last is not None and last.state == STATE_ON:
-            try:
+            # A source that cannot start is logged by the sync; the switch stays off.
+            with contextlib.suppress(SyncSourceError):
                 await self._sync.async_enable()
-            except SyncSourceError:
-                pass  # logged by the sync; the switch simply comes back off
             self.async_write_ha_state()
 
     @override
