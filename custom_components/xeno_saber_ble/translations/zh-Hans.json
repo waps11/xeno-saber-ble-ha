@@ -1,0 +1,689 @@
+{
+  "config": {
+    "flow_title": "{name}",
+    "step": {
+      "user": {
+        "title": "选择光剑",
+        "description": "选择要添加的光剑。光剑必须处于唤醒状态（长按按钮），并且必须关闭 Xeno Configurator 应用。",
+        "data": {
+          "address": "光剑"
+        },
+        "data_description": {
+          "address": "通过蓝牙找到的光剑。仅显示已唤醒的光剑；Home Assistant 会短暂连接所选光剑以进行检查。"
+        }
+      },
+      "bluetooth_confirm": {
+        "description": "要设置 {name} 吗？"
+      }
+    },
+    "abort": {
+      "already_configured": "此光剑已配置。",
+      "already_in_progress": "此光剑的配置已在进行中。",
+      "no_devices_found": "未找到兼容的光剑（Xenopixel V3 主板）。请唤醒后重试。"
+    },
+    "error": {
+      "cannot_connect": "无法连接到光剑。请确认光剑已唤醒且在范围内，并已关闭 Xeno Configurator 应用，然后重试。"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "连接与同步设置",
+        "data": {
+          "idle_disconnect": "空闲后断开连接（秒）",
+          "keepalive": "保活间隔（秒）",
+          "sync_light": "颜色同步：跟随的灯",
+          "wled_udp": "颜色同步：监听 WLED 广播",
+          "wled_udp_source": "WLED 来源地址"
+        },
+        "data_description": {
+          "idle_disconnect": "0 = 保持连接（实时状态，但手机应用无法连接）。否则 Home Assistant 仅在需要时连接，并在此时间后释放光剑。",
+          "keepalive": "0 = 关闭（推荐）。其他任何值都会每 N 秒重发当前亮度，使光剑永不休眠。警告：光剑的主板和蓝牙无线电将一直保持唤醒，即使光刃关闭也会耗尽电池。仅在光剑充电时或短时间使用时启用。要求“空闲后断开连接”= 0。",
+          "sync_light": "可选。颜色同步开关打开时，光刃会复制此灯的开关状态、颜色和亮度。打开该灯会点亮光刃。",
+          "wled_udp": "颜色同步打开时，在 UDP 端口 21324 上监听 WLED 同步数据包（WLED 中：Settings > Sync Interfaces > Send notifications on change）。这些数据包没有身份验证：除非在下方设置来源地址，否则网络上的任何设备都能控制光刃。",
+          "wled_udp_source": "可选。只服从从此 IPv4 地址发出的 WLED 数据包。"
+        }
+      }
+    },
+    "error": {
+      "keepalive_needs_persistent": "保活需要常驻连接：请将“空闲后断开连接”设为 0。",
+      "sync_self": "光刃不能跟随自身。",
+      "invalid_ip": "请输入 IPv4 地址，例如 192.168.1.50。"
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "connected": {
+        "name": "已连接"
+      },
+      "authorized": {
+        "name": "已授权"
+      }
+    },
+    "light": {
+      "blade": {
+        "name": "剑刃"
+      }
+    },
+    "number": {
+      "volume": {
+        "name": "音量"
+      },
+      "blade_brightness": {
+        "name": "剑刃亮度"
+      },
+      "main_blade_length": {
+        "name": "剑刃长度"
+      },
+      "side_blade_length": {
+        "name": "侧刃长度"
+      },
+      "side_blade_delay": {
+        "name": "侧刃延迟"
+      },
+      "power_on_time": {
+        "name": "开机时间（唤醒）"
+      },
+      "power_off_time": {
+        "name": "关机时间（深度睡眠）"
+      },
+      "auto_deep_sleep": {
+        "name": "自动深度睡眠"
+      },
+      "ignition_time": {
+        "name": "开刃时间"
+      },
+      "retraction_time": {
+        "name": "收刃时间"
+      },
+      "preon_time": {
+        "name": "预开机时间"
+      },
+      "clash_sensitivity": {
+        "name": "碰撞灵敏度"
+      },
+      "swing_sensitivity": {
+        "name": "挥舞灵敏度"
+      },
+      "twist_sensitivity": {
+        "name": "扭转灵敏度"
+      },
+      "push_sensitivity": {
+        "name": "推灵敏度"
+      },
+      "pull_sensitivity": {
+        "name": "拉灵敏度"
+      },
+      "accent_swing_sensitivity": {
+        "name": "重音挥舞灵敏度"
+      },
+      "motor_speed": {
+        "name": "电机速度"
+      }
+    },
+    "select": {
+      "sound_font": {
+        "name": "音效字体"
+      },
+      "light_effect": {
+        "name": "剑刃效果"
+      },
+      "blaster_effect": {
+        "name": "爆能枪效果"
+      },
+      "force_effect": {
+        "name": "原力效果"
+      },
+      "lockup_effect": {
+        "name": "锁剑效果"
+      },
+      "clash_effect": {
+        "name": "碰撞效果"
+      },
+      "post_off_effect": {
+        "name": "关剑后效果"
+      },
+      "mode": {
+        "name": "模式"
+      }
+    },
+    "sensor": {
+      "battery": {
+        "name": "电池"
+      },
+      "font_name": {
+        "name": "音效字体名称"
+      },
+      "blade_firmware": {
+        "name": "剑刃固件",
+        "state": {
+          "pixel": "Pixel",
+          "rgb": "RGB"
+        }
+      },
+      "hardware_type": {
+        "name": "硬件类型",
+        "state": {
+          "pixel": "Pixel",
+          "rgb": "RGB"
+        }
+      },
+      "button_count": {
+        "name": "按钮数"
+      },
+      "file_transfer": {
+        "name": "文件传输"
+      }
+    },
+    "switch": {
+      "background_music": {
+        "name": "背景音乐"
+      },
+      "motion_control": {
+        "name": "动作控制"
+      },
+      "lockup": {
+        "name": "锁剑"
+      },
+      "drag": {
+        "name": "拖地"
+      },
+      "color_sync": {
+        "name": "颜色同步"
+      },
+      "fast_color_changing": {
+        "name": "快速变色"
+      },
+      "smooth_color_changing": {
+        "name": "平滑变色"
+      },
+      "flash_on_clash": {
+        "name": "碰撞闪光"
+      },
+      "countdown": {
+        "name": "倒计时"
+      },
+      "led_screen": {
+        "name": "LED 屏幕"
+      },
+      "velocity_mode": {
+        "name": "速度模式"
+      },
+      "torch_mode": {
+        "name": "火炬模式"
+      },
+      "ghost_mode": {
+        "name": "幽灵模式"
+      },
+      "lightning_block_mode": {
+        "name": "闪电格挡模式"
+      },
+      "blaster_mode": {
+        "name": "爆能枪模式"
+      },
+      "multiblock_mode": {
+        "name": "多重格挡模式"
+      },
+      "multilock_mode": {
+        "name": "多重锁剑模式"
+      },
+      "pull_push_ignition": {
+        "name": "拉推开刃"
+      },
+      "push_pull_retraction": {
+        "name": "推拉收刃"
+      },
+      "twist_ignition": {
+        "name": "扭转开刃"
+      },
+      "twist_retraction": {
+        "name": "扭转收刃"
+      },
+      "swing_ignition": {
+        "name": "挥舞开刃"
+      }
+    },
+    "button": {
+      "clash": {
+        "name": "碰撞"
+      },
+      "blaster": {
+        "name": "爆能枪"
+      },
+      "force": {
+        "name": "原力"
+      },
+      "reconnect": {
+        "name": "重新连接"
+      },
+      "save_settings": {
+        "name": "保存设置"
+      },
+      "restart": {
+        "name": "重启"
+      }
+    }
+  },
+  "exceptions": {
+    "connection_failed": {
+      "message": "无法连接到光剑 {address}：{error}"
+    },
+    "command_failed": {
+      "message": "发送到光剑的命令失败：{error}"
+    },
+    "sync_unavailable": {
+      "message": "颜色同步无法启动：{error}"
+    },
+    "entry_not_loaded": {
+      "message": "{name} 未加载。请检查光剑是否已设置且可连接。"
+    },
+    "path_not_allowed": {
+      "message": "Home Assistant 无权访问 {path}。请把文件放在 /media 下，或在 configuration.yaml 的 allowlist_external_dirs 中加入其文件夹。"
+    },
+    "file_not_found": {
+      "message": "未找到文件：{path}"
+    },
+    "folder_not_found": {
+      "message": "未找到文件夹：{path}"
+    },
+    "file_exists": {
+      "message": "{path} 已存在。打开“覆盖”以替换它。"
+    },
+    "blade_must_be_off": {
+      "message": "请先关闭剑刃：剑刃亮着时光剑不接受此操作。"
+    },
+    "confirm_required": {
+      "message": "此操作失败可能导致光剑无法使用。将“确认”设为 true 以继续。"
+    },
+    "use_update_firmware": {
+      "message": "光剑会在下次启动时安装 {path}。请使用 update_firmware 操作发送固件。"
+    },
+    "saber_refused": {
+      "message": "光剑拒绝了：{operation}"
+    },
+    "no_sound_files": {
+      "message": "{path} 中没有可识别的音效文件。文件必须是名为 hum.wav、clash1.wav 或 clash (1).wav 这类的 WAV，或放在以音效类型命名的文件夹中。"
+    },
+    "wav_format": {
+      "message": "光剑无法播放 {count} 个文件（需要 44.1 kHz、16 位、单声道 PCM WAV）：{files}"
+    },
+    "font_not_found": {
+      "message": "光剑没有字体文件夹 {font}（现有：{available}）。指定现有文件夹会替换该字体，指定 {next} 则新增一个字体。"
+    },
+    "firmware_size": {
+      "message": "此文件（{size} 字节）看起来不像光剑固件。"
+    },
+    "battery_too_low": {
+      "message": "电量 {level}%：更新固件前请先将光剑充电到至少 {minimum}%。"
+    },
+    "bad_archive": {
+      "message": "{path} 不能用作字体：{error}"
+    },
+    "font_empty": {
+      "message": "字体 {font} 没有音效文件。"
+    },
+    "same_font": {
+      "message": "源和目标是同一个字体（{font}）。"
+    },
+    "not_enough_space": {
+      "message": "光剑空间不足：该字体约需 {needed} MB，剩余 {free} MB。请先删除旧字体（导出后使用 delete_first），或使用更小的字体。"
+    },
+    "font_not_in_backup": {
+      "message": "备份中没有字体 {font}（包含：{available}）。"
+    },
+    "backup_other_saber": {
+      "message": "备份来自硬件版本为 {backup} 的主板，而此光剑为 {saber}。其设置不会恢复到其他主板；关闭“设置”以仅恢复字体。"
+    },
+    "device_not_saber": {
+      "message": "设备 {device_id} 不是 Xeno 光剑。"
+    }
+  },
+  "issues": {
+    "keepalive_battery_drain": {
+      "title": "保活正在耗尽 {name} 的电池",
+      "description": "{name} 的保活已打开（每 {interval} 秒）。光剑无法休眠：主板和蓝牙无线电保持供电，即使光刃关闭电池也会耗尽。要停止，请在集成选项中将保活间隔设为 0（设置 > 设备与服务 > Xeno Saber BLE > 配置）。"
+    }
+  },
+  "services": {
+    "upload_sound_font": {
+      "name": "上传音效字体",
+      "description": "通过蓝牙将一个 WAV 文件夹发送到光剑的某个字体文件夹，替换该字体。文件会按光剑的命名规则重命名（hum (1).wav、clash (1).wav…）。每 MB 需要数分钟；剑刃必须关闭。",
+      "fields": {
+        "device_id": {
+          "name": "光剑",
+          "description": "要使用的光剑。"
+        },
+        "folder": {
+          "name": "文件夹或 zip",
+          "description": "Home Assistant 主机上存放该字体 WAV 文件（44.1 kHz、16 位、单声道）的文件夹或 .zip 文件。以音效类型命名的子文件夹也会读取。"
+        },
+        "font": {
+          "name": "字体",
+          "description": "光剑上的字体文件夹编号，从 1 开始。指定下一个空闲编号会像应用中一样新增字体。"
+        },
+        "name": {
+          "name": "名称",
+          "description": "字体的新名称（可选）。"
+        },
+        "replace": {
+          "name": "替换",
+          "description": "删除旧字体中未被新字体覆盖的文件。"
+        },
+        "delete_first": {
+          "name": "先删除旧字体",
+          "description": "发送前删除目标字体的所有文件以腾出空间。请先导出：否则旧字体无法恢复。"
+        },
+        "dry_run": {
+          "name": "试运行",
+          "description": "只显示文件将如何命名，不发送任何内容。"
+        }
+      }
+    },
+    "export_sound_font": {
+      "name": "导出音效字体",
+      "description": "把光剑存储卡上某个字体的所有音效文件复制到 Home Assistant 主机上的 .zip，用于备份或编辑。该 zip 可再用“上传音效字体”传回。速度与上传相同；剑刃必须关闭。",
+      "fields": {
+        "device_id": {
+          "name": "光剑",
+          "description": "要使用的光剑。"
+        },
+        "font": {
+          "name": "字体",
+          "description": "光剑存储卡上的字体文件夹编号，从 1 开始。"
+        },
+        "destination": {
+          "name": "目标",
+          "description": "要写入 Home Assistant 主机的 zip 文件。"
+        },
+        "overwrite": {
+          "name": "覆盖",
+          "description": "如果目标已存在则替换。"
+        }
+      }
+    },
+    "backup_saber": {
+      "name": "备份光剑",
+      "description": "把光剑存储中的全部内容复制到 Home Assistant 主机上的 .zip：所有字体、config.ini、按键映射（如有）、系统音效，以及光剑和其设置的说明。zip 的结构与 Xeno SD 卡相同。通过蓝牙备份一把满载的光剑需要数小时；剑刃必须关闭。",
+      "fields": {
+        "device_id": {
+          "name": "光剑",
+          "description": "要使用的光剑。"
+        },
+        "destination": {
+          "name": "目标",
+          "description": "要写入 Home Assistant 主机的 zip 文件。"
+        },
+        "overwrite": {
+          "name": "覆盖",
+          "description": "如果目标已存在则替换。"
+        },
+        "fonts": {
+          "name": "字体",
+          "description": "要包含的字体文件夹；留空则全部包含。"
+        },
+        "include_system_sounds": {
+          "name": "系统音效",
+          "description": "同时保存 setting 文件夹中的语音提示和菜单音效（约 430 个小文件）。光剑无法列出它们，因此不存在的会被跳过。"
+        }
+      }
+    },
+    "restore_backup": {
+      "name": "恢复备份",
+      "description": "将“备份光剑”创建的备份（或 Xeno SD 卡的 zip）写回光剑：先写入字体及其名称，然后是 config.ini 和自定义按键映射。光剑上的字体会被替换；缺少的字体如果是下一个空闲文件夹则会被创建。系统音效仅在要求时写入。通过蓝牙完整恢复需要数小时；剑刃必须关闭。",
+      "fields": {
+        "device_id": {
+          "name": "光剑",
+          "description": "要使用的光剑。"
+        },
+        "source": {
+          "name": "来源",
+          "description": "Home Assistant 主机上的备份 zip。"
+        },
+        "fonts": {
+          "name": "字体",
+          "description": "要恢复的备份字体文件夹；留空则全部恢复。"
+        },
+        "include_settings": {
+          "name": "设置",
+          "description": "恢复 config.ini 和自定义按键映射。如果备份来自不同硬件版本的主板则拒绝。"
+        },
+        "include_system_sounds": {
+          "name": "系统音效",
+          "description": "同时恢复 setting 文件夹中的语音提示和菜单音效。仅在其被修改或丢失时需要。"
+        },
+        "dry_run": {
+          "name": "试运行",
+          "description": "仅检查备份并返回将要写入的内容。"
+        },
+        "confirm": {
+          "name": "确认",
+          "description": "必填：恢复的字体将替换光剑上的字体。"
+        }
+      }
+    },
+    "copy_sound_font": {
+      "name": "复制音效字体",
+      "description": "在光剑存储卡上把一个字体文件夹复制覆盖到另一个。由光剑自己复制文件，所以很快。剑刃必须关闭。",
+      "fields": {
+        "device_id": {
+          "name": "光剑",
+          "description": "要使用的光剑。"
+        },
+        "source_font": {
+          "name": "源字体",
+          "description": "要复制的字体文件夹。"
+        },
+        "destination_font": {
+          "name": "目标字体",
+          "description": "要被替换的字体文件夹。"
+        },
+        "name": {
+          "name": "名称",
+          "description": "副本名称；默认使用源字体的名称。"
+        },
+        "replace": {
+          "name": "替换",
+          "description": "删除目标字体中未被副本覆盖的文件。"
+        }
+      }
+    },
+    "list_sound_fonts": {
+      "name": "列出音效字体",
+      "description": "返回光剑存储卡上的字体文件夹、名称以及存储卡用量。",
+      "fields": {
+        "device_id": {
+          "name": "光剑",
+          "description": "要使用的光剑。"
+        }
+      }
+    },
+    "list_sound_files": {
+      "name": "列出音效文件",
+      "description": "按类型分组返回某个字体的音效文件。",
+      "fields": {
+        "device_id": {
+          "name": "光剑",
+          "description": "要使用的光剑。"
+        },
+        "font": {
+          "name": "字体",
+          "description": "光剑存储卡上的字体文件夹编号，从 1 开始。"
+        }
+      }
+    },
+    "rename_sound_font": {
+      "name": "重命名音效字体",
+      "description": "更改光剑为某个字体显示的名称。",
+      "fields": {
+        "device_id": {
+          "name": "光剑",
+          "description": "要使用的光剑。"
+        },
+        "font": {
+          "name": "字体",
+          "description": "光剑存储卡上的字体文件夹编号，从 1 开始。"
+        },
+        "name": {
+          "name": "名称",
+          "description": "新名称，最多 16 个字符。"
+        }
+      }
+    },
+    "play_sound": {
+      "name": "播放音效",
+      "description": "播放光剑存储卡上的音效文件；未指定路径时停止播放。",
+      "fields": {
+        "device_id": {
+          "name": "光剑",
+          "description": "要使用的光剑。"
+        },
+        "path": {
+          "name": "路径",
+          "description": "光剑上的文件，例如 /3/hum (1).wav。留空则停止。"
+        }
+      }
+    },
+    "upload_file": {
+      "name": "上传文件",
+      "description": "将文件发送到光剑的存储卡，例如用 config.ini 恢复设置。剑刃必须关闭。",
+      "fields": {
+        "device_id": {
+          "name": "光剑",
+          "description": "要使用的光剑。"
+        },
+        "source": {
+          "name": "来源",
+          "description": "Home Assistant 主机上的文件。"
+        },
+        "destination": {
+          "name": "目标",
+          "description": "光剑上的路径：设置文件为 config.ini，音效为 /3/hum (1).wav。"
+        }
+      }
+    },
+    "download_file": {
+      "name": "下载文件",
+      "description": "将光剑存储卡上的文件复制到 Home Assistant，例如备份 config.ini。剑刃必须关闭。",
+      "fields": {
+        "device_id": {
+          "name": "光剑",
+          "description": "要使用的光剑。"
+        },
+        "source": {
+          "name": "来源",
+          "description": "光剑上的路径，例如 config.ini。"
+        },
+        "destination": {
+          "name": "目标",
+          "description": "要写入 Home Assistant 主机的文件。"
+        },
+        "overwrite": {
+          "name": "覆盖",
+          "description": "如果目标已存在则替换。"
+        }
+      }
+    },
+    "copy_file": {
+      "name": "复制文件",
+      "description": "在光剑存储卡上把文件从一处复制到另一处。",
+      "fields": {
+        "device_id": {
+          "name": "光剑",
+          "description": "要使用的光剑。"
+        },
+        "source": {
+          "name": "来源",
+          "description": "光剑上的路径。"
+        },
+        "destination": {
+          "name": "目标",
+          "description": "光剑上的路径。"
+        }
+      }
+    },
+    "delete_file": {
+      "name": "删除文件",
+      "description": "从光剑存储卡删除文件。无法撤销。",
+      "fields": {
+        "device_id": {
+          "name": "光剑",
+          "description": "要使用的光剑。"
+        },
+        "path": {
+          "name": "路径",
+          "description": "光剑上的文件，例如 /3/clash (9).wav。"
+        },
+        "confirm": {
+          "name": "确认",
+          "description": "删除设置文件（config.ini 或 /setting 下的任何文件）时必须打开：没有设置文件，光剑启动时会报错。"
+        }
+      }
+    },
+    "update_firmware": {
+      "name": "更新固件",
+      "description": "将固件文件（update.bin）发送到光剑，光剑安装后重启。错误或中断的更新可能导致光剑无法使用，较新的固件也可能与此集成不兼容。剑刃必须关闭且电量至少 30%。",
+      "fields": {
+        "device_id": {
+          "name": "光剑",
+          "description": "要使用的光剑。"
+        },
+        "file": {
+          "name": "文件",
+          "description": "来自光剑卖家、位于 Home Assistant 主机上的固件文件。"
+        },
+        "confirm": {
+          "name": "确认",
+          "description": "必须打开。此操作失败可能导致光剑无法使用。"
+        }
+      }
+    },
+    "set_blade_firmware": {
+      "name": "设置剑刃固件",
+      "description": "在 Pixel 与 RGB 剑刃固件之间切换光剑，然后重启。剑刃只有在固件匹配时才能正确点亮。",
+      "fields": {
+        "device_id": {
+          "name": "光剑",
+          "description": "要使用的光剑。"
+        },
+        "type": {
+          "name": "类型",
+          "description": "Pixel 用于 neopixel 剑刃，RGB 用于剑柄内 LED。"
+        },
+        "confirm": {
+          "name": "确认",
+          "description": "必须打开。此操作失败可能导致光剑无法使用。"
+        }
+      }
+    },
+    "set_hardware_type": {
+      "name": "设置硬件类型",
+      "description": "告诉主板其接线方式（Pixel 或 RGB）以及按钮数量，然后重启。官方应用警告更改硬件类型需要焊接；只有在主板重新接线后才应更改。",
+      "fields": {
+        "device_id": {
+          "name": "光剑",
+          "description": "要使用的光剑。"
+        },
+        "type": {
+          "name": "类型",
+          "description": "主板的接线方式。"
+        },
+        "buttons": {
+          "name": "按钮数",
+          "description": "剑柄上的按钮数（1 或 2）。"
+        },
+        "confirm": {
+          "name": "确认",
+          "description": "必须打开。此操作失败可能导致光剑无法使用。"
+        }
+      }
+    }
+  },
+  "selector": {
+    "blade_type": {
+      "options": {
+        "pixel": "Pixel",
+        "rgb": "RGB"
+      }
+    }
+  }
+}

@@ -1,0 +1,263 @@
+{
+  "entity": {
+    "binary_sensor": {
+      "authorized": {
+        "default": "mdi:shield-check",
+        "state": {
+          "off": "mdi:shield-off"
+        }
+      }
+    },
+    "button": {
+      "blaster": {
+        "default": "mdi:flash"
+      },
+      "clash": {
+        "default": "mdi:sword-cross"
+      },
+      "force": {
+        "default": "mdi:creation"
+      },
+      "reconnect": {
+        "default": "mdi:bluetooth-connect"
+      },
+      "save_settings": {
+        "default": "mdi:content-save"
+      }
+    },
+    "light": {
+      "blade": {
+        "default": "mdi:sword"
+      }
+    },
+    "number": {
+      "accent_swing_sensitivity": {
+        "default": "mdi:waveform"
+      },
+      "auto_deep_sleep": {
+        "default": "mdi:sleep"
+      },
+      "blade_brightness": {
+        "default": "mdi:brightness-6"
+      },
+      "clash_sensitivity": {
+        "default": "mdi:sword-cross"
+      },
+      "ignition_time": {
+        "default": "mdi:arrow-expand-up"
+      },
+      "main_blade_length": {
+        "default": "mdi:ruler"
+      },
+      "motor_speed": {
+        "default": "mdi:fan"
+      },
+      "power_off_time": {
+        "default": "mdi:power-sleep"
+      },
+      "power_on_time": {
+        "default": "mdi:power"
+      },
+      "preon_time": {
+        "default": "mdi:timer-play-outline"
+      },
+      "pull_sensitivity": {
+        "default": "mdi:arrow-down-bold"
+      },
+      "push_sensitivity": {
+        "default": "mdi:arrow-up-bold"
+      },
+      "retraction_time": {
+        "default": "mdi:arrow-collapse-down"
+      },
+      "side_blade_delay": {
+        "default": "mdi:timer-sand"
+      },
+      "side_blade_length": {
+        "default": "mdi:ruler"
+      },
+      "swing_sensitivity": {
+        "default": "mdi:rotate-orbit"
+      },
+      "twist_sensitivity": {
+        "default": "mdi:rotate-3d-variant"
+      },
+      "volume": {
+        "default": "mdi:volume-high"
+      }
+    },
+    "select": {
+      "blaster_effect": {
+        "default": "mdi:flash"
+      },
+      "clash_effect": {
+        "default": "mdi:sword-cross"
+      },
+      "force_effect": {
+        "default": "mdi:creation"
+      },
+      "light_effect": {
+        "default": "mdi:auto-fix"
+      },
+      "lockup_effect": {
+        "default": "mdi:lock"
+      },
+      "mode": {
+        "default": "mdi:tune-variant"
+      },
+      "post_off_effect": {
+        "default": "mdi:weather-fog"
+      },
+      "sound_font": {
+        "default": "mdi:music-box-multiple"
+      }
+    },
+    "sensor": {
+      "blade_firmware": {
+        "default": "mdi:chip"
+      },
+      "button_count": {
+        "default": "mdi:gesture-tap-button"
+      },
+      "file_transfer": {
+        "default": "mdi:file-arrow-up-down"
+      },
+      "font_name": {
+        "default": "mdi:music-note"
+      },
+      "hardware_type": {
+        "default": "mdi:expansion-card"
+      }
+    },
+    "switch": {
+      "background_music": {
+        "default": "mdi:music",
+        "state": {
+          "off": "mdi:music-off"
+        }
+      },
+      "blaster_mode": {
+        "default": "mdi:pistol"
+      },
+      "color_sync": {
+        "default": "mdi:sync",
+        "state": {
+          "off": "mdi:sync-off"
+        }
+      },
+      "countdown": {
+        "default": "mdi:timer-outline"
+      },
+      "drag": {
+        "default": "mdi:arrow-collapse-down"
+      },
+      "fast_color_changing": {
+        "default": "mdi:palette"
+      },
+      "flash_on_clash": {
+        "default": "mdi:flash-alert"
+      },
+      "ghost_mode": {
+        "default": "mdi:ghost"
+      },
+      "led_screen": {
+        "default": "mdi:dots-grid"
+      },
+      "lightning_block_mode": {
+        "default": "mdi:lightning-bolt"
+      },
+      "lockup": {
+        "default": "mdi:lock",
+        "state": {
+          "off": "mdi:lock-open-variant"
+        }
+      },
+      "motion_control": {
+        "default": "mdi:motion-sensor",
+        "state": {
+          "off": "mdi:motion-sensor-off"
+        }
+      },
+      "multiblock_mode": {
+        "default": "mdi:shield-half-full"
+      },
+      "multilock_mode": {
+        "default": "mdi:lock-plus"
+      },
+      "pull_push_ignition": {
+        "default": "mdi:gesture-swipe-vertical"
+      },
+      "push_pull_retraction": {
+        "default": "mdi:gesture-swipe-vertical"
+      },
+      "smooth_color_changing": {
+        "default": "mdi:gradient-horizontal"
+      },
+      "swing_ignition": {
+        "default": "mdi:gesture"
+      },
+      "torch_mode": {
+        "default": "mdi:torch"
+      },
+      "twist_ignition": {
+        "default": "mdi:rotate-right"
+      },
+      "twist_retraction": {
+        "default": "mdi:rotate-left"
+      },
+      "velocity_mode": {
+        "default": "mdi:speedometer"
+      }
+    }
+  },
+  "services": {
+    "backup_saber": {
+      "service": "mdi:backup-restore"
+    },
+    "restore_backup": {
+      "service": "mdi:restore"
+    },
+    "copy_file": {
+      "service": "mdi:file-multiple"
+    },
+    "copy_sound_font": {
+      "service": "mdi:content-copy"
+    },
+    "delete_file": {
+      "service": "mdi:file-remove"
+    },
+    "download_file": {
+      "service": "mdi:file-download"
+    },
+    "export_sound_font": {
+      "service": "mdi:folder-zip"
+    },
+    "list_sound_files": {
+      "service": "mdi:file-music"
+    },
+    "list_sound_fonts": {
+      "service": "mdi:format-list-bulleted"
+    },
+    "play_sound": {
+      "service": "mdi:play"
+    },
+    "rename_sound_font": {
+      "service": "mdi:rename"
+    },
+    "set_blade_firmware": {
+      "service": "mdi:chip"
+    },
+    "set_hardware_type": {
+      "service": "mdi:expansion-card"
+    },
+    "update_firmware": {
+      "service": "mdi:update"
+    },
+    "upload_file": {
+      "service": "mdi:file-upload"
+    },
+    "upload_sound_font": {
+      "service": "mdi:music-box-multiple"
+    }
+  }
+}

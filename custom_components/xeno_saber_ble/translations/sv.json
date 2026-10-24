@@ -1,0 +1,689 @@
+{
+  "config": {
+    "flow_title": "{name}",
+    "step": {
+      "user": {
+        "title": "Välj ett svärd",
+        "description": "Välj svärdet som ska läggas till. Det måste vara vaket (håll in knappen) och appen Xeno Configurator måste vara stängd.",
+        "data": {
+          "address": "Svärd"
+        },
+        "data_description": {
+          "address": "Svärd som hittats via Bluetooth. Bara vakna svärd visas; Home Assistant ansluter kort till det du väljer för att kontrollera det."
+        }
+      },
+      "bluetooth_confirm": {
+        "description": "Vill du konfigurera {name}?"
+      }
+    },
+    "abort": {
+      "already_configured": "Det här svärdet är redan konfigurerat.",
+      "already_in_progress": "Konfigurering av det här svärdet pågår redan.",
+      "no_devices_found": "Inget kompatibelt svärd (Xenopixel V3-kort) hittades. Väck det och försök igen."
+    },
+    "error": {
+      "cannot_connect": "Det gick inte att ansluta till svärdet. Kontrollera att det är vaket och inom räckhåll och att appen Xeno Configurator är stängd, och försök igen."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Anslutning och synkronisering",
+        "data": {
+          "idle_disconnect": "Koppla från efter inaktivitet (sekunder)",
+          "keepalive": "Keepalive-intervall (sekunder)",
+          "sync_light": "Färgsynk: lampa att följa",
+          "wled_udp": "Färgsynk: lyssna efter WLED-sändningar",
+          "wled_udp_source": "WLED-källadress"
+        },
+        "data_description": {
+          "idle_disconnect": "0 = förbli ansluten (status i realtid, men mobilappen kan inte ansluta). Annars ansluter Home Assistant vid behov och släpper svärdet efter denna tid.",
+          "keepalive": "0 = av (rekommenderas). Alla andra värden skickar om den aktuella ljusstyrkan var N:e sekund så att svärdet aldrig somnar. VARNING: svärdets kretskort och Bluetooth-radio hålls då vakna hela tiden och BATTERIET KOMMER ATT TÖMMAS, även med bladet avstängt. Använd bara när svärdet står på laddning, eller för korta stunder. Kräver ”Koppla från efter inaktivitet” = 0.",
+          "sync_light": "Valfritt. Så länge brytaren Färgsynk är på kopierar bladet lampans på/av-läge, färg och ljusstyrka. Tänds lampan tänds bladet.",
+          "wled_udp": "Så länge färgsynk är på, lyssna på UDP-port 21324 efter WLED-synkpaket (i WLED: Settings > Sync Interfaces > Send notifications on change). Paketen är inte autentiserade: alla enheter i nätverket kan styra bladet om du inte anger en källadress nedan.",
+          "wled_udp_source": "Valfritt. Lyd bara WLED-paket som skickas från denna IPv4-adress."
+        }
+      }
+    },
+    "error": {
+      "keepalive_needs_persistent": "Keepalive kräver en permanent anslutning: sätt ”Koppla från efter inaktivitet” till 0.",
+      "sync_self": "Bladet kan inte följa sig självt.",
+      "invalid_ip": "Ange en IPv4-adress, till exempel 192.168.1.50."
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "connected": {
+        "name": "Ansluten"
+      },
+      "authorized": {
+        "name": "Auktoriserad"
+      }
+    },
+    "light": {
+      "blade": {
+        "name": "Klinga"
+      }
+    },
+    "number": {
+      "volume": {
+        "name": "Volym"
+      },
+      "blade_brightness": {
+        "name": "Klingans ljusstyrka"
+      },
+      "main_blade_length": {
+        "name": "Klingans längd"
+      },
+      "side_blade_length": {
+        "name": "Sidoklingans längd"
+      },
+      "side_blade_delay": {
+        "name": "Sidoklingans fördröjning"
+      },
+      "power_on_time": {
+        "name": "Påslagstid (väckning)"
+      },
+      "power_off_time": {
+        "name": "Avslagstid (djupsömn)"
+      },
+      "auto_deep_sleep": {
+        "name": "Automatisk djupsömn"
+      },
+      "ignition_time": {
+        "name": "Tändningstid"
+      },
+      "retraction_time": {
+        "name": "Indragningstid"
+      },
+      "preon_time": {
+        "name": "Förtändningstid"
+      },
+      "clash_sensitivity": {
+        "name": "Clash-känslighet"
+      },
+      "swing_sensitivity": {
+        "name": "Svingkänslighet"
+      },
+      "twist_sensitivity": {
+        "name": "Vridkänslighet"
+      },
+      "push_sensitivity": {
+        "name": "Stötkänslighet"
+      },
+      "pull_sensitivity": {
+        "name": "Dragkänslighet"
+      },
+      "accent_swing_sensitivity": {
+        "name": "Känslighet för accentsving"
+      },
+      "motor_speed": {
+        "name": "Motorhastighet"
+      }
+    },
+    "select": {
+      "sound_font": {
+        "name": "Ljudfont"
+      },
+      "light_effect": {
+        "name": "Klingeffekt"
+      },
+      "blaster_effect": {
+        "name": "Blastereffekt"
+      },
+      "force_effect": {
+        "name": "Force-effekt"
+      },
+      "lockup_effect": {
+        "name": "Lockup-effekt"
+      },
+      "clash_effect": {
+        "name": "Clash-effekt"
+      },
+      "post_off_effect": {
+        "name": "Efter-av-effekt"
+      },
+      "mode": {
+        "name": "Läge"
+      }
+    },
+    "sensor": {
+      "battery": {
+        "name": "Batteri"
+      },
+      "font_name": {
+        "name": "Ljudfontens namn"
+      },
+      "blade_firmware": {
+        "name": "Klingans firmware",
+        "state": {
+          "pixel": "Pixel",
+          "rgb": "RGB"
+        }
+      },
+      "hardware_type": {
+        "name": "Hårdvarutyp",
+        "state": {
+          "pixel": "Pixel",
+          "rgb": "RGB"
+        }
+      },
+      "button_count": {
+        "name": "Knappar"
+      },
+      "file_transfer": {
+        "name": "Filöverföring"
+      }
+    },
+    "switch": {
+      "background_music": {
+        "name": "Bakgrundsmusik"
+      },
+      "motion_control": {
+        "name": "Rörelsestyrning"
+      },
+      "lockup": {
+        "name": "Lockup"
+      },
+      "drag": {
+        "name": "Drag"
+      },
+      "color_sync": {
+        "name": "Färgsynk"
+      },
+      "fast_color_changing": {
+        "name": "Snabb färgväxling"
+      },
+      "smooth_color_changing": {
+        "name": "Mjuk färgväxling"
+      },
+      "flash_on_clash": {
+        "name": "Blixt vid clash"
+      },
+      "countdown": {
+        "name": "Nedräkning"
+      },
+      "led_screen": {
+        "name": "LED-skärm"
+      },
+      "velocity_mode": {
+        "name": "Hastighetsläge"
+      },
+      "torch_mode": {
+        "name": "Facklläge"
+      },
+      "ghost_mode": {
+        "name": "Spökläge"
+      },
+      "lightning_block_mode": {
+        "name": "Blixtblockläge"
+      },
+      "blaster_mode": {
+        "name": "Blasterläge"
+      },
+      "multiblock_mode": {
+        "name": "Multiblockläge"
+      },
+      "multilock_mode": {
+        "name": "Multilåsläge"
+      },
+      "pull_push_ignition": {
+        "name": "Tändning dra-stöt"
+      },
+      "push_pull_retraction": {
+        "name": "Indragning stöt-dra"
+      },
+      "twist_ignition": {
+        "name": "Tändning med vridning"
+      },
+      "twist_retraction": {
+        "name": "Indragning med vridning"
+      },
+      "swing_ignition": {
+        "name": "Tändning med sving"
+      }
+    },
+    "button": {
+      "clash": {
+        "name": "Clash"
+      },
+      "blaster": {
+        "name": "Blaster"
+      },
+      "force": {
+        "name": "Force"
+      },
+      "reconnect": {
+        "name": "Återanslut"
+      },
+      "save_settings": {
+        "name": "Spara inställningar"
+      },
+      "restart": {
+        "name": "Starta om"
+      }
+    }
+  },
+  "exceptions": {
+    "connection_failed": {
+      "message": "Kunde inte ansluta till svärdet {address}: {error}"
+    },
+    "command_failed": {
+      "message": "Kommandot till svärdet misslyckades: {error}"
+    },
+    "sync_unavailable": {
+      "message": "Färgsynk kunde inte starta: {error}"
+    },
+    "entry_not_loaded": {
+      "message": "{name} är inte inläst. Kontrollera att svärdet är konfigurerat och nåbart."
+    },
+    "path_not_allowed": {
+      "message": "Home Assistant får inte komma åt {path}. Lägg filen under /media eller lägg till mappen i allowlist_external_dirs i configuration.yaml."
+    },
+    "file_not_found": {
+      "message": "Filen hittades inte: {path}"
+    },
+    "folder_not_found": {
+      "message": "Mappen hittades inte: {path}"
+    },
+    "file_exists": {
+      "message": "{path} finns redan. Slå på ”Skriv över” för att ersätta den."
+    },
+    "blade_must_be_off": {
+      "message": "Släck klingan först: svärdet godtar inte detta när klingan lyser."
+    },
+    "confirm_required": {
+      "message": "Den här åtgärden kan göra svärdet obrukbart om något går fel. Sätt ”Bekräfta” till sant för att fortsätta."
+    },
+    "use_update_firmware": {
+      "message": "Svärdet installerar {path} vid nästa start. Använd åtgärden update_firmware för att skicka firmware."
+    },
+    "saber_refused": {
+      "message": "Svärdet vägrade: {operation}"
+    },
+    "no_sound_files": {
+      "message": "Inga igenkännbara ljudfiler i {path}. Filerna måste vara WAV med namn som hum.wav, clash1.wav eller clash (1).wav, eller ligga i mappar som heter som ljudtypen."
+    },
+    "wav_format": {
+      "message": "Svärdet kan inte spela {count} fil(er); det kräver PCM-WAV med 44,1 kHz, 16 bitar, mono: {files}"
+    },
+    "font_not_found": {
+      "message": "Svärdet har ingen fontmapp {font} (det har: {available}). Använd en befintlig mapp för att ersätta en font, eller {next} för att lägga till en ny."
+    },
+    "firmware_size": {
+      "message": "Den här filen ({size} byte) ser inte ut som svärdsfirmware."
+    },
+    "battery_too_low": {
+      "message": "Batteriet på {level} %: ladda svärdet till minst {minimum} % innan du uppdaterar firmware."
+    },
+    "bad_archive": {
+      "message": "{path} kan inte användas som font: {error}"
+    },
+    "font_empty": {
+      "message": "Font {font} har inga ljudfiler."
+    },
+    "same_font": {
+      "message": "Källa och mål är samma font ({font})."
+    },
+    "not_enough_space": {
+      "message": "Inte tillräckligt med utrymme på svärdet: fonten behöver ungefär {needed} MB och {free} MB är lediga. Ta bort den gamla fonten först (delete_first, efter att ha exporterat den) eller använd en mindre font."
+    },
+    "font_not_in_backup": {
+      "message": "Font {font} finns inte i säkerhetskopian (den innehåller: {available})."
+    },
+    "backup_other_saber": {
+      "message": "Säkerhetskopian kommer från ett kort med hårdvaruversion {backup}, detta svärd är {saber}. Dess inställningar återställs inte till ett annat kort; stäng av Inställningar för att bara återställa fonterna."
+    },
+    "device_not_saber": {
+      "message": "Enheten {device_id} är inte ett Xeno-svärd."
+    }
+  },
+  "issues": {
+    "keepalive_battery_drain": {
+      "title": "Keepalive tömmer batteriet i {name}",
+      "description": "Keepalive är på för {name} (var {interval}:e s). Svärdet kan inte somna: kretskortet och Bluetooth-radion förblir strömsatta och batteriet töms, även med bladet avstängt. Stoppa det genom att sätta keepalive-intervallet till 0 i integrationens alternativ (Inställningar > Enheter och tjänster > Xeno Saber BLE > Konfigurera)."
+    }
+  },
+  "services": {
+    "upload_sound_font": {
+      "name": "Ladda upp ljudfont",
+      "description": "Skickar en mapp med WAV-filer via Bluetooth till en av svärdets fontmappar och ersätter den fonten. Filerna döps om enligt svärdets namngivning (hum (1).wav, clash (1).wav …). Räkna med flera minuter per megabyte; klingan måste vara släckt.",
+      "fields": {
+        "device_id": {
+          "name": "Svärd",
+          "description": "Svärdet som ska användas."
+        },
+        "folder": {
+          "name": "Mapp eller zip",
+          "description": "Mapp eller .zip-fil på Home Assistant-värden med fontens WAV-filer (44,1 kHz, 16 bitar, mono). Undermappar som heter som en ljudtyp läses också."
+        },
+        "font": {
+          "name": "Font",
+          "description": "Numret på fontmappen på svärdet, från 1. Nästa lediga nummer lägger till en ny font, som i appen."
+        },
+        "name": {
+          "name": "Namn",
+          "description": "Valfritt nytt namn på fonten."
+        },
+        "replace": {
+          "name": "Ersätt",
+          "description": "Ta bort filer från den gamla fonten som den nya inte skriver över."
+        },
+        "delete_first": {
+          "name": "Ta bort gammal font först",
+          "description": "Ta bort alla filer i målfonten före sändning för att frigöra utrymme. Exportera den först: annars går den gamla fonten inte att återfå."
+        },
+        "dry_run": {
+          "name": "Testkörning",
+          "description": "Visa bara hur filerna skulle namnges; skicka inget."
+        }
+      }
+    },
+    "export_sound_font": {
+      "name": "Exportera ljudfont",
+      "description": "Kopierar alla ljudfiler i en font från svärdets kort till en .zip på Home Assistant-värden, som säkerhetskopia eller för redigering. ”Ladda upp ljudfont” tar emot zip-filen igen. Lika långsamt som en uppladdning; klingan måste vara släckt.",
+      "fields": {
+        "device_id": {
+          "name": "Svärd",
+          "description": "Svärdet som ska användas."
+        },
+        "font": {
+          "name": "Font",
+          "description": "Numret på fontmappen på svärdets kort, från 1."
+        },
+        "destination": {
+          "name": "Mål",
+          "description": "Zip-fil att skriva på Home Assistant-värden."
+        },
+        "overwrite": {
+          "name": "Skriv över",
+          "description": "Ersätt målet om det finns."
+        }
+      }
+    },
+    "backup_saber": {
+      "name": "Säkerhetskopiera svärd",
+      "description": "Kopierar allt på svärdets lagring till en .zip på Home Assistant-värden: alla fonter, config.ini, knappmappningen om den finns, systemljuden och en beskrivning av svärdet och dess inställningar. Zip-filen är uppbyggd som ett Xeno-SD-kort. Via Bluetooth tar det timmar för ett fullt svärd; klingan måste vara släckt.",
+      "fields": {
+        "device_id": {
+          "name": "Svärd",
+          "description": "Svärdet som ska användas."
+        },
+        "destination": {
+          "name": "Mål",
+          "description": "Zip-fil att skriva på Home Assistant-värden."
+        },
+        "overwrite": {
+          "name": "Skriv över",
+          "description": "Ersätt målet om det finns."
+        },
+        "fonts": {
+          "name": "Fonter",
+          "description": "Fontmappar att ta med; alla om tomt."
+        },
+        "include_system_sounds": {
+          "name": "Systemljud",
+          "description": "Spara även röstmeddelanden och menyljud i mappen setting (ungefär 430 små filer). Svärdet kan inte lista dem, så de som saknas hoppas över."
+        }
+      }
+    },
+    "restore_backup": {
+      "name": "Återställ säkerhetskopia",
+      "description": "Skriver tillbaka en säkerhetskopia gjord med Säkerhetskopiera svärd (eller en zip av ett Xeno-SD-kort) till svärdet: fonterna och deras namn, sedan config.ini och den egna knapptilldelningen. Fonter på svärdet ersätts; saknade skapas om de är nästa lediga mappar. Systemljud skrivs bara på begäran. Via Bluetooth tar en fullständig återställning timmar; bladet måste vara av.",
+      "fields": {
+        "device_id": {
+          "name": "Svärd",
+          "description": "Svärdet som ska användas."
+        },
+        "source": {
+          "name": "Källa",
+          "description": "Säkerhetskopians zip på Home Assistant-värden."
+        },
+        "fonts": {
+          "name": "Fonter",
+          "description": "Fontmappar i säkerhetskopian att återställa; alla om tomt."
+        },
+        "include_settings": {
+          "name": "Inställningar",
+          "description": "Återställ config.ini och den egna knapptilldelningen. Nekas om säkerhetskopian kommer från ett kort med en annan hårdvaruversion."
+        },
+        "include_system_sounds": {
+          "name": "Systemljud",
+          "description": "Återställ även röstmeddelanden och menyljud i mappen setting. Behövs bara om de ändrats eller förlorats."
+        },
+        "dry_run": {
+          "name": "Testkörning",
+          "description": "Kontrollera bara säkerhetskopian och returnera vad som skulle skrivas."
+        },
+        "confirm": {
+          "name": "Bekräfta",
+          "description": "Krävs: de återställda fonterna ersätter dem på svärdet."
+        }
+      }
+    },
+    "copy_sound_font": {
+      "name": "Kopiera ljudfont",
+      "description": "Kopierar en fontmapp över en annan på svärdets kort. Svärdet kopierar filerna själv, så det går snabbt. Klingan måste vara släckt.",
+      "fields": {
+        "device_id": {
+          "name": "Svärd",
+          "description": "Svärdet som ska användas."
+        },
+        "source_font": {
+          "name": "Källfont",
+          "description": "Fontmapp att kopiera från."
+        },
+        "destination_font": {
+          "name": "Målfont",
+          "description": "Fontmapp som ersätts."
+        },
+        "name": {
+          "name": "Namn",
+          "description": "Namn på kopian; som standard källfontens namn."
+        },
+        "replace": {
+          "name": "Ersätt",
+          "description": "Ta bort filer i målfonten som kopian inte skriver över."
+        }
+      }
+    },
+    "list_sound_fonts": {
+      "name": "Lista ljudfonter",
+      "description": "Returnerar fontmapparna på svärdets kort, deras namn och kortets användning.",
+      "fields": {
+        "device_id": {
+          "name": "Svärd",
+          "description": "Svärdet som ska användas."
+        }
+      }
+    },
+    "list_sound_files": {
+      "name": "Lista ljudfiler",
+      "description": "Returnerar ljudfilerna i en font, grupperade efter typ.",
+      "fields": {
+        "device_id": {
+          "name": "Svärd",
+          "description": "Svärdet som ska användas."
+        },
+        "font": {
+          "name": "Font",
+          "description": "Numret på fontmappen på svärdets kort, från 1."
+        }
+      }
+    },
+    "rename_sound_font": {
+      "name": "Byt namn på ljudfont",
+      "description": "Ändrar namnet som svärdet visar för en font.",
+      "fields": {
+        "device_id": {
+          "name": "Svärd",
+          "description": "Svärdet som ska användas."
+        },
+        "font": {
+          "name": "Font",
+          "description": "Numret på fontmappen på svärdets kort, från 1."
+        },
+        "name": {
+          "name": "Namn",
+          "description": "Nytt namn, högst 16 tecken."
+        }
+      }
+    },
+    "play_sound": {
+      "name": "Spela ljud",
+      "description": "Spelar en ljudfil från svärdets kort, eller stoppar uppspelningen om ingen sökväg anges.",
+      "fields": {
+        "device_id": {
+          "name": "Svärd",
+          "description": "Svärdet som ska användas."
+        },
+        "path": {
+          "name": "Sökväg",
+          "description": "Fil på svärdet, till exempel /3/hum (1).wav. Lämna tomt för att stoppa."
+        }
+      }
+    },
+    "upload_file": {
+      "name": "Ladda upp fil",
+      "description": "Skickar en fil till svärdets kort, till exempel config.ini för att återställa dess inställningar. Klingan måste vara släckt.",
+      "fields": {
+        "device_id": {
+          "name": "Svärd",
+          "description": "Svärdet som ska användas."
+        },
+        "source": {
+          "name": "Källa",
+          "description": "Fil på Home Assistant-värden."
+        },
+        "destination": {
+          "name": "Mål",
+          "description": "Sökväg på svärdet: config.ini för inställningsfilen, eller /3/hum (1).wav."
+        }
+      }
+    },
+    "download_file": {
+      "name": "Hämta fil",
+      "description": "Kopierar en fil från svärdets kort till Home Assistant, till exempel config.ini som säkerhetskopia. Klingan måste vara släckt.",
+      "fields": {
+        "device_id": {
+          "name": "Svärd",
+          "description": "Svärdet som ska användas."
+        },
+        "source": {
+          "name": "Källa",
+          "description": "Sökväg på svärdet, till exempel config.ini."
+        },
+        "destination": {
+          "name": "Mål",
+          "description": "Fil att skriva på Home Assistant-värden."
+        },
+        "overwrite": {
+          "name": "Skriv över",
+          "description": "Ersätt målet om det finns."
+        }
+      }
+    },
+    "copy_file": {
+      "name": "Kopiera fil",
+      "description": "Kopierar en fil från ett ställe på svärdets kort till ett annat.",
+      "fields": {
+        "device_id": {
+          "name": "Svärd",
+          "description": "Svärdet som ska användas."
+        },
+        "source": {
+          "name": "Källa",
+          "description": "Sökväg på svärdet."
+        },
+        "destination": {
+          "name": "Mål",
+          "description": "Sökväg på svärdet."
+        }
+      }
+    },
+    "delete_file": {
+      "name": "Ta bort fil",
+      "description": "Tar bort en fil från svärdets kort. Kan inte ångras.",
+      "fields": {
+        "device_id": {
+          "name": "Svärd",
+          "description": "Svärdet som ska användas."
+        },
+        "path": {
+          "name": "Sökväg",
+          "description": "Fil på svärdet, till exempel /3/clash (9).wav."
+        },
+        "confirm": {
+          "name": "Bekräfta",
+          "description": "Krävs för att ta bort inställningsfilen (config.ini eller något under /setting): utan den rapporterar svärdet ett fel vid start."
+        }
+      }
+    },
+    "update_firmware": {
+      "name": "Uppdatera firmware",
+      "description": "Skickar en firmwarefil (update.bin) till svärdet, som installerar den och startar om. En felaktig eller avbruten uppdatering kan göra svärdet obrukbart, och nyare firmware kanske inte fungerar med den här integrationen. Klingan måste vara släckt och batteriet minst 30 %.",
+      "fields": {
+        "device_id": {
+          "name": "Svärd",
+          "description": "Svärdet som ska användas."
+        },
+        "file": {
+          "name": "Fil",
+          "description": "Firmwarefil på Home Assistant-värden, från svärdets återförsäljare."
+        },
+        "confirm": {
+          "name": "Bekräfta",
+          "description": "Måste vara på. Den här åtgärden kan göra svärdet obrukbart om något går fel."
+        }
+      }
+    },
+    "set_blade_firmware": {
+      "name": "Ange klingans firmware",
+      "description": "Växlar svärdet mellan Pixel- och RGB-firmware för klingan och startar sedan om det. Klingan lyser bara rätt med den firmware som passar den.",
+      "fields": {
+        "device_id": {
+          "name": "Svärd",
+          "description": "Svärdet som ska användas."
+        },
+        "type": {
+          "name": "Typ",
+          "description": "Pixel för en neopixelklinga, RGB för en lysdiod i fästet."
+        },
+        "confirm": {
+          "name": "Bekräfta",
+          "description": "Måste vara på. Den här åtgärden kan göra svärdet obrukbart om något går fel."
+        }
+      }
+    },
+    "set_hardware_type": {
+      "name": "Ange hårdvarutyp",
+      "description": "Talar om för kortet hur det är kopplat (Pixel eller RGB) och hur många knappar det har, och startar sedan om det. Den officiella appen varnar för att byte av hårdvarutyp kräver lödning; ändra det bara om kortet har kopplats om.",
+      "fields": {
+        "device_id": {
+          "name": "Svärd",
+          "description": "Svärdet som ska användas."
+        },
+        "type": {
+          "name": "Typ",
+          "description": "Hur kortet är kopplat."
+        },
+        "buttons": {
+          "name": "Knappar",
+          "description": "Antal knappar på fästet (1 eller 2)."
+        },
+        "confirm": {
+          "name": "Bekräfta",
+          "description": "Måste vara på. Den här åtgärden kan göra svärdet obrukbart om något går fel."
+        }
+      }
+    }
+  },
+  "selector": {
+    "blade_type": {
+      "options": {
+        "pixel": "Pixel",
+        "rgb": "RGB"
+      }
+    }
+  }
+}

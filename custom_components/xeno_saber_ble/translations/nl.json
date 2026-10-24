@@ -1,0 +1,689 @@
+{
+  "config": {
+    "flow_title": "{name}",
+    "step": {
+      "user": {
+        "title": "Kies een zwaard",
+        "description": "Kies het zwaard dat je wilt toevoegen. Het moet wakker zijn (houd de knop ingedrukt) en de Xeno Configurator-app moet gesloten zijn.",
+        "data": {
+          "address": "Zwaard"
+        },
+        "data_description": {
+          "address": "Via Bluetooth gevonden zwaarden. Alleen wakkere zwaarden verschijnen; Home Assistant maakt kort verbinding met het gekozen zwaard om het te controleren."
+        }
+      },
+      "bluetooth_confirm": {
+        "description": "Wil je {name} instellen?"
+      }
+    },
+    "abort": {
+      "already_configured": "Dit zwaard is al ingesteld.",
+      "already_in_progress": "Het instellen van dit zwaard is al bezig.",
+      "no_devices_found": "Geen compatibel zwaard (Xenopixel V3-bord) gevonden. Maak het wakker en probeer het opnieuw."
+    },
+    "error": {
+      "cannot_connect": "Kan geen verbinding maken met het zwaard. Controleer of het wakker en binnen bereik is en of de app Xeno Configurator gesloten is, en probeer het opnieuw."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Verbinding en synchronisatie",
+        "data": {
+          "idle_disconnect": "Verbinding verbreken na inactiviteit (seconden)",
+          "keepalive": "Keepalive-interval (seconden)",
+          "sync_light": "Kleursynchronisatie: te volgen lamp",
+          "wled_udp": "Kleursynchronisatie: luisteren naar WLED-broadcasts",
+          "wled_udp_source": "WLED-bronadres"
+        },
+        "data_description": {
+          "idle_disconnect": "0 = verbonden blijven (live status, maar de telefoonapp kan geen verbinding maken). Anders maakt Home Assistant alleen verbinding wanneer nodig en geeft het zwaard na deze tijd weer vrij.",
+          "keepalive": "0 = uit (aanbevolen). Elke andere waarde stuurt elke N seconden de huidige helderheid opnieuw, zodat het zwaard nooit in slaap valt. WAARSCHUWING: de printplaat en Bluetooth-radio van het zwaard blijven dan voortdurend aan en de ACCU LOOPT LEEG, ook met het lemmet uit. Gebruik dit alleen terwijl het zwaard aan de lader hangt, of voor korte sessies. Vereist 'Verbinding verbreken na inactiviteit' = 0.",
+          "sync_light": "Optioneel. Zolang de schakelaar Kleursynchronisatie aan staat, neemt het lemmet de aan/uit-status, kleur en helderheid van deze lamp over. Gaat die lamp aan, dan ontsteekt het lemmet.",
+          "wled_udp": "Zolang kleursynchronisatie aan staat, luisteren op UDP-poort 21324 naar WLED-syncpakketten (in WLED: Settings > Sync Interfaces > Send notifications on change). Deze pakketten zijn niet geauthenticeerd: elk apparaat op je netwerk kan het lemmet aansturen, tenzij je hieronder een bronadres instelt.",
+          "wled_udp_source": "Optioneel. Alleen WLED-pakketten van dit IPv4-adres opvolgen."
+        }
+      }
+    },
+    "error": {
+      "keepalive_needs_persistent": "Keepalive vereist een permanente verbinding: zet 'Verbinding verbreken na inactiviteit' op 0.",
+      "sync_self": "Het lemmet kan zichzelf niet volgen.",
+      "invalid_ip": "Voer een IPv4-adres in, bijvoorbeeld 192.168.1.50."
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "connected": {
+        "name": "Verbonden"
+      },
+      "authorized": {
+        "name": "Geautoriseerd"
+      }
+    },
+    "light": {
+      "blade": {
+        "name": "Kling"
+      }
+    },
+    "number": {
+      "volume": {
+        "name": "Volume"
+      },
+      "blade_brightness": {
+        "name": "Helderheid kling"
+      },
+      "main_blade_length": {
+        "name": "Klinglengte"
+      },
+      "side_blade_length": {
+        "name": "Lengte zijkling"
+      },
+      "side_blade_delay": {
+        "name": "Vertraging zijkling"
+      },
+      "power_on_time": {
+        "name": "Inschakeltijd (wekken)"
+      },
+      "power_off_time": {
+        "name": "Uitschakeltijd (diepe slaap)"
+      },
+      "auto_deep_sleep": {
+        "name": "Automatische diepe slaap"
+      },
+      "ignition_time": {
+        "name": "Ontstekingstijd"
+      },
+      "retraction_time": {
+        "name": "Intrektijd"
+      },
+      "preon_time": {
+        "name": "Pre-on-tijd"
+      },
+      "clash_sensitivity": {
+        "name": "Clashgevoeligheid"
+      },
+      "swing_sensitivity": {
+        "name": "Zwaaigevoeligheid"
+      },
+      "twist_sensitivity": {
+        "name": "Draaigevoeligheid"
+      },
+      "push_sensitivity": {
+        "name": "Duwgevoeligheid"
+      },
+      "pull_sensitivity": {
+        "name": "Trekgevoeligheid"
+      },
+      "accent_swing_sensitivity": {
+        "name": "Gevoeligheid accentzwaai"
+      },
+      "motor_speed": {
+        "name": "Motorsnelheid"
+      }
+    },
+    "select": {
+      "sound_font": {
+        "name": "Soundfont"
+      },
+      "light_effect": {
+        "name": "Klingeffect"
+      },
+      "blaster_effect": {
+        "name": "Blastereffect"
+      },
+      "force_effect": {
+        "name": "Force-effect"
+      },
+      "lockup_effect": {
+        "name": "Lockup-effect"
+      },
+      "clash_effect": {
+        "name": "Clash-effect"
+      },
+      "post_off_effect": {
+        "name": "Na-uit-effect"
+      },
+      "mode": {
+        "name": "Modus"
+      }
+    },
+    "sensor": {
+      "battery": {
+        "name": "Batterij"
+      },
+      "font_name": {
+        "name": "Naam van de soundfont"
+      },
+      "blade_firmware": {
+        "name": "Kling-firmware",
+        "state": {
+          "pixel": "Pixel",
+          "rgb": "RGB"
+        }
+      },
+      "hardware_type": {
+        "name": "Hardwaretype",
+        "state": {
+          "pixel": "Pixel",
+          "rgb": "RGB"
+        }
+      },
+      "button_count": {
+        "name": "Knoppen"
+      },
+      "file_transfer": {
+        "name": "Bestandsoverdracht"
+      }
+    },
+    "switch": {
+      "background_music": {
+        "name": "Achtergrondmuziek"
+      },
+      "motion_control": {
+        "name": "Bewegingsbesturing"
+      },
+      "lockup": {
+        "name": "Lockup"
+      },
+      "drag": {
+        "name": "Drag"
+      },
+      "color_sync": {
+        "name": "Kleursynchronisatie"
+      },
+      "fast_color_changing": {
+        "name": "Snelle kleurwisseling"
+      },
+      "smooth_color_changing": {
+        "name": "Vloeiende kleurwisseling"
+      },
+      "flash_on_clash": {
+        "name": "Flits bij clash"
+      },
+      "countdown": {
+        "name": "Aftellen"
+      },
+      "led_screen": {
+        "name": "LED-scherm"
+      },
+      "velocity_mode": {
+        "name": "Velocity-modus"
+      },
+      "torch_mode": {
+        "name": "Fakkelmodus"
+      },
+      "ghost_mode": {
+        "name": "Spookmodus"
+      },
+      "lightning_block_mode": {
+        "name": "Bliksemblokmodus"
+      },
+      "blaster_mode": {
+        "name": "Blastermodus"
+      },
+      "multiblock_mode": {
+        "name": "Multiblokmodus"
+      },
+      "multilock_mode": {
+        "name": "Multilockmodus"
+      },
+      "pull_push_ignition": {
+        "name": "Ontsteken met trekken-duwen"
+      },
+      "push_pull_retraction": {
+        "name": "Intrekken met duwen-trekken"
+      },
+      "twist_ignition": {
+        "name": "Ontsteken met draaien"
+      },
+      "twist_retraction": {
+        "name": "Intrekken met draaien"
+      },
+      "swing_ignition": {
+        "name": "Ontsteken met zwaaien"
+      }
+    },
+    "button": {
+      "clash": {
+        "name": "Clash"
+      },
+      "blaster": {
+        "name": "Blaster"
+      },
+      "force": {
+        "name": "Force"
+      },
+      "reconnect": {
+        "name": "Opnieuw verbinden"
+      },
+      "save_settings": {
+        "name": "Instellingen opslaan"
+      },
+      "restart": {
+        "name": "Herstarten"
+      }
+    }
+  },
+  "exceptions": {
+    "connection_failed": {
+      "message": "Kan geen verbinding maken met zwaard {address}: {error}"
+    },
+    "command_failed": {
+      "message": "Opdracht aan het zwaard mislukt: {error}"
+    },
+    "sync_unavailable": {
+      "message": "Kleursynchronisatie kon niet starten: {error}"
+    },
+    "entry_not_loaded": {
+      "message": "{name} is niet geladen. Controleer of het zwaard is ingesteld en bereikbaar is."
+    },
+    "path_not_allowed": {
+      "message": "Home Assistant heeft geen toegang tot {path}. Zet het bestand onder /media of voeg de map toe aan allowlist_external_dirs in configuration.yaml."
+    },
+    "file_not_found": {
+      "message": "Bestand niet gevonden: {path}"
+    },
+    "folder_not_found": {
+      "message": "Map niet gevonden: {path}"
+    },
+    "file_exists": {
+      "message": "{path} bestaat al. Zet 'Overschrijven' aan om het te vervangen."
+    },
+    "blade_must_be_off": {
+      "message": "Zet eerst de kling uit: het zwaard accepteert dit niet terwijl de kling brandt."
+    },
+    "confirm_required": {
+      "message": "Deze actie kan het zwaard onbruikbaar maken als ze misgaat. Zet 'Bevestigen' op waar om door te gaan."
+    },
+    "use_update_firmware": {
+      "message": "Het zwaard installeert {path} bij de volgende start. Gebruik de actie update_firmware om firmware te sturen."
+    },
+    "saber_refused": {
+      "message": "Het zwaard weigerde: {operation}"
+    },
+    "no_sound_files": {
+      "message": "Geen herkenbare geluidsbestanden in {path}. Bestanden moeten WAV's zijn met namen als hum.wav, clash1.wav of clash (1).wav, of in mappen staan die naar het geluidstype zijn genoemd."
+    },
+    "wav_format": {
+      "message": "{count} bestand(en) kan het zwaard niet afspelen; het heeft PCM-WAV nodig van 44,1 kHz, 16-bit, mono: {files}"
+    },
+    "font_not_found": {
+      "message": "Het zwaard heeft geen fontmap {font} (wel: {available}). Gebruik een bestaande map om een font te vervangen, of {next} om een nieuw font toe te voegen."
+    },
+    "firmware_size": {
+      "message": "Dit bestand ({size} bytes) lijkt geen zwaardfirmware."
+    },
+    "battery_too_low": {
+      "message": "Batterij op {level}%: laad het zwaard op tot minstens {minimum}% voordat je de firmware bijwerkt."
+    },
+    "bad_archive": {
+      "message": "{path} kan niet als font worden gebruikt: {error}"
+    },
+    "font_empty": {
+      "message": "Font {font} heeft geen geluidsbestanden."
+    },
+    "same_font": {
+      "message": "Bron en bestemming zijn hetzelfde font ({font})."
+    },
+    "not_enough_space": {
+      "message": "Niet genoeg ruimte op het zwaard: het font heeft ongeveer {needed} MB nodig en er is {free} MB vrij. Verwijder eerst het oude font (delete_first, na het exporteren) of gebruik een kleiner font."
+    },
+    "font_not_in_backup": {
+      "message": "Font {font} zit niet in de back-up (die bevat: {available})."
+    },
+    "backup_other_saber": {
+      "message": "De back-up komt van een bord met hardwareversie {backup}, dit zwaard is {saber}. De instellingen worden niet op een ander bord teruggezet; zet Instellingen uit om alleen de fonts terug te zetten."
+    },
+    "device_not_saber": {
+      "message": "Apparaat {device_id} is geen Xeno-zwaard."
+    }
+  },
+  "issues": {
+    "keepalive_battery_drain": {
+      "title": "Keepalive put de accu van {name} uit",
+      "description": "Keepalive staat aan voor {name} (elke {interval} s). Het zwaard kan niet in slaap vallen: de printplaat en Bluetooth-radio blijven aan en de accu loopt leeg, ook met het lemmet uit. Zet om dit te stoppen het keepalive-interval op 0 in de opties van de integratie (Instellingen > Apparaten & diensten > Xeno Saber BLE > Configureren)."
+    }
+  },
+  "services": {
+    "upload_sound_font": {
+      "name": "Soundfont uploaden",
+      "description": "Stuurt via Bluetooth een map met WAV-bestanden naar een van de fontmappen van het zwaard en vervangt dat font. Bestanden worden hernoemd volgens de conventie van het zwaard (hum (1).wav, clash (1).wav…). Reken op enkele minuten per megabyte; de kling moet uit zijn.",
+      "fields": {
+        "device_id": {
+          "name": "Zwaard",
+          "description": "Het te gebruiken zwaard."
+        },
+        "folder": {
+          "name": "Map of zip",
+          "description": "Map of .zip-bestand op de Home Assistant-host met de WAV-bestanden van het font (44,1 kHz, 16-bit, mono). Submappen die naar een geluidstype zijn genoemd, worden ook gelezen."
+        },
+        "font": {
+          "name": "Font",
+          "description": "Nummer van de fontmap op het zwaard, vanaf 1. Het volgende vrije nummer voegt een nieuw font toe, zoals in de app."
+        },
+        "name": {
+          "name": "Naam",
+          "description": "Optionele nieuwe naam voor het font."
+        },
+        "replace": {
+          "name": "Vervangen",
+          "description": "Bestanden van het oude font verwijderen die het nieuwe niet overschrijft."
+        },
+        "delete_first": {
+          "name": "Oud font eerst verwijderen",
+          "description": "Alle bestanden van het doelfont verwijderen vóór het versturen, om ruimte te maken. Exporteer het eerst: anders is het oude font niet terug te halen."
+        },
+        "dry_run": {
+          "name": "Proefrun",
+          "description": "Alleen tonen hoe de bestanden zouden heten; niets versturen."
+        }
+      }
+    },
+    "export_sound_font": {
+      "name": "Soundfont exporteren",
+      "description": "Kopieert alle geluidsbestanden van één font van de kaart van het zwaard naar een .zip op de Home Assistant-host, als back-up of om te bewerken. 'Soundfont uploaden' accepteert de zip weer. Even traag als uploaden; de kling moet uit zijn.",
+      "fields": {
+        "device_id": {
+          "name": "Zwaard",
+          "description": "Het te gebruiken zwaard."
+        },
+        "font": {
+          "name": "Font",
+          "description": "Nummer van de fontmap op de kaart van het zwaard, vanaf 1."
+        },
+        "destination": {
+          "name": "Bestemming",
+          "description": "Zip-bestand om te schrijven op de Home Assistant-host."
+        },
+        "overwrite": {
+          "name": "Overschrijven",
+          "description": "De bestemming vervangen als die bestaat."
+        }
+      }
+    },
+    "backup_saber": {
+      "name": "Back-up van zwaard maken",
+      "description": "Kopieert alles op de opslag van het zwaard naar een .zip op de Home Assistant-host: alle fonts, config.ini, de knoptoewijzing indien aanwezig, de systeemgeluiden en een beschrijving van het zwaard en zijn instellingen. De zip is opgebouwd als een Xeno-SD-kaart. Via Bluetooth duurt dit uren voor een vol zwaard; de kling moet uit zijn.",
+      "fields": {
+        "device_id": {
+          "name": "Zwaard",
+          "description": "Het te gebruiken zwaard."
+        },
+        "destination": {
+          "name": "Bestemming",
+          "description": "Zip-bestand om te schrijven op de Home Assistant-host."
+        },
+        "overwrite": {
+          "name": "Overschrijven",
+          "description": "De bestemming vervangen als die bestaat."
+        },
+        "fonts": {
+          "name": "Fonts",
+          "description": "Fontmappen om op te nemen; alle als leeg."
+        },
+        "include_system_sounds": {
+          "name": "Systeemgeluiden",
+          "description": "Ook de gesproken meldingen en menugeluiden van de map setting opslaan (ongeveer 430 kleine bestanden). Het zwaard kan ze niet opsommen; ontbrekende worden overgeslagen."
+        }
+      }
+    },
+    "restore_backup": {
+      "name": "Back-up terugzetten",
+      "description": "Zet een back-up gemaakt met Back-up van zwaard maken (of een zip van een Xeno-SD-kaart) terug op het zwaard: de fonts en hun namen, daarna config.ini en de eigen knoptoewijzing. Fonts op het zwaard worden vervangen; ontbrekende worden aangemaakt als het de volgende vrije mappen zijn. Systeemgeluiden worden alleen op verzoek geschreven. Via Bluetooth duurt een volledige terugzetting uren; het zwaard moet uit staan.",
+      "fields": {
+        "device_id": {
+          "name": "Zwaard",
+          "description": "Het te gebruiken zwaard."
+        },
+        "source": {
+          "name": "Bron",
+          "description": "Back-up-zip op de Home Assistant-host."
+        },
+        "fonts": {
+          "name": "Fonts",
+          "description": "Terug te zetten fontmappen uit de back-up; alle als leeg."
+        },
+        "include_settings": {
+          "name": "Instellingen",
+          "description": "config.ini en de eigen knoptoewijzing terugzetten. Geweigerd als de back-up van een bord met een andere hardwareversie komt."
+        },
+        "include_system_sounds": {
+          "name": "Systeemgeluiden",
+          "description": "Ook de gesproken meldingen en menugeluiden van de map setting terugzetten. Alleen nodig als ze gewijzigd of verloren zijn."
+        },
+        "dry_run": {
+          "name": "Proefrun",
+          "description": "Alleen de back-up controleren en teruggeven wat geschreven zou worden."
+        },
+        "confirm": {
+          "name": "Bevestigen",
+          "description": "Vereist: de teruggezette fonts vervangen die op het zwaard."
+        }
+      }
+    },
+    "copy_sound_font": {
+      "name": "Soundfont kopiëren",
+      "description": "Kopieert een fontmap over een andere op de kaart van het zwaard. Het zwaard kopieert de bestanden zelf, dus het gaat snel. De kling moet uit zijn.",
+      "fields": {
+        "device_id": {
+          "name": "Zwaard",
+          "description": "Het te gebruiken zwaard."
+        },
+        "source_font": {
+          "name": "Bronfont",
+          "description": "Fontmap waaruit gekopieerd wordt."
+        },
+        "destination_font": {
+          "name": "Doelfont",
+          "description": "Fontmap die vervangen wordt."
+        },
+        "name": {
+          "name": "Naam",
+          "description": "Naam van de kopie; standaard die van het bronfont."
+        },
+        "replace": {
+          "name": "Vervangen",
+          "description": "Bestanden van het doelfont verwijderen die de kopie niet overschrijft."
+        }
+      }
+    },
+    "list_sound_fonts": {
+      "name": "Soundfonts weergeven",
+      "description": "Geeft de fontmappen op de kaart van het zwaard, hun namen en het gebruik van de kaart.",
+      "fields": {
+        "device_id": {
+          "name": "Zwaard",
+          "description": "Het te gebruiken zwaard."
+        }
+      }
+    },
+    "list_sound_files": {
+      "name": "Geluidsbestanden weergeven",
+      "description": "Geeft de geluidsbestanden van één font, gegroepeerd per type.",
+      "fields": {
+        "device_id": {
+          "name": "Zwaard",
+          "description": "Het te gebruiken zwaard."
+        },
+        "font": {
+          "name": "Font",
+          "description": "Nummer van de fontmap op de kaart van het zwaard, vanaf 1."
+        }
+      }
+    },
+    "rename_sound_font": {
+      "name": "Soundfont hernoemen",
+      "description": "Wijzigt de naam die het zwaard voor een font toont.",
+      "fields": {
+        "device_id": {
+          "name": "Zwaard",
+          "description": "Het te gebruiken zwaard."
+        },
+        "font": {
+          "name": "Font",
+          "description": "Nummer van de fontmap op de kaart van het zwaard, vanaf 1."
+        },
+        "name": {
+          "name": "Naam",
+          "description": "Nieuwe naam, maximaal 16 tekens."
+        }
+      }
+    },
+    "play_sound": {
+      "name": "Geluid afspelen",
+      "description": "Speelt een geluidsbestand van de kaart van het zwaard af, of stopt het afspelen als er geen pad is opgegeven.",
+      "fields": {
+        "device_id": {
+          "name": "Zwaard",
+          "description": "Het te gebruiken zwaard."
+        },
+        "path": {
+          "name": "Pad",
+          "description": "Bestand op het zwaard, bijvoorbeeld /3/hum (1).wav. Laat leeg om te stoppen."
+        }
+      }
+    },
+    "upload_file": {
+      "name": "Bestand uploaden",
+      "description": "Stuurt een bestand naar de kaart van het zwaard, bijvoorbeeld config.ini om de instellingen terug te zetten. De kling moet uit zijn.",
+      "fields": {
+        "device_id": {
+          "name": "Zwaard",
+          "description": "Het te gebruiken zwaard."
+        },
+        "source": {
+          "name": "Bron",
+          "description": "Bestand op de Home Assistant-host."
+        },
+        "destination": {
+          "name": "Bestemming",
+          "description": "Pad op het zwaard: config.ini voor het instellingenbestand, of /3/hum (1).wav."
+        }
+      }
+    },
+    "download_file": {
+      "name": "Bestand downloaden",
+      "description": "Kopieert een bestand van de kaart van het zwaard naar Home Assistant, bijvoorbeeld config.ini als back-up. De kling moet uit zijn.",
+      "fields": {
+        "device_id": {
+          "name": "Zwaard",
+          "description": "Het te gebruiken zwaard."
+        },
+        "source": {
+          "name": "Bron",
+          "description": "Pad op het zwaard, bijvoorbeeld config.ini."
+        },
+        "destination": {
+          "name": "Bestemming",
+          "description": "Bestand om te schrijven op de Home Assistant-host."
+        },
+        "overwrite": {
+          "name": "Overschrijven",
+          "description": "De bestemming vervangen als die bestaat."
+        }
+      }
+    },
+    "copy_file": {
+      "name": "Bestand kopiëren",
+      "description": "Kopieert een bestand van de ene plek op de kaart van het zwaard naar een andere.",
+      "fields": {
+        "device_id": {
+          "name": "Zwaard",
+          "description": "Het te gebruiken zwaard."
+        },
+        "source": {
+          "name": "Bron",
+          "description": "Pad op het zwaard."
+        },
+        "destination": {
+          "name": "Bestemming",
+          "description": "Pad op het zwaard."
+        }
+      }
+    },
+    "delete_file": {
+      "name": "Bestand verwijderen",
+      "description": "Verwijdert een bestand van de kaart van het zwaard. Dit kan niet ongedaan worden gemaakt.",
+      "fields": {
+        "device_id": {
+          "name": "Zwaard",
+          "description": "Het te gebruiken zwaard."
+        },
+        "path": {
+          "name": "Pad",
+          "description": "Bestand op het zwaard, bijvoorbeeld /3/clash (9).wav."
+        },
+        "confirm": {
+          "name": "Bevestigen",
+          "description": "Vereist om het instellingenbestand te verwijderen (config.ini of alles onder /setting): zonder dat meldt het zwaard een fout bij het opstarten."
+        }
+      }
+    },
+    "update_firmware": {
+      "name": "Firmware bijwerken",
+      "description": "Stuurt een firmwarebestand (update.bin) naar het zwaard, dat het installeert en herstart. Een verkeerde of onderbroken update kan het zwaard onbruikbaar maken, en nieuwere firmware werkt mogelijk niet met deze integratie. De kling moet uit zijn en de batterij minstens 30%.",
+      "fields": {
+        "device_id": {
+          "name": "Zwaard",
+          "description": "Het te gebruiken zwaard."
+        },
+        "file": {
+          "name": "Bestand",
+          "description": "Firmwarebestand op de Home Assistant-host, van de verkoper van het zwaard."
+        },
+        "confirm": {
+          "name": "Bevestigen",
+          "description": "Moet aan staan. Deze actie kan het zwaard onbruikbaar maken als ze misgaat."
+        }
+      }
+    },
+    "set_blade_firmware": {
+      "name": "Kling-firmware instellen",
+      "description": "Schakelt het zwaard tussen Pixel- en RGB-klingfirmware en herstart het daarna. De kling brandt alleen goed met de firmware die erbij past.",
+      "fields": {
+        "device_id": {
+          "name": "Zwaard",
+          "description": "Het te gebruiken zwaard."
+        },
+        "type": {
+          "name": "Type",
+          "description": "Pixel voor een neopixelkling, RGB voor een led in het gevest."
+        },
+        "confirm": {
+          "name": "Bevestigen",
+          "description": "Moet aan staan. Deze actie kan het zwaard onbruikbaar maken als ze misgaat."
+        }
+      }
+    },
+    "set_hardware_type": {
+      "name": "Hardwaretype instellen",
+      "description": "Vertelt het bord hoe het bedraad is (Pixel of RGB) en hoeveel knoppen het heeft, en herstart het daarna. De officiële app waarschuwt dat het wijzigen van het hardwaretype solderen vereist; wijzig het alleen als het bord opnieuw bedraad is.",
+      "fields": {
+        "device_id": {
+          "name": "Zwaard",
+          "description": "Het te gebruiken zwaard."
+        },
+        "type": {
+          "name": "Type",
+          "description": "Hoe het bord bedraad is."
+        },
+        "buttons": {
+          "name": "Knoppen",
+          "description": "Aantal knoppen op het gevest (1 of 2)."
+        },
+        "confirm": {
+          "name": "Bevestigen",
+          "description": "Moet aan staan. Deze actie kan het zwaard onbruikbaar maken als ze misgaat."
+        }
+      }
+    }
+  },
+  "selector": {
+    "blade_type": {
+      "options": {
+        "pixel": "Pixel",
+        "rgb": "RGB"
+      }
+    }
+  }
+}

@@ -1,0 +1,689 @@
+{
+  "config": {
+    "flow_title": "{name}",
+    "step": {
+      "user": {
+        "title": "Elige un sable",
+        "description": "Elige el sable que quieres añadir. Debe estar despierto (mantén pulsado el botón) y la aplicación Xeno Configurator debe estar cerrada.",
+        "data": {
+          "address": "Sable"
+        },
+        "data_description": {
+          "address": "Sables encontrados por Bluetooth. Solo aparecen los sables activos; Home Assistant se conecta brevemente al que elijas para comprobarlo."
+        }
+      },
+      "bluetooth_confirm": {
+        "description": "¿Quieres configurar {name}?"
+      }
+    },
+    "abort": {
+      "already_configured": "Este sable ya está configurado.",
+      "already_in_progress": "La configuración de este sable ya está en curso.",
+      "no_devices_found": "No se encontró ningún sable compatible (placa Xenopixel V3). Despiértalo e inténtalo de nuevo."
+    },
+    "error": {
+      "cannot_connect": "No se pudo conectar con el sable. Asegúrate de que esté activo y al alcance, y de que la app Xeno Configurator esté cerrada, y vuelve a intentarlo."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Conexión y sincronización",
+        "data": {
+          "idle_disconnect": "Desconectar tras inactividad (segundos)",
+          "keepalive": "Intervalo de mantenimiento activo (segundos)",
+          "sync_light": "Sincronización de color: luz a seguir",
+          "wled_udp": "Sincronización de color: escuchar difusiones WLED",
+          "wled_udp_source": "Dirección de origen WLED"
+        },
+        "data_description": {
+          "idle_disconnect": "0 = permanecer conectado (estado en tiempo real, pero la app del móvil no puede conectarse). Si no, Home Assistant se conecta cuando lo necesita y libera el sable tras este tiempo.",
+          "keepalive": "0 = desactivado (recomendado). Cualquier otro valor reenvía el brillo actual cada N segundos para que el sable nunca entre en reposo. ATENCIÓN: la placa y la radio Bluetooth del sable permanecen encendidas todo el tiempo y la BATERÍA SE AGOTARÁ, incluso con la hoja apagada. Úsalo solo con el sable en el cargador o en sesiones cortas. Requiere «Desconectar tras inactividad» = 0.",
+          "sync_light": "Opcional. Mientras el interruptor Sincronización de color esté activado, la hoja copia el estado encendido/apagado, el color y el brillo de esta luz. Encender esa luz enciende la hoja.",
+          "wled_udp": "Mientras la sincronización de color esté activada, escucha en el puerto UDP 21324 los paquetes de sincronización de WLED (en WLED: Settings > Sync Interfaces > Send notifications on change). Estos paquetes no están autenticados: cualquier dispositivo de la red puede controlar la hoja, salvo que indiques una dirección de origen abajo.",
+          "wled_udp_source": "Opcional. Obedecer solo los paquetes WLED enviados desde esta dirección IPv4."
+        }
+      }
+    },
+    "error": {
+      "keepalive_needs_persistent": "El mantenimiento activo requiere una conexión permanente: pon «Desconectar tras inactividad» a 0.",
+      "sync_self": "La hoja no puede seguirse a sí misma.",
+      "invalid_ip": "Introduce una dirección IPv4, por ejemplo 192.168.1.50."
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "connected": {
+        "name": "Conectado"
+      },
+      "authorized": {
+        "name": "Autorizado"
+      }
+    },
+    "light": {
+      "blade": {
+        "name": "Hoja"
+      }
+    },
+    "number": {
+      "volume": {
+        "name": "Volumen"
+      },
+      "blade_brightness": {
+        "name": "Brillo de la hoja"
+      },
+      "main_blade_length": {
+        "name": "Longitud de la hoja"
+      },
+      "side_blade_length": {
+        "name": "Longitud de la hoja lateral"
+      },
+      "side_blade_delay": {
+        "name": "Retardo de la hoja lateral"
+      },
+      "power_on_time": {
+        "name": "Tiempo de encendido (despertar)"
+      },
+      "power_off_time": {
+        "name": "Tiempo de apagado (reposo)"
+      },
+      "auto_deep_sleep": {
+        "name": "Reposo profundo automático"
+      },
+      "ignition_time": {
+        "name": "Tiempo de ignición"
+      },
+      "retraction_time": {
+        "name": "Tiempo de retracción"
+      },
+      "preon_time": {
+        "name": "Tiempo de preencendido"
+      },
+      "clash_sensitivity": {
+        "name": "Sensibilidad al choque"
+      },
+      "swing_sensitivity": {
+        "name": "Sensibilidad al balanceo"
+      },
+      "twist_sensitivity": {
+        "name": "Sensibilidad al giro"
+      },
+      "push_sensitivity": {
+        "name": "Sensibilidad al empuje"
+      },
+      "pull_sensitivity": {
+        "name": "Sensibilidad al tirón"
+      },
+      "accent_swing_sensitivity": {
+        "name": "Sensibilidad del balanceo acentuado"
+      },
+      "motor_speed": {
+        "name": "Velocidad del motor"
+      }
+    },
+    "select": {
+      "sound_font": {
+        "name": "Fuente de sonido"
+      },
+      "light_effect": {
+        "name": "Efecto de la hoja"
+      },
+      "blaster_effect": {
+        "name": "Efecto bláster"
+      },
+      "force_effect": {
+        "name": "Efecto de fuerza"
+      },
+      "lockup_effect": {
+        "name": "Efecto de bloqueo"
+      },
+      "clash_effect": {
+        "name": "Efecto de choque"
+      },
+      "post_off_effect": {
+        "name": "Efecto tras apagar"
+      },
+      "mode": {
+        "name": "Modo"
+      }
+    },
+    "sensor": {
+      "battery": {
+        "name": "Batería"
+      },
+      "font_name": {
+        "name": "Nombre de la fuente"
+      },
+      "blade_firmware": {
+        "name": "Firmware de la hoja",
+        "state": {
+          "pixel": "Pixel",
+          "rgb": "RGB"
+        }
+      },
+      "hardware_type": {
+        "name": "Tipo de hardware",
+        "state": {
+          "pixel": "Pixel",
+          "rgb": "RGB"
+        }
+      },
+      "button_count": {
+        "name": "Botones"
+      },
+      "file_transfer": {
+        "name": "Transferencia de archivos"
+      }
+    },
+    "switch": {
+      "background_music": {
+        "name": "Música de fondo"
+      },
+      "motion_control": {
+        "name": "Control por gestos"
+      },
+      "lockup": {
+        "name": "Bloqueo"
+      },
+      "drag": {
+        "name": "Arrastre"
+      },
+      "color_sync": {
+        "name": "Sincronización de color"
+      },
+      "fast_color_changing": {
+        "name": "Ciclo de color rápido"
+      },
+      "smooth_color_changing": {
+        "name": "Ciclo de color suave"
+      },
+      "flash_on_clash": {
+        "name": "Destello al chocar"
+      },
+      "countdown": {
+        "name": "Cuenta atrás"
+      },
+      "led_screen": {
+        "name": "Pantalla LED"
+      },
+      "velocity_mode": {
+        "name": "Modo velocidad"
+      },
+      "torch_mode": {
+        "name": "Modo antorcha"
+      },
+      "ghost_mode": {
+        "name": "Modo fantasma"
+      },
+      "lightning_block_mode": {
+        "name": "Modo bloqueo de rayos"
+      },
+      "blaster_mode": {
+        "name": "Modo bláster"
+      },
+      "multiblock_mode": {
+        "name": "Modo multibloqueo"
+      },
+      "multilock_mode": {
+        "name": "Modo multitraba"
+      },
+      "pull_push_ignition": {
+        "name": "Encendido tirar-empujar"
+      },
+      "push_pull_retraction": {
+        "name": "Apagado empujar-tirar"
+      },
+      "twist_ignition": {
+        "name": "Encendido por giro"
+      },
+      "twist_retraction": {
+        "name": "Apagado por giro"
+      },
+      "swing_ignition": {
+        "name": "Encendido por balanceo"
+      }
+    },
+    "button": {
+      "clash": {
+        "name": "Choque"
+      },
+      "blaster": {
+        "name": "Bláster"
+      },
+      "force": {
+        "name": "Fuerza"
+      },
+      "reconnect": {
+        "name": "Reconectar"
+      },
+      "save_settings": {
+        "name": "Guardar ajustes"
+      },
+      "restart": {
+        "name": "Reiniciar"
+      }
+    }
+  },
+  "exceptions": {
+    "connection_failed": {
+      "message": "No se pudo conectar con el sable {address}: {error}"
+    },
+    "command_failed": {
+      "message": "Ha fallado el comando enviado al sable: {error}"
+    },
+    "sync_unavailable": {
+      "message": "No se pudo iniciar la sincronización de color: {error}"
+    },
+    "entry_not_loaded": {
+      "message": "{name} no está cargado. Comprueba que el sable está configurado y es accesible."
+    },
+    "path_not_allowed": {
+      "message": "Home Assistant no tiene permiso para acceder a {path}. Pon el archivo en /media o añade su carpeta a allowlist_external_dirs en configuration.yaml."
+    },
+    "file_not_found": {
+      "message": "Archivo no encontrado: {path}"
+    },
+    "folder_not_found": {
+      "message": "Carpeta no encontrada: {path}"
+    },
+    "file_exists": {
+      "message": "{path} ya existe. Activa «Sobrescribir» para reemplazarlo."
+    },
+    "blade_must_be_off": {
+      "message": "Apaga primero la hoja: el sable no lo acepta mientras está encendida."
+    },
+    "confirm_required": {
+      "message": "Esta acción puede dejar el sable inutilizable si falla. Pon «Confirmar» en verdadero para continuar."
+    },
+    "use_update_firmware": {
+      "message": "El sable instala {path} en su próximo arranque. Usa la acción update_firmware para enviar firmware."
+    },
+    "saber_refused": {
+      "message": "El sable lo rechazó: {operation}"
+    },
+    "no_sound_files": {
+      "message": "No hay archivos de sonido reconocibles en {path}. Deben ser WAV con nombres como hum.wav, clash1.wav o clash (1).wav, o estar en carpetas con el nombre del tipo de sonido."
+    },
+    "wav_format": {
+      "message": "El sable no puede reproducir {count} archivo(s); necesita WAV PCM de 44,1 kHz, 16 bits, mono: {files}"
+    },
+    "font_not_found": {
+      "message": "El sable no tiene la carpeta de fuente {font} (tiene: {available}). Usa una carpeta existente para reemplazar una fuente, o {next} para añadir una nueva."
+    },
+    "firmware_size": {
+      "message": "Este archivo ({size} bytes) no parece un firmware de sable."
+    },
+    "battery_too_low": {
+      "message": "Batería al {level} %: carga el sable al menos al {minimum} % antes de actualizar su firmware."
+    },
+    "bad_archive": {
+      "message": "{path} no se puede usar como fuente: {error}"
+    },
+    "font_empty": {
+      "message": "La fuente {font} no tiene archivos de sonido."
+    },
+    "same_font": {
+      "message": "El origen y el destino son la misma fuente ({font})."
+    },
+    "not_enough_space": {
+      "message": "No hay espacio suficiente en el sable: la fuente necesita unos {needed} MB y quedan {free} MB libres. Borra primero la fuente anterior (delete_first, tras exportarla) o usa una fuente más pequeña."
+    },
+    "font_not_in_backup": {
+      "message": "La fuente {font} no está en la copia (contiene: {available})."
+    },
+    "backup_other_saber": {
+      "message": "La copia viene de una placa con versión de hardware {backup}, este sable es {saber}. Sus ajustes no se restauran en otra placa; desactiva Ajustes para restaurar solo las fuentes."
+    },
+    "device_not_saber": {
+      "message": "El dispositivo {device_id} no es un sable Xeno."
+    }
+  },
+  "issues": {
+    "keepalive_battery_drain": {
+      "title": "El mantenimiento activo está agotando la batería de {name}",
+      "description": "El mantenimiento activo está encendido para {name} (cada {interval} s). El sable no puede entrar en reposo: su placa y su radio Bluetooth siguen encendidas y la batería se agotará, incluso con la hoja apagada. Para detenerlo, pon el intervalo de mantenimiento activo a 0 en las opciones de la integración (Ajustes > Dispositivos y servicios > Xeno Saber BLE > Configurar)."
+    }
+  },
+  "services": {
+    "upload_sound_font": {
+      "name": "Subir fuente de sonido",
+      "description": "Envía por Bluetooth una carpeta de archivos WAV a una de las carpetas de fuente del sable, reemplazando esa fuente. Los archivos se renombran según la convención del sable (hum (1).wav, clash (1).wav…). Cuenta con varios minutos por megabyte; la hoja debe estar apagada.",
+      "fields": {
+        "device_id": {
+          "name": "Sable",
+          "description": "El sable que se usa."
+        },
+        "folder": {
+          "name": "Carpeta o zip",
+          "description": "Carpeta o archivo .zip del host de Home Assistant con los WAV de la fuente (44,1 kHz, 16 bits, mono). También se leen las subcarpetas con el nombre de un tipo de sonido."
+        },
+        "font": {
+          "name": "Fuente",
+          "description": "Número de la carpeta de fuente en el sable, desde 1. El siguiente número libre añade una fuente nueva, como en la app."
+        },
+        "name": {
+          "name": "Nombre",
+          "description": "Nombre nuevo opcional para la fuente."
+        },
+        "replace": {
+          "name": "Reemplazar",
+          "description": "Borrar los archivos de la fuente anterior que la nueva no sobrescribe."
+        },
+        "delete_first": {
+          "name": "Borrar antes la fuente anterior",
+          "description": "Borrar todos los archivos de la fuente de destino antes del envío, para hacer sitio. Expórtala antes: si no, la fuente anterior no se puede recuperar."
+        },
+        "dry_run": {
+          "name": "Simulación",
+          "description": "Solo mostrar cómo se nombrarían los archivos; no enviar nada."
+        }
+      }
+    },
+    "export_sound_font": {
+      "name": "Exportar fuente de sonido",
+      "description": "Copia todos los archivos de sonido de una fuente de la tarjeta del sable a un .zip en el host de Home Assistant, para guardarla o editarla. «Subir fuente de sonido» acepta ese zip de vuelta. Tan lento como una subida; la hoja debe estar apagada.",
+      "fields": {
+        "device_id": {
+          "name": "Sable",
+          "description": "El sable que se usa."
+        },
+        "font": {
+          "name": "Fuente",
+          "description": "Número de la carpeta de fuente en la tarjeta del sable, desde 1."
+        },
+        "destination": {
+          "name": "Destino",
+          "description": "Archivo zip que se escribirá en el host de Home Assistant."
+        },
+        "overwrite": {
+          "name": "Sobrescribir",
+          "description": "Reemplazar el destino si existe."
+        }
+      }
+    },
+    "backup_saber": {
+      "name": "Copia de seguridad del sable",
+      "description": "Copia todo el contenido del almacenamiento del sable a un .zip en el host de Home Assistant: todas las fuentes, config.ini, la asignación de botones si existe, los sonidos del sistema y una descripción del sable y sus ajustes. El zip tiene la estructura de una tarjeta SD Xeno. Por Bluetooth tarda horas con un sable lleno; la hoja debe estar apagada.",
+      "fields": {
+        "device_id": {
+          "name": "Sable",
+          "description": "El sable que se usa."
+        },
+        "destination": {
+          "name": "Destino",
+          "description": "Archivo zip que se escribirá en el host de Home Assistant."
+        },
+        "overwrite": {
+          "name": "Sobrescribir",
+          "description": "Reemplazar el destino si existe."
+        },
+        "fonts": {
+          "name": "Fuentes",
+          "description": "Carpetas de fuente que se incluyen; todas si está vacío."
+        },
+        "include_system_sounds": {
+          "name": "Sonidos del sistema",
+          "description": "Guardar también los avisos de voz y los sonidos de menú de la carpeta setting (unos 430 archivos pequeños). El sable no puede listarlos, así que se omiten los que no tiene."
+        }
+      }
+    },
+    "restore_backup": {
+      "name": "Restaurar copia de seguridad",
+      "description": "Vuelve a escribir en el sable una copia hecha con Copia de seguridad del sable (o el zip de una tarjeta SD Xeno): las fuentes y sus nombres, y después config.ini y la asignación personalizada de botones. Las fuentes del sable se reemplazan; las que faltan se crean si son las siguientes carpetas libres. Los sonidos del sistema solo se escriben si se pide. Por Bluetooth una restauración completa tarda horas; la hoja debe estar apagada.",
+      "fields": {
+        "device_id": {
+          "name": "Sable",
+          "description": "El sable que se usa."
+        },
+        "source": {
+          "name": "Origen",
+          "description": "Zip de la copia en el host de Home Assistant."
+        },
+        "fonts": {
+          "name": "Fuentes",
+          "description": "Carpetas de fuente de la copia que se restauran; todas si está vacío."
+        },
+        "include_settings": {
+          "name": "Ajustes",
+          "description": "Restaurar config.ini y la asignación personalizada de botones. Se rechaza si la copia viene de una placa con otra versión de hardware."
+        },
+        "include_system_sounds": {
+          "name": "Sonidos del sistema",
+          "description": "Restaurar también los avisos de voz y sonidos de menú de la carpeta setting. Solo hace falta si se cambiaron o perdieron."
+        },
+        "dry_run": {
+          "name": "Simulación",
+          "description": "Solo comprobar la copia y devolver lo que se escribiría."
+        },
+        "confirm": {
+          "name": "Confirmar",
+          "description": "Obligatorio: las fuentes restauradas reemplazan las del sable."
+        }
+      }
+    },
+    "copy_sound_font": {
+      "name": "Copiar fuente de sonido",
+      "description": "Copia una carpeta de fuente sobre otra en la tarjeta del sable. El sable copia los archivos por sí mismo, así que es rápido. La hoja debe estar apagada.",
+      "fields": {
+        "device_id": {
+          "name": "Sable",
+          "description": "El sable que se usa."
+        },
+        "source_font": {
+          "name": "Fuente de origen",
+          "description": "Carpeta de fuente que se copia."
+        },
+        "destination_font": {
+          "name": "Fuente de destino",
+          "description": "Carpeta de fuente que se reemplaza."
+        },
+        "name": {
+          "name": "Nombre",
+          "description": "Nombre de la copia; por defecto, el de la fuente de origen."
+        },
+        "replace": {
+          "name": "Reemplazar",
+          "description": "Borrar los archivos de la fuente de destino que la copia no sobrescribe."
+        }
+      }
+    },
+    "list_sound_fonts": {
+      "name": "Listar fuentes de sonido",
+      "description": "Devuelve las carpetas de fuente de la tarjeta del sable, sus nombres y el uso de la tarjeta.",
+      "fields": {
+        "device_id": {
+          "name": "Sable",
+          "description": "El sable que se usa."
+        }
+      }
+    },
+    "list_sound_files": {
+      "name": "Listar archivos de sonido",
+      "description": "Devuelve los archivos de sonido de una fuente, agrupados por tipo.",
+      "fields": {
+        "device_id": {
+          "name": "Sable",
+          "description": "El sable que se usa."
+        },
+        "font": {
+          "name": "Fuente",
+          "description": "Número de la carpeta de fuente en la tarjeta del sable, desde 1."
+        }
+      }
+    },
+    "rename_sound_font": {
+      "name": "Renombrar fuente de sonido",
+      "description": "Cambia el nombre que el sable muestra para una fuente.",
+      "fields": {
+        "device_id": {
+          "name": "Sable",
+          "description": "El sable que se usa."
+        },
+        "font": {
+          "name": "Fuente",
+          "description": "Número de la carpeta de fuente en la tarjeta del sable, desde 1."
+        },
+        "name": {
+          "name": "Nombre",
+          "description": "Nombre nuevo, de hasta 16 caracteres."
+        }
+      }
+    },
+    "play_sound": {
+      "name": "Reproducir sonido",
+      "description": "Reproduce un archivo de sonido de la tarjeta del sable, o detiene la reproducción si no se indica ruta.",
+      "fields": {
+        "device_id": {
+          "name": "Sable",
+          "description": "El sable que se usa."
+        },
+        "path": {
+          "name": "Ruta",
+          "description": "Archivo del sable, por ejemplo /3/hum (1).wav. Déjalo vacío para detener."
+        }
+      }
+    },
+    "upload_file": {
+      "name": "Subir archivo",
+      "description": "Envía un archivo a la tarjeta del sable, por ejemplo config.ini para restaurar sus ajustes. La hoja debe estar apagada.",
+      "fields": {
+        "device_id": {
+          "name": "Sable",
+          "description": "El sable que se usa."
+        },
+        "source": {
+          "name": "Origen",
+          "description": "Archivo en el host de Home Assistant."
+        },
+        "destination": {
+          "name": "Destino",
+          "description": "Ruta en el sable: config.ini para el archivo de ajustes, o /3/hum (1).wav."
+        }
+      }
+    },
+    "download_file": {
+      "name": "Descargar archivo",
+      "description": "Copia un archivo de la tarjeta del sable a Home Assistant, por ejemplo config.ini como copia de seguridad. La hoja debe estar apagada.",
+      "fields": {
+        "device_id": {
+          "name": "Sable",
+          "description": "El sable que se usa."
+        },
+        "source": {
+          "name": "Origen",
+          "description": "Ruta en el sable, por ejemplo config.ini."
+        },
+        "destination": {
+          "name": "Destino",
+          "description": "Archivo que se escribirá en el host de Home Assistant."
+        },
+        "overwrite": {
+          "name": "Sobrescribir",
+          "description": "Reemplazar el destino si existe."
+        }
+      }
+    },
+    "copy_file": {
+      "name": "Copiar archivo",
+      "description": "Copia un archivo de un lugar de la tarjeta del sable a otro.",
+      "fields": {
+        "device_id": {
+          "name": "Sable",
+          "description": "El sable que se usa."
+        },
+        "source": {
+          "name": "Origen",
+          "description": "Ruta en el sable."
+        },
+        "destination": {
+          "name": "Destino",
+          "description": "Ruta en el sable."
+        }
+      }
+    },
+    "delete_file": {
+      "name": "Borrar archivo",
+      "description": "Borra un archivo de la tarjeta del sable. No se puede deshacer.",
+      "fields": {
+        "device_id": {
+          "name": "Sable",
+          "description": "El sable que se usa."
+        },
+        "path": {
+          "name": "Ruta",
+          "description": "Archivo del sable, por ejemplo /3/clash (9).wav."
+        },
+        "confirm": {
+          "name": "Confirmar",
+          "description": "Necesario para borrar el archivo de ajustes (config.ini o cualquier cosa en /setting): sin él, el sable indica un error al arrancar."
+        }
+      }
+    },
+    "update_firmware": {
+      "name": "Actualizar firmware",
+      "description": "Envía un archivo de firmware (update.bin) al sable, que lo instala y se reinicia. Una actualización incorrecta o interrumpida puede dejar el sable inutilizable, y un firmware más nuevo puede no funcionar con esta integración. La hoja debe estar apagada y la batería al menos al 30 %.",
+      "fields": {
+        "device_id": {
+          "name": "Sable",
+          "description": "El sable que se usa."
+        },
+        "file": {
+          "name": "Archivo",
+          "description": "Archivo de firmware en el host de Home Assistant, del vendedor del sable."
+        },
+        "confirm": {
+          "name": "Confirmar",
+          "description": "Debe estar activado. Esta acción puede dejar el sable inutilizable si falla."
+        }
+      }
+    },
+    "set_blade_firmware": {
+      "name": "Elegir firmware de la hoja",
+      "description": "Cambia el sable entre el firmware de hoja Pixel y RGB, y luego lo reinicia. La hoja solo se enciende correctamente con el firmware que le corresponde.",
+      "fields": {
+        "device_id": {
+          "name": "Sable",
+          "description": "El sable que se usa."
+        },
+        "type": {
+          "name": "Tipo",
+          "description": "Pixel para una hoja neopixel, RGB para un LED en la empuñadura."
+        },
+        "confirm": {
+          "name": "Confirmar",
+          "description": "Debe estar activado. Esta acción puede dejar el sable inutilizable si falla."
+        }
+      }
+    },
+    "set_hardware_type": {
+      "name": "Elegir tipo de hardware",
+      "description": "Indica a la placa cómo está cableada (Pixel o RGB) y cuántos botones tiene, y luego la reinicia. La aplicación oficial advierte que cambiar el tipo de hardware requiere soldar; cámbialo solo si la placa se ha recableado.",
+      "fields": {
+        "device_id": {
+          "name": "Sable",
+          "description": "El sable que se usa."
+        },
+        "type": {
+          "name": "Tipo",
+          "description": "Cómo está cableada la placa."
+        },
+        "buttons": {
+          "name": "Botones",
+          "description": "Número de botones de la empuñadura (1 o 2)."
+        },
+        "confirm": {
+          "name": "Confirmar",
+          "description": "Debe estar activado. Esta acción puede dejar el sable inutilizable si falla."
+        }
+      }
+    }
+  },
+  "selector": {
+    "blade_type": {
+      "options": {
+        "pixel": "Pixel",
+        "rgb": "RGB"
+      }
+    }
+  }
+}

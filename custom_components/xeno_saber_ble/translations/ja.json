@@ -1,0 +1,689 @@
+{
+  "config": {
+    "flow_title": "{name}",
+    "step": {
+      "user": {
+        "title": "セイバーを選択",
+        "description": "追加するセイバーを選択してください。セイバーが起動状態（ボタン長押し）で、Xeno Configurator アプリが閉じている必要があります。",
+        "data": {
+          "address": "セイバー"
+        },
+        "data_description": {
+          "address": "Bluetooth で見つかったセーバーです。起動中のセーバーのみ表示されます。選択したセーバーを確認するため、Home Assistant が一時的に接続します。"
+        }
+      },
+      "bluetooth_confirm": {
+        "description": "{name} をセットアップしますか？"
+      }
+    },
+    "abort": {
+      "already_configured": "このセイバーはすでに設定されています。",
+      "already_in_progress": "このセイバーのセットアップはすでに進行中です。",
+      "no_devices_found": "対応するセイバー（Xenopixel V3 ボード）が見つかりません。起動してから再試行してください。"
+    },
+    "error": {
+      "cannot_connect": "セーバーに接続できませんでした。セーバーが起動していて範囲内にあり、Xeno Configurator アプリが閉じていることを確認してから、もう一度お試しください。"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "接続と同期の設定",
+        "data": {
+          "idle_disconnect": "アイドル後に切断（秒）",
+          "keepalive": "キープアライブ間隔（秒）",
+          "sync_light": "カラー同期：追従するライト",
+          "wled_udp": "カラー同期：WLED のブロードキャストを受信",
+          "wled_udp_source": "WLED 送信元アドレス"
+        },
+        "data_description": {
+          "idle_disconnect": "0 = 常時接続（状態をリアルタイムで取得できますが、スマートフォンのアプリは接続できません）。それ以外の場合、Home Assistant は必要なときだけ接続し、この時間が経過するとセイバーを解放します。",
+          "keepalive": "0 = オフ（推奨）。それ以外の値では、N 秒ごとに現在の明るさを再送信し、セーバーがスリープしないようにします。警告：セーバーの基板と Bluetooth 無線が常に動作し続けるため、ブレードがオフでもバッテリーが消耗します。充電器に接続しているときや短時間の使用時のみ使ってください。「アイドル後に切断」を 0 にする必要があります。",
+          "sync_light": "任意。カラー同期スイッチがオンの間、ブレードはこのライトのオン/オフ、色、明るさをコピーします。このライトをオンにするとブレードが点灯します。",
+          "wled_udp": "カラー同期がオンの間、UDP ポート 21324 で WLED の同期パケットを待ち受けます（WLED: Settings > Sync Interfaces > Send notifications on change）。これらのパケットは認証されないため、下で送信元アドレスを指定しない限り、ネットワーク上のどの機器でもブレードを操作できます。",
+          "wled_udp_source": "任意。この IPv4 アドレスから送られた WLED パケットにのみ従います。"
+        }
+      }
+    },
+    "error": {
+      "keepalive_needs_persistent": "キープアライブには常時接続が必要です。「アイドル後に切断」を 0 にしてください。",
+      "sync_self": "ブレードは自分自身に追従できません。",
+      "invalid_ip": "IPv4 アドレスを入力してください（例：192.168.1.50）。"
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "connected": {
+        "name": "接続"
+      },
+      "authorized": {
+        "name": "認証済み"
+      }
+    },
+    "light": {
+      "blade": {
+        "name": "ブレード"
+      }
+    },
+    "number": {
+      "volume": {
+        "name": "音量"
+      },
+      "blade_brightness": {
+        "name": "ブレードの明るさ"
+      },
+      "main_blade_length": {
+        "name": "ブレードの長さ"
+      },
+      "side_blade_length": {
+        "name": "サイドブレードの長さ"
+      },
+      "side_blade_delay": {
+        "name": "サイドブレードの遅延"
+      },
+      "power_on_time": {
+        "name": "電源オン時間（ウェイク）"
+      },
+      "power_off_time": {
+        "name": "電源オフ時間（ディープスリープ）"
+      },
+      "auto_deep_sleep": {
+        "name": "自動ディープスリープ"
+      },
+      "ignition_time": {
+        "name": "点灯時間"
+      },
+      "retraction_time": {
+        "name": "収納時間"
+      },
+      "preon_time": {
+        "name": "プレオン時間"
+      },
+      "clash_sensitivity": {
+        "name": "クラッシュ感度"
+      },
+      "swing_sensitivity": {
+        "name": "スイング感度"
+      },
+      "twist_sensitivity": {
+        "name": "ツイスト感度"
+      },
+      "push_sensitivity": {
+        "name": "プッシュ感度"
+      },
+      "pull_sensitivity": {
+        "name": "プル感度"
+      },
+      "accent_swing_sensitivity": {
+        "name": "アクセントスイング感度"
+      },
+      "motor_speed": {
+        "name": "モーター速度"
+      }
+    },
+    "select": {
+      "sound_font": {
+        "name": "サウンドフォント"
+      },
+      "light_effect": {
+        "name": "ブレードエフェクト"
+      },
+      "blaster_effect": {
+        "name": "ブラスターエフェクト"
+      },
+      "force_effect": {
+        "name": "フォースエフェクト"
+      },
+      "lockup_effect": {
+        "name": "ロックアップエフェクト"
+      },
+      "clash_effect": {
+        "name": "クラッシュエフェクト"
+      },
+      "post_off_effect": {
+        "name": "消灯後エフェクト"
+      },
+      "mode": {
+        "name": "モード"
+      }
+    },
+    "sensor": {
+      "battery": {
+        "name": "バッテリー"
+      },
+      "font_name": {
+        "name": "フォント名"
+      },
+      "blade_firmware": {
+        "name": "ブレードファームウェア",
+        "state": {
+          "pixel": "Pixel",
+          "rgb": "RGB"
+        }
+      },
+      "hardware_type": {
+        "name": "ハードウェアタイプ",
+        "state": {
+          "pixel": "Pixel",
+          "rgb": "RGB"
+        }
+      },
+      "button_count": {
+        "name": "ボタン数"
+      },
+      "file_transfer": {
+        "name": "ファイル転送"
+      }
+    },
+    "switch": {
+      "background_music": {
+        "name": "BGM"
+      },
+      "motion_control": {
+        "name": "モーションコントロール"
+      },
+      "lockup": {
+        "name": "ロックアップ"
+      },
+      "drag": {
+        "name": "ドラッグ"
+      },
+      "color_sync": {
+        "name": "カラー同期"
+      },
+      "fast_color_changing": {
+        "name": "高速カラーサイクル"
+      },
+      "smooth_color_changing": {
+        "name": "スムーズカラーサイクル"
+      },
+      "flash_on_clash": {
+        "name": "クラッシュ時フラッシュ"
+      },
+      "countdown": {
+        "name": "カウントダウン"
+      },
+      "led_screen": {
+        "name": "LED スクリーン"
+      },
+      "velocity_mode": {
+        "name": "ベロシティモード"
+      },
+      "torch_mode": {
+        "name": "トーチモード"
+      },
+      "ghost_mode": {
+        "name": "ゴーストモード"
+      },
+      "lightning_block_mode": {
+        "name": "ライトニングブロックモード"
+      },
+      "blaster_mode": {
+        "name": "ブラスターモード"
+      },
+      "multiblock_mode": {
+        "name": "マルチブロックモード"
+      },
+      "multilock_mode": {
+        "name": "マルチロックモード"
+      },
+      "pull_push_ignition": {
+        "name": "プル・プッシュで点灯"
+      },
+      "push_pull_retraction": {
+        "name": "プッシュ・プルで収納"
+      },
+      "twist_ignition": {
+        "name": "ツイストで点灯"
+      },
+      "twist_retraction": {
+        "name": "ツイストで収納"
+      },
+      "swing_ignition": {
+        "name": "スイングで点灯"
+      }
+    },
+    "button": {
+      "clash": {
+        "name": "クラッシュ"
+      },
+      "blaster": {
+        "name": "ブラスター"
+      },
+      "force": {
+        "name": "フォース"
+      },
+      "reconnect": {
+        "name": "再接続"
+      },
+      "save_settings": {
+        "name": "設定を保存"
+      },
+      "restart": {
+        "name": "再起動"
+      }
+    }
+  },
+  "exceptions": {
+    "connection_failed": {
+      "message": "セイバー {address} に接続できませんでした: {error}"
+    },
+    "command_failed": {
+      "message": "セイバーへのコマンドが失敗しました: {error}"
+    },
+    "sync_unavailable": {
+      "message": "カラー同期を開始できませんでした: {error}"
+    },
+    "entry_not_loaded": {
+      "message": "{name} は読み込まれていません。セイバーが設定済みで接続できるか確認してください。"
+    },
+    "path_not_allowed": {
+      "message": "Home Assistant は {path} にアクセスできません。ファイルを /media に置くか、configuration.yaml の allowlist_external_dirs にフォルダーを追加してください。"
+    },
+    "file_not_found": {
+      "message": "ファイルが見つかりません: {path}"
+    },
+    "folder_not_found": {
+      "message": "フォルダーが見つかりません: {path}"
+    },
+    "file_exists": {
+      "message": "{path} はすでに存在します。置き換えるには「上書き」をオンにしてください。"
+    },
+    "blade_must_be_off": {
+      "message": "先にブレードを消灯してください。点灯中はセイバーがこの操作を受け付けません。"
+    },
+    "confirm_required": {
+      "message": "この操作に失敗するとセイバーが使用できなくなるおそれがあります。続行するには「確認」を true にしてください。"
+    },
+    "use_update_firmware": {
+      "message": "セイバーは次回起動時に {path} をインストールします。ファームウェアの送信には update_firmware アクションを使ってください。"
+    },
+    "saber_refused": {
+      "message": "セイバーが拒否しました: {operation}"
+    },
+    "no_sound_files": {
+      "message": "{path} に認識できるサウンドファイルがありません。ファイルは hum.wav、clash1.wav、clash (1).wav のような名前の WAV にするか、サウンドの種類名のフォルダーに入れてください。"
+    },
+    "wav_format": {
+      "message": "{count} 個のファイルはセイバーで再生できません（44.1 kHz・16 ビット・モノラルの PCM WAV が必要）: {files}"
+    },
+    "font_not_found": {
+      "message": "セイバーにフォントフォルダー {font} はありません（あるもの: {available}）。既存のフォルダーを指定するとそのフォントを置き換え、{next} を指定すると新しいフォントを追加します。"
+    },
+    "firmware_size": {
+      "message": "このファイル（{size} バイト）はセイバーのファームウェアではないようです。"
+    },
+    "battery_too_low": {
+      "message": "バッテリー残量 {level}%: ファームウェアを更新する前に {minimum}% 以上まで充電してください。"
+    },
+    "bad_archive": {
+      "message": "{path} はフォントとして使用できません: {error}"
+    },
+    "font_empty": {
+      "message": "フォント {font} にサウンドファイルがありません。"
+    },
+    "same_font": {
+      "message": "コピー元とコピー先が同じフォント（{font}）です。"
+    },
+    "not_enough_space": {
+      "message": "セイバーの空き容量が足りません。このフォントには約 {needed} MB 必要ですが、空きは {free} MB です。先に古いフォントを削除する（エクスポート後に delete_first）か、小さいフォントを使ってください。"
+    },
+    "font_not_in_backup": {
+      "message": "フォント {font} はバックアップにありません（含まれるもの：{available}）。"
+    },
+    "backup_other_saber": {
+      "message": "バックアップはハードウェアバージョン {backup} のボードのもので、このセイバーは {saber} です。設定は別のボードには復元されません。フォントのみを復元するには「設定」をオフにしてください。"
+    },
+    "device_not_saber": {
+      "message": "デバイス {device_id} は Xeno セイバーではありません。"
+    }
+  },
+  "issues": {
+    "keepalive_battery_drain": {
+      "title": "キープアライブが {name} のバッテリーを消耗しています",
+      "description": "{name} のキープアライブがオンです（{interval} 秒ごと）。セーバーはスリープできません。基板と Bluetooth 無線が動作し続け、ブレードがオフでもバッテリーが消耗します。停止するには、統合のオプションでキープアライブ間隔を 0 にしてください（設定 > デバイスとサービス > Xeno Saber BLE > 設定）。"
+    }
+  },
+  "services": {
+    "upload_sound_font": {
+      "name": "サウンドフォントをアップロード",
+      "description": "WAV ファイルのフォルダーを Bluetooth でセイバーのフォントフォルダーの 1 つに送り、そのフォントを置き換えます。ファイル名はセイバーの規則（hum (1).wav、clash (1).wav…）に変更されます。1 MB あたり数分かかります。ブレードは消灯しておく必要があります。",
+      "fields": {
+        "device_id": {
+          "name": "セイバー",
+          "description": "使用するセイバー。"
+        },
+        "folder": {
+          "name": "フォルダーまたは zip",
+          "description": "フォントの WAV ファイル（44.1 kHz・16 ビット・モノラル）がある Home Assistant ホスト上のフォルダーまたは .zip ファイル。サウンドの種類名のサブフォルダーも読み込みます。"
+        },
+        "font": {
+          "name": "フォント",
+          "description": "セイバー上のフォントフォルダー番号（1 から）。次の空き番号を指定すると、アプリと同じく新しいフォントを追加します。"
+        },
+        "name": {
+          "name": "名前",
+          "description": "フォントの新しい名前（任意）。"
+        },
+        "replace": {
+          "name": "置き換え",
+          "description": "新しいフォントで上書きされない古いフォントのファイルを削除します。"
+        },
+        "delete_first": {
+          "name": "先に古いフォントを削除",
+          "description": "送信前に対象フォントのファイルをすべて削除して空きを作ります。先にエクスポートしてください。そうしないと古いフォントは復元できません。"
+        },
+        "dry_run": {
+          "name": "ドライラン",
+          "description": "ファイル名の変換結果だけを表示し、何も送信しません。"
+        }
+      }
+    },
+    "export_sound_font": {
+      "name": "サウンドフォントをエクスポート",
+      "description": "セイバーのカードにある 1 つのフォントのサウンドファイルをすべて Home Assistant ホスト上の .zip にコピーします（バックアップや編集用）。この zip は「サウンドフォントをアップロード」で戻せます。アップロードと同じくらい時間がかかります。ブレードは消灯しておく必要があります。",
+      "fields": {
+        "device_id": {
+          "name": "セイバー",
+          "description": "使用するセイバー。"
+        },
+        "font": {
+          "name": "フォント",
+          "description": "セイバーのカード上のフォントフォルダー番号（1 から）。"
+        },
+        "destination": {
+          "name": "送信先",
+          "description": "Home Assistant ホストに書き込む zip ファイル。"
+        },
+        "overwrite": {
+          "name": "上書き",
+          "description": "送信先が存在する場合は置き換えます。"
+        }
+      }
+    },
+    "backup_saber": {
+      "name": "セイバーをバックアップ",
+      "description": "セイバーのストレージの内容をすべて Home Assistant ホスト上の .zip にコピーします。全フォント、config.ini、ボタン割り当て（ある場合）、システムサウンド、セイバーと設定の説明が含まれます。zip は Xeno の SD カードと同じ構成です。Bluetooth では満杯のセイバーで数時間かかります。ブレードは消灯しておく必要があります。",
+      "fields": {
+        "device_id": {
+          "name": "セイバー",
+          "description": "使用するセイバー。"
+        },
+        "destination": {
+          "name": "送信先",
+          "description": "Home Assistant ホストに書き込む zip ファイル。"
+        },
+        "overwrite": {
+          "name": "上書き",
+          "description": "送信先が存在する場合は置き換えます。"
+        },
+        "fonts": {
+          "name": "フォント",
+          "description": "含めるフォントフォルダー（空の場合はすべて）。"
+        },
+        "include_system_sounds": {
+          "name": "システムサウンド",
+          "description": "setting フォルダーの音声案内とメニュー音（約 430 個の小さなファイル）も保存します。セイバーはこれらを一覧できないため、存在しないものはスキップします。"
+        }
+      }
+    },
+    "restore_backup": {
+      "name": "バックアップを復元",
+      "description": "「セイバーをバックアップ」で作成したバックアップ（または Xeno SD カードの zip）をセイバーに書き戻します：フォントとその名前、次に config.ini とカスタムボタン割り当て。セイバー上のフォントは置き換えられ、存在しないフォントは次の空きフォルダーであれば作成されます。システムサウンドは指定した場合のみ書き込まれます。Bluetooth では完全な復元に数時間かかります。ブレードはオフである必要があります。",
+      "fields": {
+        "device_id": {
+          "name": "セイバー",
+          "description": "使用するセイバー。"
+        },
+        "source": {
+          "name": "ソース",
+          "description": "Home Assistant ホスト上のバックアップ zip。"
+        },
+        "fonts": {
+          "name": "フォント",
+          "description": "復元するバックアップのフォントフォルダー。空の場合はすべて。"
+        },
+        "include_settings": {
+          "name": "設定",
+          "description": "config.ini とカスタムボタン割り当てを復元します。別のハードウェアバージョンのボードのバックアップの場合は拒否されます。"
+        },
+        "include_system_sounds": {
+          "name": "システムサウンド",
+          "description": "setting フォルダーの音声案内とメニュー音も復元します。変更または消失した場合のみ必要です。"
+        },
+        "dry_run": {
+          "name": "ドライラン",
+          "description": "バックアップを確認し、書き込まれる内容を返すだけです。"
+        },
+        "confirm": {
+          "name": "確認",
+          "description": "必須：復元したフォントがセイバー上のフォントを置き換えます。"
+        }
+      }
+    },
+    "copy_sound_font": {
+      "name": "サウンドフォントをコピー",
+      "description": "セイバーのカード上で、あるフォントフォルダーを別のフォルダーに上書きコピーします。コピーはセイバー自身が行うので短時間で終わります。ブレードは消灯しておく必要があります。",
+      "fields": {
+        "device_id": {
+          "name": "セイバー",
+          "description": "使用するセイバー。"
+        },
+        "source_font": {
+          "name": "コピー元フォント",
+          "description": "コピー元のフォントフォルダー。"
+        },
+        "destination_font": {
+          "name": "コピー先フォント",
+          "description": "置き換えるフォントフォルダー。"
+        },
+        "name": {
+          "name": "名前",
+          "description": "コピーの名前（省略時はコピー元フォントの名前）。"
+        },
+        "replace": {
+          "name": "置き換え",
+          "description": "コピーで上書きされないコピー先フォントのファイルを削除します。"
+        }
+      }
+    },
+    "list_sound_fonts": {
+      "name": "サウンドフォント一覧",
+      "description": "セイバーのカード上のフォントフォルダー、その名前、カードの使用量を返します。",
+      "fields": {
+        "device_id": {
+          "name": "セイバー",
+          "description": "使用するセイバー。"
+        }
+      }
+    },
+    "list_sound_files": {
+      "name": "サウンドファイル一覧",
+      "description": "1 つのフォントのサウンドファイルを種類別に返します。",
+      "fields": {
+        "device_id": {
+          "name": "セイバー",
+          "description": "使用するセイバー。"
+        },
+        "font": {
+          "name": "フォント",
+          "description": "セイバーのカード上のフォントフォルダー番号（1 から）。"
+        }
+      }
+    },
+    "rename_sound_font": {
+      "name": "サウンドフォント名を変更",
+      "description": "セイバーが表示するフォント名を変更します。",
+      "fields": {
+        "device_id": {
+          "name": "セイバー",
+          "description": "使用するセイバー。"
+        },
+        "font": {
+          "name": "フォント",
+          "description": "セイバーのカード上のフォントフォルダー番号（1 から）。"
+        },
+        "name": {
+          "name": "名前",
+          "description": "新しい名前（16 文字まで）。"
+        }
+      }
+    },
+    "play_sound": {
+      "name": "サウンドを再生",
+      "description": "セイバーのカードにあるサウンドファイルを再生します。パスを指定しない場合は再生を停止します。",
+      "fields": {
+        "device_id": {
+          "name": "セイバー",
+          "description": "使用するセイバー。"
+        },
+        "path": {
+          "name": "パス",
+          "description": "セイバー上のファイル（例: /3/hum (1).wav）。空にすると停止します。"
+        }
+      }
+    },
+    "upload_file": {
+      "name": "ファイルをアップロード",
+      "description": "セイバーのカードにファイルを送ります（例: 設定を復元する config.ini）。ブレードは消灯しておく必要があります。",
+      "fields": {
+        "device_id": {
+          "name": "セイバー",
+          "description": "使用するセイバー。"
+        },
+        "source": {
+          "name": "送信元",
+          "description": "Home Assistant ホスト上のファイル。"
+        },
+        "destination": {
+          "name": "送信先",
+          "description": "セイバー上のパス: 設定ファイルは config.ini、サウンドは /3/hum (1).wav。"
+        }
+      }
+    },
+    "download_file": {
+      "name": "ファイルをダウンロード",
+      "description": "セイバーのカードから Home Assistant にファイルをコピーします（例: バックアップ用の config.ini）。ブレードは消灯しておく必要があります。",
+      "fields": {
+        "device_id": {
+          "name": "セイバー",
+          "description": "使用するセイバー。"
+        },
+        "source": {
+          "name": "送信元",
+          "description": "セイバー上のパス（例: config.ini）。"
+        },
+        "destination": {
+          "name": "送信先",
+          "description": "Home Assistant ホストに書き込むファイル。"
+        },
+        "overwrite": {
+          "name": "上書き",
+          "description": "送信先が存在する場合は置き換えます。"
+        }
+      }
+    },
+    "copy_file": {
+      "name": "ファイルをコピー",
+      "description": "セイバーのカード上でファイルを別の場所にコピーします。",
+      "fields": {
+        "device_id": {
+          "name": "セイバー",
+          "description": "使用するセイバー。"
+        },
+        "source": {
+          "name": "送信元",
+          "description": "セイバー上のパス。"
+        },
+        "destination": {
+          "name": "送信先",
+          "description": "セイバー上のパス。"
+        }
+      }
+    },
+    "delete_file": {
+      "name": "ファイルを削除",
+      "description": "セイバーのカードからファイルを削除します。元に戻せません。",
+      "fields": {
+        "device_id": {
+          "name": "セイバー",
+          "description": "使用するセイバー。"
+        },
+        "path": {
+          "name": "パス",
+          "description": "セイバー上のファイル（例: /3/clash (9).wav）。"
+        },
+        "confirm": {
+          "name": "確認",
+          "description": "設定ファイル（config.ini または /setting 以下）の削除に必要です。設定ファイルがないとセイバーは起動時にエラーを報告します。"
+        }
+      }
+    },
+    "update_firmware": {
+      "name": "ファームウェアを更新",
+      "description": "ファームウェアファイル（update.bin）をセイバーに送ると、セイバーがインストールして再起動します。誤った更新や中断した更新はセイバーを使用不能にするおそれがあり、新しいファームウェアはこの統合で動作しない可能性があります。ブレードを消灯し、バッテリーを 30% 以上にしてください。",
+      "fields": {
+        "device_id": {
+          "name": "セイバー",
+          "description": "使用するセイバー。"
+        },
+        "file": {
+          "name": "ファイル",
+          "description": "セイバーの販売元から入手した、Home Assistant ホスト上のファームウェアファイル。"
+        },
+        "confirm": {
+          "name": "確認",
+          "description": "オンにする必要があります。この操作に失敗するとセイバーが使用できなくなるおそれがあります。"
+        }
+      }
+    },
+    "set_blade_firmware": {
+      "name": "ブレードファームウェアを設定",
+      "description": "セイバーを Pixel 用と RGB 用のブレードファームウェアで切り替え、再起動します。ブレードは対応するファームウェアでのみ正しく点灯します。",
+      "fields": {
+        "device_id": {
+          "name": "セイバー",
+          "description": "使用するセイバー。"
+        },
+        "type": {
+          "name": "タイプ",
+          "description": "ネオピクセルブレードは Pixel、ヒルト内 LED は RGB。"
+        },
+        "confirm": {
+          "name": "確認",
+          "description": "オンにする必要があります。この操作に失敗するとセイバーが使用できなくなるおそれがあります。"
+        }
+      }
+    },
+    "set_hardware_type": {
+      "name": "ハードウェアタイプを設定",
+      "description": "ボードの配線（Pixel または RGB）とボタン数を設定し、再起動します。公式アプリはハードウェアタイプの変更にははんだ付けが必要だと警告しています。ボードの配線を変えた場合にのみ変更してください。",
+      "fields": {
+        "device_id": {
+          "name": "セイバー",
+          "description": "使用するセイバー。"
+        },
+        "type": {
+          "name": "タイプ",
+          "description": "ボードの配線。"
+        },
+        "buttons": {
+          "name": "ボタン数",
+          "description": "ヒルトのボタン数（1 または 2）。"
+        },
+        "confirm": {
+          "name": "確認",
+          "description": "オンにする必要があります。この操作に失敗するとセイバーが使用できなくなるおそれがあります。"
+        }
+      }
+    }
+  },
+  "selector": {
+    "blade_type": {
+      "options": {
+        "pixel": "Pixel",
+        "rgb": "RGB"
+      }
+    }
+  }
+}

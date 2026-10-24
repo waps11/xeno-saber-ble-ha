@@ -1,0 +1,22 @@
+# Never commit the vendor app or anything derived from decompiling it.
+*.apk
+*.xapk
+*.apks
+*.aab
+*.dex
+jadx*/
+decompiled/
+src-decompiled/
+res-decompiled/
+btsnoop_hci.log
+*.pcap
+*.pcapng
+
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.venv/
+.coverage
+coverage.xml
+.mypy_cache/

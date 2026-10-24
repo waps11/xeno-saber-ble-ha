@@ -1,0 +1,31 @@
+{
+  "domain": "xeno_saber_ble",
+  "name": "Xeno Saber BLE (unofficial)",
+  "bluetooth": [
+    {
+      "service_uuid": "00003ab0-0000-1000-8000-00805f9b34fb",
+      "connectable": true
+    },
+    {
+      "service_uuid": "0000dae0-0000-1000-8000-00805f9b34fb",
+      "connectable": true
+    },
+    {
+      "manufacturer_id": 24900,
+      "connectable": true
+    }
+  ],
+  "codeowners": [
+    "@waps11"
+  ],
+  "config_flow": true,
+  "dependencies": [
+    "bluetooth_adapters"
+  ],
+  "documentation": "https://github.com/waps11/xeno-saber-ble-ha",
+  "integration_type": "device",
+  "iot_class": "local_push",
+  "issue_tracker": "https://github.com/waps11/xeno-saber-ble-ha/issues",
+  "requirements": [],
+  "version": "0.1.0"
+}

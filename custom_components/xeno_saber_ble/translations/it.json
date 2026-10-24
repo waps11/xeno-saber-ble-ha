@@ -1,0 +1,689 @@
+{
+  "config": {
+    "flow_title": "{name}",
+    "step": {
+      "user": {
+        "title": "Scegli una spada",
+        "description": "Scegli la spada da aggiungere. Deve essere attiva (tieni premuto il pulsante) e l'app Xeno Configurator deve essere chiusa.",
+        "data": {
+          "address": "Spada"
+        },
+        "data_description": {
+          "address": "Spade trovate via Bluetooth. Compaiono solo le spade attive; Home Assistant si connette brevemente a quella scelta per verificarla."
+        }
+      },
+      "bluetooth_confirm": {
+        "description": "Vuoi configurare {name}?"
+      }
+    },
+    "abort": {
+      "already_configured": "Questa spada è già configurata.",
+      "already_in_progress": "La configurazione di questa spada è già in corso.",
+      "no_devices_found": "Nessuna spada compatibile (scheda Xenopixel V3) trovata. Attivala e riprova."
+    },
+    "error": {
+      "cannot_connect": "Impossibile connettersi alla spada. Assicurati che sia attiva e a portata e che l'app Xeno Configurator sia chiusa, poi riprova."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Connessione e sincronizzazione",
+        "data": {
+          "idle_disconnect": "Disconnetti dopo inattività (secondi)",
+          "keepalive": "Intervallo di keepalive (secondi)",
+          "sync_light": "Sincronizzazione colore: luce da seguire",
+          "wled_udp": "Sincronizzazione colore: ascolta le trasmissioni WLED",
+          "wled_udp_source": "Indirizzo di origine WLED"
+        },
+        "data_description": {
+          "idle_disconnect": "0 = resta connesso (stato in tempo reale, ma l'app sul telefono non può connettersi). Altrimenti Home Assistant si connette quando serve e rilascia la spada dopo questo intervallo.",
+          "keepalive": "0 = disattivato (consigliato). Qualsiasi altro valore reinvia la luminosità attuale ogni N secondi perché la spada non vada mai in standby. ATTENZIONE: la scheda e la radio Bluetooth della spada restano sempre accese e la BATTERIA SI SCARICHERÀ, anche a lama spenta. Usalo solo con la spada sotto carica o per sessioni brevi. Richiede «Disconnetti dopo inattività» = 0.",
+          "sync_light": "Facoltativo. Finché l'interruttore Sincronizzazione colore è attivo, la lama copia lo stato acceso/spento, il colore e la luminosità di questa luce. Accendere quella luce accende la lama.",
+          "wled_udp": "Finché la sincronizzazione colore è attiva, ascolta sulla porta UDP 21324 i pacchetti di sincronizzazione WLED (in WLED: Settings > Sync Interfaces > Send notifications on change). Questi pacchetti non sono autenticati: qualsiasi dispositivo della rete può comandare la lama, a meno che tu non imposti un indirizzo di origine qui sotto.",
+          "wled_udp_source": "Facoltativo. Obbedisci solo ai pacchetti WLED inviati da questo indirizzo IPv4."
+        }
+      }
+    },
+    "error": {
+      "keepalive_needs_persistent": "Il keepalive richiede una connessione permanente: imposta «Disconnetti dopo inattività» a 0.",
+      "sync_self": "La lama non può seguire sé stessa.",
+      "invalid_ip": "Inserisci un indirizzo IPv4, ad esempio 192.168.1.50."
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "connected": {
+        "name": "Connessa"
+      },
+      "authorized": {
+        "name": "Autorizzata"
+      }
+    },
+    "light": {
+      "blade": {
+        "name": "Lama"
+      }
+    },
+    "number": {
+      "volume": {
+        "name": "Volume"
+      },
+      "blade_brightness": {
+        "name": "Luminosità della lama"
+      },
+      "main_blade_length": {
+        "name": "Lunghezza della lama"
+      },
+      "side_blade_length": {
+        "name": "Lunghezza lama laterale"
+      },
+      "side_blade_delay": {
+        "name": "Ritardo lama laterale"
+      },
+      "power_on_time": {
+        "name": "Tempo di accensione (risveglio)"
+      },
+      "power_off_time": {
+        "name": "Tempo di spegnimento (sospensione)"
+      },
+      "auto_deep_sleep": {
+        "name": "Sospensione profonda automatica"
+      },
+      "ignition_time": {
+        "name": "Tempo di accensione lama"
+      },
+      "retraction_time": {
+        "name": "Tempo di ritrazione"
+      },
+      "preon_time": {
+        "name": "Tempo di pre-accensione"
+      },
+      "clash_sensitivity": {
+        "name": "Sensibilità allo scontro"
+      },
+      "swing_sensitivity": {
+        "name": "Sensibilità al movimento"
+      },
+      "twist_sensitivity": {
+        "name": "Sensibilità alla torsione"
+      },
+      "push_sensitivity": {
+        "name": "Sensibilità alla spinta"
+      },
+      "pull_sensitivity": {
+        "name": "Sensibilità alla trazione"
+      },
+      "accent_swing_sensitivity": {
+        "name": "Sensibilità dello swing accentuato"
+      },
+      "motor_speed": {
+        "name": "Velocità del motore"
+      }
+    },
+    "select": {
+      "sound_font": {
+        "name": "Font sonoro"
+      },
+      "light_effect": {
+        "name": "Effetto lama"
+      },
+      "blaster_effect": {
+        "name": "Effetto blaster"
+      },
+      "force_effect": {
+        "name": "Effetto Forza"
+      },
+      "lockup_effect": {
+        "name": "Effetto lockup"
+      },
+      "clash_effect": {
+        "name": "Effetto scontro"
+      },
+      "post_off_effect": {
+        "name": "Effetto dopo lo spegnimento"
+      },
+      "mode": {
+        "name": "Modalità"
+      }
+    },
+    "sensor": {
+      "battery": {
+        "name": "Batteria"
+      },
+      "font_name": {
+        "name": "Nome del font"
+      },
+      "blade_firmware": {
+        "name": "Firmware della lama",
+        "state": {
+          "pixel": "Pixel",
+          "rgb": "RGB"
+        }
+      },
+      "hardware_type": {
+        "name": "Tipo di hardware",
+        "state": {
+          "pixel": "Pixel",
+          "rgb": "RGB"
+        }
+      },
+      "button_count": {
+        "name": "Pulsanti"
+      },
+      "file_transfer": {
+        "name": "Trasferimento file"
+      }
+    },
+    "switch": {
+      "background_music": {
+        "name": "Musica di sottofondo"
+      },
+      "motion_control": {
+        "name": "Controllo gestuale"
+      },
+      "lockup": {
+        "name": "Lockup"
+      },
+      "drag": {
+        "name": "Drag"
+      },
+      "color_sync": {
+        "name": "Sincronizzazione colore"
+      },
+      "fast_color_changing": {
+        "name": "Ciclo colori veloce"
+      },
+      "smooth_color_changing": {
+        "name": "Ciclo colori morbido"
+      },
+      "flash_on_clash": {
+        "name": "Lampo allo scontro"
+      },
+      "countdown": {
+        "name": "Conto alla rovescia"
+      },
+      "led_screen": {
+        "name": "Schermo LED"
+      },
+      "velocity_mode": {
+        "name": "Modalità velocità"
+      },
+      "torch_mode": {
+        "name": "Modalità torcia"
+      },
+      "ghost_mode": {
+        "name": "Modalità fantasma"
+      },
+      "lightning_block_mode": {
+        "name": "Modalità parata fulmine"
+      },
+      "blaster_mode": {
+        "name": "Modalità blaster"
+      },
+      "multiblock_mode": {
+        "name": "Modalità multi-parata"
+      },
+      "multilock_mode": {
+        "name": "Modalità multi-lock"
+      },
+      "pull_push_ignition": {
+        "name": "Accensione tira-spingi"
+      },
+      "push_pull_retraction": {
+        "name": "Spegnimento spingi-tira"
+      },
+      "twist_ignition": {
+        "name": "Accensione con torsione"
+      },
+      "twist_retraction": {
+        "name": "Spegnimento con torsione"
+      },
+      "swing_ignition": {
+        "name": "Accensione con movimento"
+      }
+    },
+    "button": {
+      "clash": {
+        "name": "Scontro"
+      },
+      "blaster": {
+        "name": "Blaster"
+      },
+      "force": {
+        "name": "Forza"
+      },
+      "reconnect": {
+        "name": "Riconnetti"
+      },
+      "save_settings": {
+        "name": "Salva impostazioni"
+      },
+      "restart": {
+        "name": "Riavvia"
+      }
+    }
+  },
+  "exceptions": {
+    "connection_failed": {
+      "message": "Impossibile connettersi alla spada {address}: {error}"
+    },
+    "command_failed": {
+      "message": "Il comando inviato alla spada non è riuscito: {error}"
+    },
+    "sync_unavailable": {
+      "message": "Impossibile avviare la sincronizzazione colore: {error}"
+    },
+    "entry_not_loaded": {
+      "message": "{name} non è caricato. Verifica che la spada sia configurata e raggiungibile."
+    },
+    "path_not_allowed": {
+      "message": "Home Assistant non può accedere a {path}. Metti il file in /media oppure aggiungi la sua cartella ad allowlist_external_dirs in configuration.yaml."
+    },
+    "file_not_found": {
+      "message": "File non trovato: {path}"
+    },
+    "folder_not_found": {
+      "message": "Cartella non trovata: {path}"
+    },
+    "file_exists": {
+      "message": "{path} esiste già. Attiva «Sovrascrivi» per sostituirlo."
+    },
+    "blade_must_be_off": {
+      "message": "Spegni prima la lama: la spada non lo accetta mentre è accesa."
+    },
+    "confirm_required": {
+      "message": "Questa azione può rendere la spada inutilizzabile se va storta. Imposta «Conferma» su vero per procedere."
+    },
+    "use_update_firmware": {
+      "message": "La spada installa {path} al prossimo avvio. Usa l'azione update_firmware per inviare il firmware."
+    },
+    "saber_refused": {
+      "message": "La spada ha rifiutato: {operation}"
+    },
+    "no_sound_files": {
+      "message": "Nessun file audio riconoscibile in {path}. I file devono essere WAV con nomi come hum.wav, clash1.wav o clash (1).wav, oppure trovarsi in cartelle con il nome del tipo di suono."
+    },
+    "wav_format": {
+      "message": "La spada non può riprodurre {count} file; servono WAV PCM a 44,1 kHz, 16 bit, mono: {files}"
+    },
+    "font_not_found": {
+      "message": "La spada non ha la cartella font {font} (ha: {available}). Usa una cartella esistente per sostituire un font, oppure {next} per aggiungerne uno nuovo."
+    },
+    "firmware_size": {
+      "message": "Questo file ({size} byte) non sembra un firmware per spada."
+    },
+    "battery_too_low": {
+      "message": "Batteria al {level}%: carica la spada almeno al {minimum}% prima di aggiornarne il firmware."
+    },
+    "bad_archive": {
+      "message": "{path} non può essere usato come font: {error}"
+    },
+    "font_empty": {
+      "message": "Il font {font} non ha file audio."
+    },
+    "same_font": {
+      "message": "Origine e destinazione sono lo stesso font ({font})."
+    },
+    "not_enough_space": {
+      "message": "Spazio insufficiente sulla spada: il font richiede circa {needed} MB e ne restano {free} MB. Elimina prima il vecchio font (delete_first, dopo averlo esportato) oppure usa un font più piccolo."
+    },
+    "font_not_in_backup": {
+      "message": "Il font {font} non è nel backup (contiene: {available})."
+    },
+    "backup_other_saber": {
+      "message": "Il backup proviene da una scheda con versione hardware {backup}, questa spada è {saber}. Le sue impostazioni non vengono ripristinate su un'altra scheda; disattiva Impostazioni per ripristinare solo i font."
+    },
+    "device_not_saber": {
+      "message": "Il dispositivo {device_id} non è una spada Xeno."
+    }
+  },
+  "issues": {
+    "keepalive_battery_drain": {
+      "title": "Il keepalive sta scaricando la batteria di {name}",
+      "description": "Il keepalive è attivo per {name} (ogni {interval} s). La spada non può andare in standby: la scheda e la radio Bluetooth restano accese e la batteria si scaricherà, anche a lama spenta. Per fermarlo, imposta l'intervallo di keepalive a 0 nelle opzioni dell'integrazione (Impostazioni > Dispositivi e servizi > Xeno Saber BLE > Configura)."
+    }
+  },
+  "services": {
+    "upload_sound_font": {
+      "name": "Carica font sonoro",
+      "description": "Invia via Bluetooth una cartella di file WAV in una delle cartelle font della spada, sostituendo quel font. I file vengono rinominati secondo la convenzione della spada (hum (1).wav, clash (1).wav…). Servono diversi minuti per megabyte; la lama deve essere spenta.",
+      "fields": {
+        "device_id": {
+          "name": "Spada",
+          "description": "La spada da usare."
+        },
+        "folder": {
+          "name": "Cartella o zip",
+          "description": "Cartella o file .zip sull'host di Home Assistant con i WAV del font (44,1 kHz, 16 bit, mono). Vengono lette anche le sottocartelle con il nome di un tipo di suono."
+        },
+        "font": {
+          "name": "Font",
+          "description": "Numero della cartella font sulla spada, a partire da 1. Il primo numero libero aggiunge un nuovo font, come nell'app."
+        },
+        "name": {
+          "name": "Nome",
+          "description": "Nuovo nome facoltativo per il font."
+        },
+        "replace": {
+          "name": "Sostituisci",
+          "description": "Elimina i file del vecchio font che il nuovo non sovrascrive."
+        },
+        "delete_first": {
+          "name": "Elimina prima il vecchio font",
+          "description": "Elimina tutti i file del font di destinazione prima dell'invio, per fare spazio. Esportalo prima: altrimenti il vecchio font non è recuperabile."
+        },
+        "dry_run": {
+          "name": "Prova a secco",
+          "description": "Mostra solo come verrebbero nominati i file; non invia nulla."
+        }
+      }
+    },
+    "export_sound_font": {
+      "name": "Esporta font sonoro",
+      "description": "Copia tutti i file audio di un font dalla scheda della spada in un .zip sull'host di Home Assistant, per salvarlo o modificarlo. «Carica font sonoro» accetta di nuovo lo zip. Lento quanto un caricamento; la lama deve essere spenta.",
+      "fields": {
+        "device_id": {
+          "name": "Spada",
+          "description": "La spada da usare."
+        },
+        "font": {
+          "name": "Font",
+          "description": "Numero della cartella font sulla scheda della spada, a partire da 1."
+        },
+        "destination": {
+          "name": "Destinazione",
+          "description": "File zip da scrivere sull'host di Home Assistant."
+        },
+        "overwrite": {
+          "name": "Sovrascrivi",
+          "description": "Sostituisci la destinazione se esiste."
+        }
+      }
+    },
+    "backup_saber": {
+      "name": "Backup della spada",
+      "description": "Copia tutto il contenuto della memoria della spada in un .zip sull'host di Home Assistant: tutti i font, config.ini, la mappatura dei pulsanti se presente, i suoni di sistema e una descrizione della spada e delle sue impostazioni. Lo zip è organizzato come una scheda SD Xeno. Via Bluetooth richiede ore per una spada piena; la lama deve essere spenta.",
+      "fields": {
+        "device_id": {
+          "name": "Spada",
+          "description": "La spada da usare."
+        },
+        "destination": {
+          "name": "Destinazione",
+          "description": "File zip da scrivere sull'host di Home Assistant."
+        },
+        "overwrite": {
+          "name": "Sovrascrivi",
+          "description": "Sostituisci la destinazione se esiste."
+        },
+        "fonts": {
+          "name": "Font",
+          "description": "Cartelle font da includere; tutte se vuoto."
+        },
+        "include_system_sounds": {
+          "name": "Suoni di sistema",
+          "description": "Salva anche gli annunci vocali e i suoni dei menu della cartella setting (circa 430 piccoli file). La spada non può elencarli, quindi quelli mancanti vengono saltati."
+        }
+      }
+    },
+    "restore_backup": {
+      "name": "Ripristina backup",
+      "description": "Riscrive sulla spada un backup creato con Backup della spada (o lo zip di una scheda SD Xeno): i font e i loro nomi, poi config.ini e la mappatura personalizzata dei pulsanti. I font sulla spada vengono sostituiti; quelli mancanti vengono creati se sono le prossime cartelle libere. I suoni di sistema sono scritti solo su richiesta. Via Bluetooth un ripristino completo richiede ore; la lama deve essere spenta.",
+      "fields": {
+        "device_id": {
+          "name": "Spada",
+          "description": "La spada da usare."
+        },
+        "source": {
+          "name": "Origine",
+          "description": "Zip del backup sull'host di Home Assistant."
+        },
+        "fonts": {
+          "name": "Font",
+          "description": "Cartelle font del backup da ripristinare; tutte se vuoto."
+        },
+        "include_settings": {
+          "name": "Impostazioni",
+          "description": "Ripristina config.ini e la mappatura personalizzata dei pulsanti. Rifiutato se il backup proviene da una scheda con un'altra versione hardware."
+        },
+        "include_system_sounds": {
+          "name": "Suoni di sistema",
+          "description": "Ripristina anche i messaggi vocali e i suoni di menu della cartella setting. Serve solo se sono stati modificati o persi."
+        },
+        "dry_run": {
+          "name": "Simulazione",
+          "description": "Controlla solo il backup e restituisce ciò che verrebbe scritto."
+        },
+        "confirm": {
+          "name": "Conferma",
+          "description": "Obbligatorio: i font ripristinati sostituiscono quelli sulla spada."
+        }
+      }
+    },
+    "copy_sound_font": {
+      "name": "Copia font sonoro",
+      "description": "Copia una cartella font sopra un'altra sulla scheda della spada. La spada copia i file da sola, quindi è veloce. La lama deve essere spenta.",
+      "fields": {
+        "device_id": {
+          "name": "Spada",
+          "description": "La spada da usare."
+        },
+        "source_font": {
+          "name": "Font di origine",
+          "description": "Cartella font da copiare."
+        },
+        "destination_font": {
+          "name": "Font di destinazione",
+          "description": "Cartella font da sostituire."
+        },
+        "name": {
+          "name": "Nome",
+          "description": "Nome della copia; per impostazione predefinita quello del font di origine."
+        },
+        "replace": {
+          "name": "Sostituisci",
+          "description": "Elimina i file del font di destinazione che la copia non sovrascrive."
+        }
+      }
+    },
+    "list_sound_fonts": {
+      "name": "Elenca font sonori",
+      "description": "Restituisce le cartelle font sulla scheda della spada, i loro nomi e l'occupazione della scheda.",
+      "fields": {
+        "device_id": {
+          "name": "Spada",
+          "description": "La spada da usare."
+        }
+      }
+    },
+    "list_sound_files": {
+      "name": "Elenca file audio",
+      "description": "Restituisce i file audio di un font, raggruppati per tipo.",
+      "fields": {
+        "device_id": {
+          "name": "Spada",
+          "description": "La spada da usare."
+        },
+        "font": {
+          "name": "Font",
+          "description": "Numero della cartella font sulla scheda della spada, a partire da 1."
+        }
+      }
+    },
+    "rename_sound_font": {
+      "name": "Rinomina font sonoro",
+      "description": "Cambia il nome che la spada mostra per un font.",
+      "fields": {
+        "device_id": {
+          "name": "Spada",
+          "description": "La spada da usare."
+        },
+        "font": {
+          "name": "Font",
+          "description": "Numero della cartella font sulla scheda della spada, a partire da 1."
+        },
+        "name": {
+          "name": "Nome",
+          "description": "Nuovo nome, fino a 16 caratteri."
+        }
+      }
+    },
+    "play_sound": {
+      "name": "Riproduci suono",
+      "description": "Riproduce un file audio dalla scheda della spada, oppure interrompe la riproduzione se non viene indicato un percorso.",
+      "fields": {
+        "device_id": {
+          "name": "Spada",
+          "description": "La spada da usare."
+        },
+        "path": {
+          "name": "Percorso",
+          "description": "File sulla spada, ad esempio /3/hum (1).wav. Lascia vuoto per fermare."
+        }
+      }
+    },
+    "upload_file": {
+      "name": "Carica file",
+      "description": "Invia un file alla scheda della spada, ad esempio config.ini per ripristinarne le impostazioni. La lama deve essere spenta.",
+      "fields": {
+        "device_id": {
+          "name": "Spada",
+          "description": "La spada da usare."
+        },
+        "source": {
+          "name": "Origine",
+          "description": "File sull'host di Home Assistant."
+        },
+        "destination": {
+          "name": "Destinazione",
+          "description": "Percorso sulla spada: config.ini per il file delle impostazioni, oppure /3/hum (1).wav."
+        }
+      }
+    },
+    "download_file": {
+      "name": "Scarica file",
+      "description": "Copia un file dalla scheda della spada a Home Assistant, ad esempio config.ini come backup. La lama deve essere spenta.",
+      "fields": {
+        "device_id": {
+          "name": "Spada",
+          "description": "La spada da usare."
+        },
+        "source": {
+          "name": "Origine",
+          "description": "Percorso sulla spada, ad esempio config.ini."
+        },
+        "destination": {
+          "name": "Destinazione",
+          "description": "File da scrivere sull'host di Home Assistant."
+        },
+        "overwrite": {
+          "name": "Sovrascrivi",
+          "description": "Sostituisci la destinazione se esiste."
+        }
+      }
+    },
+    "copy_file": {
+      "name": "Copia file",
+      "description": "Copia un file da un punto all'altro della scheda della spada.",
+      "fields": {
+        "device_id": {
+          "name": "Spada",
+          "description": "La spada da usare."
+        },
+        "source": {
+          "name": "Origine",
+          "description": "Percorso sulla spada."
+        },
+        "destination": {
+          "name": "Destinazione",
+          "description": "Percorso sulla spada."
+        }
+      }
+    },
+    "delete_file": {
+      "name": "Elimina file",
+      "description": "Elimina un file dalla scheda della spada. Non si può annullare.",
+      "fields": {
+        "device_id": {
+          "name": "Spada",
+          "description": "La spada da usare."
+        },
+        "path": {
+          "name": "Percorso",
+          "description": "File sulla spada, ad esempio /3/clash (9).wav."
+        },
+        "confirm": {
+          "name": "Conferma",
+          "description": "Necessario per eliminare il file delle impostazioni (config.ini o qualsiasi file in /setting): senza di esso la spada segnala un errore all'avvio."
+        }
+      }
+    },
+    "update_firmware": {
+      "name": "Aggiorna firmware",
+      "description": "Invia un file firmware (update.bin) alla spada, che lo installa e si riavvia. Un aggiornamento errato o interrotto può rendere la spada inutilizzabile, e un firmware più recente potrebbe non funzionare con questa integrazione. La lama deve essere spenta e la batteria almeno al 30%.",
+      "fields": {
+        "device_id": {
+          "name": "Spada",
+          "description": "La spada da usare."
+        },
+        "file": {
+          "name": "File",
+          "description": "File firmware sull'host di Home Assistant, fornito dal venditore della spada."
+        },
+        "confirm": {
+          "name": "Conferma",
+          "description": "Deve essere attivo. Questa azione può rendere la spada inutilizzabile se va storta."
+        }
+      }
+    },
+    "set_blade_firmware": {
+      "name": "Imposta firmware della lama",
+      "description": "Passa la spada dal firmware per lama Pixel a quello RGB o viceversa, poi la riavvia. La lama si accende correttamente solo con il firmware adatto.",
+      "fields": {
+        "device_id": {
+          "name": "Spada",
+          "description": "La spada da usare."
+        },
+        "type": {
+          "name": "Tipo",
+          "description": "Pixel per una lama neopixel, RGB per un LED nell'elsa."
+        },
+        "confirm": {
+          "name": "Conferma",
+          "description": "Deve essere attivo. Questa azione può rendere la spada inutilizzabile se va storta."
+        }
+      }
+    },
+    "set_hardware_type": {
+      "name": "Imposta tipo di hardware",
+      "description": "Indica alla scheda come è cablata (Pixel o RGB) e quanti pulsanti ha, poi la riavvia. L'app ufficiale avverte che cambiare il tipo di hardware richiede saldature; cambialo solo se la scheda è stata ricablata.",
+      "fields": {
+        "device_id": {
+          "name": "Spada",
+          "description": "La spada da usare."
+        },
+        "type": {
+          "name": "Tipo",
+          "description": "Come è cablata la scheda."
+        },
+        "buttons": {
+          "name": "Pulsanti",
+          "description": "Numero di pulsanti sull'elsa (1 o 2)."
+        },
+        "confirm": {
+          "name": "Conferma",
+          "description": "Deve essere attivo. Questa azione può rendere la spada inutilizzabile se va storta."
+        }
+      }
+    }
+  },
+  "selector": {
+    "blade_type": {
+      "options": {
+        "pixel": "Pixel",
+        "rgb": "RGB"
+      }
+    }
+  }
+}

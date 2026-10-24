@@ -1,0 +1,118 @@
+# Integration Quality Scale self-assessment (target: Platinum).
+# Custom integrations cannot receive an official tier; this file records how
+# each rule is met, in the format Home Assistant core uses.
+# https://developers.home-assistant.io/docs/core/integration-quality-scale/
+rules:
+  # Bronze
+  action-setup:
+    status: done
+    comment: >-
+      The file, sound font, firmware and board actions are registered once in
+      async_setup (services.py) and check that the target entry is loaded.
+  appropriate-polling:
+    status: exempt
+    comment: No polling; the saber pushes its state over BLE notifications.
+  brands: done
+  common-modules:
+    status: done
+    comment: >-
+      Shared entity code lives in entity.py. There is no coordinator: the
+      BLE client (device.py) pushes state to entities through callbacks.
+  config-flow: done
+  config-flow-test-coverage: done
+  dependency-transparency:
+    status: done
+    comment: No requirements beyond bleak, which Home Assistant already ships.
+  docs-actions:
+    status: done
+    comment: README "Actions" section; field descriptions in services.yaml/strings.json.
+  docs-conditions:
+    status: exempt
+    comment: The integration provides no conditions.
+  docs-high-level-description: done
+  docs-installation-instructions: done
+  docs-removal-instructions: done
+  docs-triggers:
+    status: exempt
+    comment: The integration provides no triggers.
+  entity-event-setup: done
+  entity-unique-id: done
+  has-entity-name: done
+  runtime-data: done
+  test-before-configure: done
+  test-before-setup:
+    status: exempt
+    comment: >-
+      A saber sleeps after a few minutes and stops advertising; that is its
+      normal state, not a failure. Setup always succeeds and the entities are
+      unavailable until the saber advertises, when it is connected (persistent
+      mode) or used on demand. The config flow tests the connection.
+  unique-config-entry: done
+
+  # Silver
+  action-exceptions:
+    status: done
+    comment: >-
+      Bad input (paths, formats, missing confirmation, lit blade) raises
+      ServiceValidationError; saber failures raise HomeAssistantError, all translated.
+  config-entry-unloading: done
+  docs-configuration-parameters: done
+  docs-installation-parameters: done
+  entity-unavailable: done
+  integration-owner: done
+  log-when-unavailable: done
+  parallel-updates: done
+  reauthentication-flow:
+    status: exempt
+    comment: >-
+      No user credentials. The protocol uses a fixed handshake shared by every
+      board, so there is nothing to re-enter.
+  test-coverage: done
+
+  # Gold
+  devices: done
+  diagnostics: done
+  discovery: done
+  discovery-update-info:
+    status: exempt
+    comment: >-
+      The Bluetooth address is the device identity and does not change. The
+      path to the saber (adapter or proxy) is refreshed from every
+      advertisement.
+  docs-data-update: done
+  docs-examples: done
+  docs-known-limitations: done
+  docs-supported-devices: done
+  docs-supported-functions: done
+  docs-troubleshooting: done
+  docs-use-cases: done
+  dynamic-devices:
+    status: exempt
+    comment: Each config entry is exactly one saber.
+  entity-category: done
+  entity-device-class: done
+  entity-disabled-by-default: done
+  entity-translations: done
+  exception-translations: done
+  icon-translations: done
+  reconfiguration-flow:
+    status: exempt
+    comment: >-
+      Setup takes only the saber, identified by its Bluetooth address.
+      Connection, keepalive and colour sync settings are in the options flow.
+  repair-issues: done
+  stale-devices:
+    status: exempt
+    comment: Each config entry is exactly one saber; deleting the entry removes it.
+
+  # Platinum
+  async-dependency: done
+  inject-websession:
+    status: exempt
+    comment: No HTTP communication.
+  strict-typing:
+    status: done
+    comment: >-
+      mypy passes with the settings Home Assistant core applies to strictly
+      typed integrations (mypy.ini, checked in CI). bleak and
+      bleak-retry-connector ship type information (py.typed).

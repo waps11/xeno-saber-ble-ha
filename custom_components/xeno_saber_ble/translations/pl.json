@@ -1,0 +1,689 @@
+{
+  "config": {
+    "flow_title": "{name}",
+    "step": {
+      "user": {
+        "title": "Wybierz miecz",
+        "description": "Wybierz miecz do dodania. Musi być wybudzony (przytrzymaj przycisk), a aplikacja Xeno Configurator musi być zamknięta.",
+        "data": {
+          "address": "Miecz"
+        },
+        "data_description": {
+          "address": "Miecze znalezione przez Bluetooth. Widoczne są tylko wybudzone miecze; Home Assistant łączy się na chwilę z wybranym, aby go sprawdzić."
+        }
+      },
+      "bluetooth_confirm": {
+        "description": "Czy chcesz skonfigurować {name}?"
+      }
+    },
+    "abort": {
+      "already_configured": "Ten miecz jest już skonfigurowany.",
+      "already_in_progress": "Konfiguracja tego miecza jest już w toku.",
+      "no_devices_found": "Nie znaleziono zgodnego miecza (płytka Xenopixel V3). Wybudź go i spróbuj ponownie."
+    },
+    "error": {
+      "cannot_connect": "Nie można połączyć się z mieczem. Upewnij się, że jest wybudzony i w zasięgu, a aplikacja Xeno Configurator jest zamknięta, i spróbuj ponownie."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Połączenie i synchronizacja",
+        "data": {
+          "idle_disconnect": "Rozłącz po bezczynności (sekundy)",
+          "keepalive": "Interwał podtrzymania (sekundy)",
+          "sync_light": "Synchronizacja koloru: światło do naśladowania",
+          "wled_udp": "Synchronizacja koloru: nasłuchuj transmisji WLED",
+          "wled_udp_source": "Adres źródłowy WLED"
+        },
+        "data_description": {
+          "idle_disconnect": "0 = pozostań połączony (stan na żywo, ale aplikacja na telefonie nie może się połączyć). W przeciwnym razie Home Assistant łączy się w razie potrzeby i zwalnia miecz po tym czasie.",
+          "keepalive": "0 = wyłączone (zalecane). Każda inna wartość co N sekund ponownie wysyła bieżącą jasność, aby miecz nigdy nie zasnął. UWAGA: płytka i radio Bluetooth miecza pozostają wtedy stale włączone i AKUMULATOR SIĘ ROZŁADUJE, nawet przy wyłączonym ostrzu. Używaj tylko, gdy miecz jest na ładowarce, lub podczas krótkich sesji. Wymaga „Rozłącz po bezczynności” = 0.",
+          "sync_light": "Opcjonalne. Gdy przełącznik Synchronizacja koloru jest włączony, ostrze kopiuje stan włączenia, kolor i jasność tego światła. Włączenie tego światła zapala ostrze.",
+          "wled_udp": "Gdy synchronizacja koloru jest włączona, nasłuchuj na porcie UDP 21324 pakietów synchronizacji WLED (w WLED: Settings > Sync Interfaces > Send notifications on change). Pakiety te nie są uwierzytelniane: każde urządzenie w sieci może sterować ostrzem, chyba że poniżej ustawisz adres źródłowy.",
+          "wled_udp_source": "Opcjonalne. Wykonuj tylko pakiety WLED wysłane z tego adresu IPv4."
+        }
+      }
+    },
+    "error": {
+      "keepalive_needs_persistent": "Podtrzymanie wymaga stałego połączenia: ustaw „Rozłącz po bezczynności” na 0.",
+      "sync_self": "Ostrze nie może naśladować samego siebie.",
+      "invalid_ip": "Wpisz adres IPv4, na przykład 192.168.1.50."
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "connected": {
+        "name": "Połączony"
+      },
+      "authorized": {
+        "name": "Autoryzowany"
+      }
+    },
+    "light": {
+      "blade": {
+        "name": "Ostrze"
+      }
+    },
+    "number": {
+      "volume": {
+        "name": "Głośność"
+      },
+      "blade_brightness": {
+        "name": "Jasność ostrza"
+      },
+      "main_blade_length": {
+        "name": "Długość ostrza"
+      },
+      "side_blade_length": {
+        "name": "Długość ostrza bocznego"
+      },
+      "side_blade_delay": {
+        "name": "Opóźnienie ostrza bocznego"
+      },
+      "power_on_time": {
+        "name": "Czas włączania (wybudzanie)"
+      },
+      "power_off_time": {
+        "name": "Czas wyłączania (głęboki sen)"
+      },
+      "auto_deep_sleep": {
+        "name": "Automatyczny głęboki sen"
+      },
+      "ignition_time": {
+        "name": "Czas zapłonu"
+      },
+      "retraction_time": {
+        "name": "Czas chowania"
+      },
+      "preon_time": {
+        "name": "Czas przed zapłonem"
+      },
+      "clash_sensitivity": {
+        "name": "Czułość zderzenia"
+      },
+      "swing_sensitivity": {
+        "name": "Czułość machnięcia"
+      },
+      "twist_sensitivity": {
+        "name": "Czułość obrotu"
+      },
+      "push_sensitivity": {
+        "name": "Czułość pchnięcia"
+      },
+      "pull_sensitivity": {
+        "name": "Czułość pociągnięcia"
+      },
+      "accent_swing_sensitivity": {
+        "name": "Czułość akcentowanego machnięcia"
+      },
+      "motor_speed": {
+        "name": "Prędkość silnika"
+      }
+    },
+    "select": {
+      "sound_font": {
+        "name": "Czcionka dźwiękowa"
+      },
+      "light_effect": {
+        "name": "Efekt ostrza"
+      },
+      "blaster_effect": {
+        "name": "Efekt blastera"
+      },
+      "force_effect": {
+        "name": "Efekt Mocy"
+      },
+      "lockup_effect": {
+        "name": "Efekt lockup"
+      },
+      "clash_effect": {
+        "name": "Efekt zderzenia"
+      },
+      "post_off_effect": {
+        "name": "Efekt po wyłączeniu"
+      },
+      "mode": {
+        "name": "Tryb"
+      }
+    },
+    "sensor": {
+      "battery": {
+        "name": "Bateria"
+      },
+      "font_name": {
+        "name": "Nazwa czcionki dźwiękowej"
+      },
+      "blade_firmware": {
+        "name": "Oprogramowanie ostrza",
+        "state": {
+          "pixel": "Pixel",
+          "rgb": "RGB"
+        }
+      },
+      "hardware_type": {
+        "name": "Typ sprzętu",
+        "state": {
+          "pixel": "Pixel",
+          "rgb": "RGB"
+        }
+      },
+      "button_count": {
+        "name": "Przyciski"
+      },
+      "file_transfer": {
+        "name": "Przesyłanie pliku"
+      }
+    },
+    "switch": {
+      "background_music": {
+        "name": "Muzyka w tle"
+      },
+      "motion_control": {
+        "name": "Sterowanie ruchem"
+      },
+      "lockup": {
+        "name": "Lockup"
+      },
+      "drag": {
+        "name": "Drag"
+      },
+      "color_sync": {
+        "name": "Synchronizacja koloru"
+      },
+      "fast_color_changing": {
+        "name": "Szybka zmiana kolorów"
+      },
+      "smooth_color_changing": {
+        "name": "Płynna zmiana kolorów"
+      },
+      "flash_on_clash": {
+        "name": "Błysk przy zderzeniu"
+      },
+      "countdown": {
+        "name": "Odliczanie"
+      },
+      "led_screen": {
+        "name": "Ekran LED"
+      },
+      "velocity_mode": {
+        "name": "Tryb prędkości"
+      },
+      "torch_mode": {
+        "name": "Tryb pochodni"
+      },
+      "ghost_mode": {
+        "name": "Tryb ducha"
+      },
+      "lightning_block_mode": {
+        "name": "Tryb bloku błyskawic"
+      },
+      "blaster_mode": {
+        "name": "Tryb blastera"
+      },
+      "multiblock_mode": {
+        "name": "Tryb wielobloku"
+      },
+      "multilock_mode": {
+        "name": "Tryb wieloblokady"
+      },
+      "pull_push_ignition": {
+        "name": "Zapłon pociągnij-pchnij"
+      },
+      "push_pull_retraction": {
+        "name": "Chowanie pchnij-pociągnij"
+      },
+      "twist_ignition": {
+        "name": "Zapłon obrotem"
+      },
+      "twist_retraction": {
+        "name": "Chowanie obrotem"
+      },
+      "swing_ignition": {
+        "name": "Zapłon machnięciem"
+      }
+    },
+    "button": {
+      "clash": {
+        "name": "Zderzenie"
+      },
+      "blaster": {
+        "name": "Blaster"
+      },
+      "force": {
+        "name": "Moc"
+      },
+      "reconnect": {
+        "name": "Połącz ponownie"
+      },
+      "save_settings": {
+        "name": "Zapisz ustawienia"
+      },
+      "restart": {
+        "name": "Uruchom ponownie"
+      }
+    }
+  },
+  "exceptions": {
+    "connection_failed": {
+      "message": "Nie można połączyć się z mieczem {address}: {error}"
+    },
+    "command_failed": {
+      "message": "Polecenie wysłane do miecza nie powiodło się: {error}"
+    },
+    "sync_unavailable": {
+      "message": "Nie udało się uruchomić synchronizacji koloru: {error}"
+    },
+    "entry_not_loaded": {
+      "message": "{name} nie jest załadowany. Sprawdź, czy miecz jest skonfigurowany i osiągalny."
+    },
+    "path_not_allowed": {
+      "message": "Home Assistant nie ma dostępu do {path}. Umieść plik w /media albo dodaj jego folder do allowlist_external_dirs w configuration.yaml."
+    },
+    "file_not_found": {
+      "message": "Nie znaleziono pliku: {path}"
+    },
+    "folder_not_found": {
+      "message": "Nie znaleziono folderu: {path}"
+    },
+    "file_exists": {
+      "message": "{path} już istnieje. Włącz „Nadpisz”, aby go zastąpić."
+    },
+    "blade_must_be_off": {
+      "message": "Najpierw wyłącz ostrze: miecz nie przyjmuje tego, gdy ostrze świeci."
+    },
+    "confirm_required": {
+      "message": "Ta akcja może unieruchomić miecz, jeśli coś pójdzie nie tak. Ustaw „Potwierdź” na prawda, aby kontynuować."
+    },
+    "use_update_firmware": {
+      "message": "Miecz instaluje {path} przy następnym uruchomieniu. Do wysyłania oprogramowania użyj akcji update_firmware."
+    },
+    "saber_refused": {
+      "message": "Miecz odmówił: {operation}"
+    },
+    "no_sound_files": {
+      "message": "Brak rozpoznawalnych plików dźwiękowych w {path}. Pliki muszą być WAV o nazwach takich jak hum.wav, clash1.wav lub clash (1).wav albo znajdować się w folderach nazwanych od typu dźwięku."
+    },
+    "wav_format": {
+      "message": "Miecz nie odtworzy {count} plik(ów); wymaga WAV PCM 44,1 kHz, 16 bitów, mono: {files}"
+    },
+    "font_not_found": {
+      "message": "Miecz nie ma folderu czcionki {font} (ma: {available}). Użyj istniejącego folderu, aby zastąpić czcionkę, albo {next}, aby dodać nową."
+    },
+    "firmware_size": {
+      "message": "Ten plik ({size} bajtów) nie wygląda na oprogramowanie miecza."
+    },
+    "battery_too_low": {
+      "message": "Bateria na {level}%: naładuj miecz do co najmniej {minimum}% przed aktualizacją oprogramowania."
+    },
+    "bad_archive": {
+      "message": "{path} nie może być użyty jako czcionka: {error}"
+    },
+    "font_empty": {
+      "message": "Czcionka {font} nie ma plików dźwiękowych."
+    },
+    "same_font": {
+      "message": "Źródło i cel to ta sama czcionka ({font})."
+    },
+    "not_enough_space": {
+      "message": "Za mało miejsca na mieczu: czcionka potrzebuje około {needed} MB, a wolne jest {free} MB. Najpierw usuń starą czcionkę (delete_first, po jej wyeksportowaniu) albo użyj mniejszej czcionki."
+    },
+    "font_not_in_backup": {
+      "message": "Czcionki {font} nie ma w kopii (zawiera: {available})."
+    },
+    "backup_other_saber": {
+      "message": "Kopia pochodzi z płytki w wersji sprzętu {backup}, ten miecz to {saber}. Jej ustawienia nie są przywracane na inną płytkę; wyłącz Ustawienia, aby przywrócić tylko czcionki."
+    },
+    "device_not_saber": {
+      "message": "Urządzenie {device_id} nie jest mieczem Xeno."
+    }
+  },
+  "issues": {
+    "keepalive_battery_drain": {
+      "title": "Podtrzymanie rozładowuje akumulator {name}",
+      "description": "Podtrzymanie jest włączone dla {name} (co {interval} s). Miecz nie może zasnąć: płytka i radio Bluetooth pozostają zasilane, a akumulator się rozładuje, nawet przy wyłączonym ostrzu. Aby to zatrzymać, ustaw interwał podtrzymania na 0 w opcjach integracji (Ustawienia > Urządzenia oraz usługi > Xeno Saber BLE > Konfiguruj)."
+    }
+  },
+  "services": {
+    "upload_sound_font": {
+      "name": "Wyślij czcionkę dźwiękową",
+      "description": "Wysyła przez Bluetooth folder plików WAV do jednego z folderów czcionek miecza, zastępując tę czcionkę. Pliki są przemianowywane według konwencji miecza (hum (1).wav, clash (1).wav…). Licz się z kilkoma minutami na megabajt; ostrze musi być wyłączone.",
+      "fields": {
+        "device_id": {
+          "name": "Miecz",
+          "description": "Miecz, którego użyć."
+        },
+        "folder": {
+          "name": "Folder lub zip",
+          "description": "Folder lub plik .zip na hoście Home Assistant z plikami WAV czcionki (44,1 kHz, 16 bitów, mono). Odczytywane są też podfoldery nazwane od typu dźwięku."
+        },
+        "font": {
+          "name": "Czcionka",
+          "description": "Numer folderu czcionki na mieczu, od 1. Następny wolny numer dodaje nową czcionkę, jak w aplikacji."
+        },
+        "name": {
+          "name": "Nazwa",
+          "description": "Opcjonalna nowa nazwa czcionki."
+        },
+        "replace": {
+          "name": "Zastąp",
+          "description": "Usuń pliki starej czcionki, których nowa nie nadpisuje."
+        },
+        "delete_first": {
+          "name": "Najpierw usuń starą czcionkę",
+          "description": "Usuń wszystkie pliki czcionki docelowej przed wysłaniem, aby zrobić miejsce. Najpierw ją wyeksportuj: inaczej starej czcionki nie da się odzyskać."
+        },
+        "dry_run": {
+          "name": "Próba",
+          "description": "Tylko pokaż, jak pliki zostałyby nazwane; niczego nie wysyłaj."
+        }
+      }
+    },
+    "export_sound_font": {
+      "name": "Eksportuj czcionkę dźwiękową",
+      "description": "Kopiuje wszystkie pliki dźwiękowe jednej czcionki z karty miecza do pliku .zip na hoście Home Assistant, jako kopię lub do edycji. „Wyślij czcionkę dźwiękową” przyjmuje ten zip z powrotem. Tak wolne jak wysyłanie; ostrze musi być wyłączone.",
+      "fields": {
+        "device_id": {
+          "name": "Miecz",
+          "description": "Miecz, którego użyć."
+        },
+        "font": {
+          "name": "Czcionka",
+          "description": "Numer folderu czcionki na karcie miecza, od 1."
+        },
+        "destination": {
+          "name": "Cel",
+          "description": "Plik zip do zapisania na hoście Home Assistant."
+        },
+        "overwrite": {
+          "name": "Nadpisz",
+          "description": "Zastąp cel, jeśli istnieje."
+        }
+      }
+    },
+    "backup_saber": {
+      "name": "Kopia zapasowa miecza",
+      "description": "Kopiuje całą zawartość pamięci miecza do pliku .zip na hoście Home Assistant: wszystkie czcionki, config.ini, mapowanie przycisków (jeśli jest), dźwięki systemowe oraz opis miecza i jego ustawień. Zip ma układ karty SD Xeno. Przez Bluetooth pełny miecz zajmuje to godziny; ostrze musi być wyłączone.",
+      "fields": {
+        "device_id": {
+          "name": "Miecz",
+          "description": "Miecz, którego użyć."
+        },
+        "destination": {
+          "name": "Cel",
+          "description": "Plik zip do zapisania na hoście Home Assistant."
+        },
+        "overwrite": {
+          "name": "Nadpisz",
+          "description": "Zastąp cel, jeśli istnieje."
+        },
+        "fonts": {
+          "name": "Czcionki",
+          "description": "Foldery czcionek do uwzględnienia; wszystkie, jeśli puste."
+        },
+        "include_system_sounds": {
+          "name": "Dźwięki systemowe",
+          "description": "Zapisz też komunikaty głosowe i dźwięki menu z folderu setting (około 430 małych plików). Miecz nie potrafi ich wylistować, więc brakujące są pomijane."
+        }
+      }
+    },
+    "restore_backup": {
+      "name": "Przywróć kopię zapasową",
+      "description": "Zapisuje z powrotem na mieczu kopię utworzoną przez Kopia zapasowa miecza (lub zip karty SD Xeno): czcionki i ich nazwy, a potem config.ini i własne przypisanie przycisków. Czcionki na mieczu są zastępowane; brakujące są tworzone, jeśli są kolejnymi wolnymi folderami. Dźwięki systemowe są zapisywane tylko na żądanie. Przez Bluetooth pełne przywracanie trwa godziny; ostrze musi być wyłączone.",
+      "fields": {
+        "device_id": {
+          "name": "Miecz",
+          "description": "Miecz, którego użyć."
+        },
+        "source": {
+          "name": "Źródło",
+          "description": "Zip kopii zapasowej na hoście Home Assistant."
+        },
+        "fonts": {
+          "name": "Czcionki",
+          "description": "Foldery czcionek z kopii do przywrócenia; wszystkie, jeśli puste."
+        },
+        "include_settings": {
+          "name": "Ustawienia",
+          "description": "Przywróć config.ini i własne przypisanie przycisków. Odrzucane, jeśli kopia pochodzi z płytki o innej wersji sprzętu."
+        },
+        "include_system_sounds": {
+          "name": "Dźwięki systemowe",
+          "description": "Przywróć także komunikaty głosowe i dźwięki menu z folderu setting. Potrzebne tylko, jeśli zostały zmienione lub utracone."
+        },
+        "dry_run": {
+          "name": "Próba",
+          "description": "Tylko sprawdź kopię i zwróć, co zostałoby zapisane."
+        },
+        "confirm": {
+          "name": "Potwierdź",
+          "description": "Wymagane: przywrócone czcionki zastępują te na mieczu."
+        }
+      }
+    },
+    "copy_sound_font": {
+      "name": "Kopiuj czcionkę dźwiękową",
+      "description": "Kopiuje folder czcionki na inny na karcie miecza. Miecz sam kopiuje pliki, więc trwa to krótko. Ostrze musi być wyłączone.",
+      "fields": {
+        "device_id": {
+          "name": "Miecz",
+          "description": "Miecz, którego użyć."
+        },
+        "source_font": {
+          "name": "Czcionka źródłowa",
+          "description": "Folder czcionki do skopiowania."
+        },
+        "destination_font": {
+          "name": "Czcionka docelowa",
+          "description": "Folder czcionki do zastąpienia."
+        },
+        "name": {
+          "name": "Nazwa",
+          "description": "Nazwa kopii; domyślnie nazwa czcionki źródłowej."
+        },
+        "replace": {
+          "name": "Zastąp",
+          "description": "Usuń pliki czcionki docelowej, których kopia nie nadpisuje."
+        }
+      }
+    },
+    "list_sound_fonts": {
+      "name": "Lista czcionek dźwiękowych",
+      "description": "Zwraca foldery czcionek na karcie miecza, ich nazwy i zajętość karty.",
+      "fields": {
+        "device_id": {
+          "name": "Miecz",
+          "description": "Miecz, którego użyć."
+        }
+      }
+    },
+    "list_sound_files": {
+      "name": "Lista plików dźwiękowych",
+      "description": "Zwraca pliki dźwiękowe jednej czcionki, pogrupowane według typu.",
+      "fields": {
+        "device_id": {
+          "name": "Miecz",
+          "description": "Miecz, którego użyć."
+        },
+        "font": {
+          "name": "Czcionka",
+          "description": "Numer folderu czcionki na karcie miecza, od 1."
+        }
+      }
+    },
+    "rename_sound_font": {
+      "name": "Zmień nazwę czcionki",
+      "description": "Zmienia nazwę, którą miecz pokazuje dla czcionki.",
+      "fields": {
+        "device_id": {
+          "name": "Miecz",
+          "description": "Miecz, którego użyć."
+        },
+        "font": {
+          "name": "Czcionka",
+          "description": "Numer folderu czcionki na karcie miecza, od 1."
+        },
+        "name": {
+          "name": "Nazwa",
+          "description": "Nowa nazwa, maksymalnie 16 znaki."
+        }
+      }
+    },
+    "play_sound": {
+      "name": "Odtwórz dźwięk",
+      "description": "Odtwarza plik dźwiękowy z karty miecza lub zatrzymuje odtwarzanie, gdy nie podano ścieżki.",
+      "fields": {
+        "device_id": {
+          "name": "Miecz",
+          "description": "Miecz, którego użyć."
+        },
+        "path": {
+          "name": "Ścieżka",
+          "description": "Plik na mieczu, na przykład /3/hum (1).wav. Zostaw puste, aby zatrzymać."
+        }
+      }
+    },
+    "upload_file": {
+      "name": "Wyślij plik",
+      "description": "Wysyła plik na kartę miecza, na przykład config.ini, aby przywrócić jego ustawienia. Ostrze musi być wyłączone.",
+      "fields": {
+        "device_id": {
+          "name": "Miecz",
+          "description": "Miecz, którego użyć."
+        },
+        "source": {
+          "name": "Źródło",
+          "description": "Plik na hoście Home Assistant."
+        },
+        "destination": {
+          "name": "Cel",
+          "description": "Ścieżka na mieczu: config.ini dla pliku ustawień albo /3/hum (1).wav."
+        }
+      }
+    },
+    "download_file": {
+      "name": "Pobierz plik",
+      "description": "Kopiuje plik z karty miecza do Home Assistant, na przykład config.ini jako kopię zapasową. Ostrze musi być wyłączone.",
+      "fields": {
+        "device_id": {
+          "name": "Miecz",
+          "description": "Miecz, którego użyć."
+        },
+        "source": {
+          "name": "Źródło",
+          "description": "Ścieżka na mieczu, na przykład config.ini."
+        },
+        "destination": {
+          "name": "Cel",
+          "description": "Plik do zapisania na hoście Home Assistant."
+        },
+        "overwrite": {
+          "name": "Nadpisz",
+          "description": "Zastąp cel, jeśli istnieje."
+        }
+      }
+    },
+    "copy_file": {
+      "name": "Kopiuj plik",
+      "description": "Kopiuje plik z jednego miejsca na karcie miecza w inne.",
+      "fields": {
+        "device_id": {
+          "name": "Miecz",
+          "description": "Miecz, którego użyć."
+        },
+        "source": {
+          "name": "Źródło",
+          "description": "Ścieżka na mieczu."
+        },
+        "destination": {
+          "name": "Cel",
+          "description": "Ścieżka na mieczu."
+        }
+      }
+    },
+    "delete_file": {
+      "name": "Usuń plik",
+      "description": "Usuwa plik z karty miecza. Nie można tego cofnąć.",
+      "fields": {
+        "device_id": {
+          "name": "Miecz",
+          "description": "Miecz, którego użyć."
+        },
+        "path": {
+          "name": "Ścieżka",
+          "description": "Plik na mieczu, na przykład /3/clash (9).wav."
+        },
+        "confirm": {
+          "name": "Potwierdź",
+          "description": "Wymagane do usunięcia pliku ustawień (config.ini lub czegokolwiek w /setting): bez niego miecz zgłasza błąd przy uruchomieniu."
+        }
+      }
+    },
+    "update_firmware": {
+      "name": "Aktualizuj oprogramowanie",
+      "description": "Wysyła plik oprogramowania (update.bin) do miecza, który go instaluje i uruchamia się ponownie. Błędna lub przerwana aktualizacja może unieruchomić miecz, a nowsze oprogramowanie może nie działać z tą integracją. Ostrze musi być wyłączone, a bateria naładowana co najmniej w 30%.",
+      "fields": {
+        "device_id": {
+          "name": "Miecz",
+          "description": "Miecz, którego użyć."
+        },
+        "file": {
+          "name": "Plik",
+          "description": "Plik oprogramowania na hoście Home Assistant, od sprzedawcy miecza."
+        },
+        "confirm": {
+          "name": "Potwierdź",
+          "description": "Musi być włączone. Ta akcja może unieruchomić miecz, jeśli coś pójdzie nie tak."
+        }
+      }
+    },
+    "set_blade_firmware": {
+      "name": "Ustaw oprogramowanie ostrza",
+      "description": "Przełącza miecz między oprogramowaniem ostrza Pixel i RGB, a następnie go restartuje. Ostrze świeci poprawnie tylko z pasującym oprogramowaniem.",
+      "fields": {
+        "device_id": {
+          "name": "Miecz",
+          "description": "Miecz, którego użyć."
+        },
+        "type": {
+          "name": "Typ",
+          "description": "Pixel dla ostrza neopixel, RGB dla diody LED w rękojeści."
+        },
+        "confirm": {
+          "name": "Potwierdź",
+          "description": "Musi być włączone. Ta akcja może unieruchomić miecz, jeśli coś pójdzie nie tak."
+        }
+      }
+    },
+    "set_hardware_type": {
+      "name": "Ustaw typ sprzętu",
+      "description": "Informuje płytkę, jak jest okablowana (Pixel lub RGB) i ile ma przycisków, a następnie ją restartuje. Oficjalna aplikacja ostrzega, że zmiana typu sprzętu wymaga lutowania; zmieniaj go tylko, jeśli płytka została przerobiona.",
+      "fields": {
+        "device_id": {
+          "name": "Miecz",
+          "description": "Miecz, którego użyć."
+        },
+        "type": {
+          "name": "Typ",
+          "description": "Jak okablowana jest płytka."
+        },
+        "buttons": {
+          "name": "Przyciski",
+          "description": "Liczba przycisków na rękojeści (1 lub 2)."
+        },
+        "confirm": {
+          "name": "Potwierdź",
+          "description": "Musi być włączone. Ta akcja może unieruchomić miecz, jeśli coś pójdzie nie tak."
+        }
+      }
+    }
+  },
+  "selector": {
+    "blade_type": {
+      "options": {
+        "pixel": "Pixel",
+        "rgb": "RGB"
+      }
+    }
+  }
+}

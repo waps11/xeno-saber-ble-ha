@@ -1,0 +1,13 @@
+# Lint settings matching Home Assistant's import layout.
+target-version = "py313"
+line-length = 100
+
+[lint]
+select = ["E", "F", "W", "B", "I"]
+ignore = ["E501"]
+
+[lint.isort]
+known-first-party = ["homeassistant"]
+known-local-folder = ["custom_components"]
+force-sort-within-sections = true
+combine-as-imports = true

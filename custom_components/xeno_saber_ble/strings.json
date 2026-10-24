@@ -1,0 +1,689 @@
+{
+  "config": {
+    "flow_title": "{name}",
+    "step": {
+      "user": {
+        "title": "Choose a saber",
+        "description": "Pick the saber to add. It must be awake (hold the button) and the Xeno Configurator app must be closed.",
+        "data": {
+          "address": "Saber"
+        },
+        "data_description": {
+          "address": "Sabers found by Bluetooth. Only awake sabers appear; Home Assistant connects briefly to check the one you pick."
+        }
+      },
+      "bluetooth_confirm": {
+        "description": "Do you want to set up {name}?"
+      }
+    },
+    "abort": {
+      "already_configured": "This saber is already configured.",
+      "already_in_progress": "Setup of this saber is already in progress.",
+      "no_devices_found": "No compatible saber (Xenopixel V3 board) found. Wake it up and try again."
+    },
+    "error": {
+      "cannot_connect": "Could not connect to the saber. Make sure it is awake and within range, and that the Xeno Configurator app is closed, then try again."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Connection and sync settings",
+        "data": {
+          "idle_disconnect": "Disconnect after idle (seconds)",
+          "keepalive": "Keepalive interval (seconds)",
+          "sync_light": "Color sync: light to follow",
+          "wled_udp": "Color sync: listen for WLED broadcasts",
+          "wled_udp_source": "WLED source address"
+        },
+        "data_description": {
+          "idle_disconnect": "0 = stay connected (live state, but the phone app cannot connect). Otherwise Home Assistant connects on demand and releases the saber after this delay.",
+          "keepalive": "0 = off (recommended). Any other value resends the current brightness every N seconds so the saber never goes to sleep. WARNING: this keeps the saber's board and Bluetooth radio awake all the time and WILL DRAIN THE BATTERY, even with the blade off. Use it only while the saber is on its charger, or for short sessions. Requires 'Disconnect after idle' = 0.",
+          "sync_light": "Optional. While the Color sync switch is on, the blade copies this light's on/off state, color and brightness. Turning that light on ignites the blade.",
+          "wled_udp": "While Color sync is on, listen on UDP port 21324 for WLED sync packets (in WLED: Settings > Sync Interfaces > Send notifications on change). These packets are not authenticated: any device on your network can drive the blade unless you set a source address below.",
+          "wled_udp_source": "Optional. Only obey WLED packets sent from this IPv4 address."
+        }
+      }
+    },
+    "error": {
+      "keepalive_needs_persistent": "Keepalive needs a permanent connection: set 'Disconnect after idle' to 0.",
+      "sync_self": "The blade cannot follow itself.",
+      "invalid_ip": "Enter an IPv4 address, for example 192.168.1.50."
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "connected": {
+        "name": "Connected"
+      },
+      "authorized": {
+        "name": "Authorized"
+      }
+    },
+    "light": {
+      "blade": {
+        "name": "Blade"
+      }
+    },
+    "number": {
+      "volume": {
+        "name": "Volume"
+      },
+      "blade_brightness": {
+        "name": "Blade brightness"
+      },
+      "main_blade_length": {
+        "name": "Blade length"
+      },
+      "side_blade_length": {
+        "name": "Side blade length"
+      },
+      "side_blade_delay": {
+        "name": "Side blade delay"
+      },
+      "power_on_time": {
+        "name": "Power-on time"
+      },
+      "power_off_time": {
+        "name": "Power-off time"
+      },
+      "auto_deep_sleep": {
+        "name": "Auto deep sleep"
+      },
+      "ignition_time": {
+        "name": "Ignition time"
+      },
+      "retraction_time": {
+        "name": "Retraction time"
+      },
+      "preon_time": {
+        "name": "Pre-on time"
+      },
+      "clash_sensitivity": {
+        "name": "Clash sensitivity"
+      },
+      "swing_sensitivity": {
+        "name": "Swing sensitivity"
+      },
+      "twist_sensitivity": {
+        "name": "Twist sensitivity"
+      },
+      "push_sensitivity": {
+        "name": "Push sensitivity"
+      },
+      "pull_sensitivity": {
+        "name": "Pull sensitivity"
+      },
+      "accent_swing_sensitivity": {
+        "name": "Accent swing sensitivity"
+      },
+      "motor_speed": {
+        "name": "Motor speed"
+      }
+    },
+    "select": {
+      "sound_font": {
+        "name": "Sound font"
+      },
+      "light_effect": {
+        "name": "Blade effect"
+      },
+      "blaster_effect": {
+        "name": "Blaster effect"
+      },
+      "force_effect": {
+        "name": "Force effect"
+      },
+      "lockup_effect": {
+        "name": "Lockup effect"
+      },
+      "clash_effect": {
+        "name": "Clash effect"
+      },
+      "post_off_effect": {
+        "name": "Post-off effect"
+      },
+      "mode": {
+        "name": "Mode"
+      }
+    },
+    "sensor": {
+      "battery": {
+        "name": "Battery"
+      },
+      "font_name": {
+        "name": "Font name"
+      },
+      "blade_firmware": {
+        "name": "Blade firmware",
+        "state": {
+          "pixel": "Pixel",
+          "rgb": "RGB"
+        }
+      },
+      "hardware_type": {
+        "name": "Hardware type",
+        "state": {
+          "pixel": "Pixel",
+          "rgb": "RGB"
+        }
+      },
+      "button_count": {
+        "name": "Buttons"
+      },
+      "file_transfer": {
+        "name": "File transfer"
+      }
+    },
+    "switch": {
+      "background_music": {
+        "name": "Background music"
+      },
+      "motion_control": {
+        "name": "Motion control"
+      },
+      "lockup": {
+        "name": "Lockup"
+      },
+      "drag": {
+        "name": "Drag"
+      },
+      "color_sync": {
+        "name": "Color sync"
+      },
+      "fast_color_changing": {
+        "name": "Fast color cycling"
+      },
+      "smooth_color_changing": {
+        "name": "Smooth color cycling"
+      },
+      "flash_on_clash": {
+        "name": "Flash on clash"
+      },
+      "countdown": {
+        "name": "Countdown"
+      },
+      "led_screen": {
+        "name": "LED screen"
+      },
+      "velocity_mode": {
+        "name": "Velocity mode"
+      },
+      "torch_mode": {
+        "name": "Torch mode"
+      },
+      "ghost_mode": {
+        "name": "Ghost mode"
+      },
+      "lightning_block_mode": {
+        "name": "Lightning block mode"
+      },
+      "blaster_mode": {
+        "name": "Blaster mode"
+      },
+      "multiblock_mode": {
+        "name": "Multi-block mode"
+      },
+      "multilock_mode": {
+        "name": "Multi-lock mode"
+      },
+      "pull_push_ignition": {
+        "name": "Pull-push ignition"
+      },
+      "push_pull_retraction": {
+        "name": "Push-pull retraction"
+      },
+      "twist_ignition": {
+        "name": "Twist ignition"
+      },
+      "twist_retraction": {
+        "name": "Twist retraction"
+      },
+      "swing_ignition": {
+        "name": "Swing ignition"
+      }
+    },
+    "button": {
+      "clash": {
+        "name": "Clash"
+      },
+      "blaster": {
+        "name": "Blaster"
+      },
+      "force": {
+        "name": "Force"
+      },
+      "reconnect": {
+        "name": "Reconnect"
+      },
+      "save_settings": {
+        "name": "Save settings"
+      },
+      "restart": {
+        "name": "Restart"
+      }
+    }
+  },
+  "exceptions": {
+    "connection_failed": {
+      "message": "Could not connect to saber {address}: {error}"
+    },
+    "command_failed": {
+      "message": "Command to the saber failed: {error}"
+    },
+    "sync_unavailable": {
+      "message": "Color sync could not start: {error}"
+    },
+    "entry_not_loaded": {
+      "message": "{name} is not loaded. Check that the saber is set up and reachable."
+    },
+    "path_not_allowed": {
+      "message": "Home Assistant is not allowed to access {path}. Put the file under /media, or add its folder to allowlist_external_dirs in configuration.yaml."
+    },
+    "file_not_found": {
+      "message": "File not found: {path}"
+    },
+    "folder_not_found": {
+      "message": "Folder not found: {path}"
+    },
+    "file_exists": {
+      "message": "{path} already exists. Set overwrite to replace it."
+    },
+    "blade_must_be_off": {
+      "message": "Turn the blade off first: the saber does not accept this while it is lit."
+    },
+    "confirm_required": {
+      "message": "This action can leave the saber unusable if it goes wrong. Set confirm to true to go ahead."
+    },
+    "use_update_firmware": {
+      "message": "The saber installs {path} at its next start. Use the update_firmware action to send firmware."
+    },
+    "saber_refused": {
+      "message": "The saber refused: {operation}"
+    },
+    "no_sound_files": {
+      "message": "No recognizable sound files in {path}. Files must be WAVs named like hum.wav, clash1.wav or clash (1).wav, or be in folders named after the sound type."
+    },
+    "wav_format": {
+      "message": "{count} file(s) cannot be played by the saber, which needs 44.1 kHz, 16-bit, mono PCM WAV: {files}"
+    },
+    "font_not_found": {
+      "message": "The saber has no font folder {font} (it has: {available}). Use an existing folder to replace a font, or {next} to add a new one."
+    },
+    "firmware_size": {
+      "message": "This file ({size} bytes) does not look like saber firmware."
+    },
+    "battery_too_low": {
+      "message": "Battery at {level}%: charge the saber to at least {minimum}% before updating its firmware."
+    },
+    "bad_archive": {
+      "message": "{path} cannot be used as a font: {error}"
+    },
+    "font_empty": {
+      "message": "Font {font} has no sound files."
+    },
+    "same_font": {
+      "message": "The source and destination are the same font ({font})."
+    },
+    "not_enough_space": {
+      "message": "Not enough space on the saber: the font needs about {needed} MB and {free} MB are free. Delete the old font first (delete_first, after exporting it) or use a smaller font."
+    },
+    "font_not_in_backup": {
+      "message": "Font {font} is not in the backup (it has: {available})."
+    },
+    "backup_other_saber": {
+      "message": "The backup comes from a board with hardware version {backup}, this saber is {saber}. Its settings are not restored onto another board; turn off Settings to restore only the fonts."
+    },
+    "device_not_saber": {
+      "message": "Device {device_id} is not a Xeno saber."
+    }
+  },
+  "issues": {
+    "keepalive_battery_drain": {
+      "title": "Keepalive is draining the battery of {name}",
+      "description": "Keepalive is on for {name} (every {interval} s). The saber cannot go to sleep: its board and Bluetooth radio stay powered and the battery will drain, even with the blade off. To stop it, set the keepalive interval to 0 in the integration's options (Settings > Devices & services > Xeno Saber BLE > Configure)."
+    }
+  },
+  "services": {
+    "upload_sound_font": {
+      "name": "Upload sound font",
+      "description": "Sends a folder of WAV files to one of the saber's font folders over Bluetooth, replacing that font. Files are renamed to the saber's convention (hum (1).wav, clash (1).wav...). Expect several minutes per megabyte; the blade must be off.",
+      "fields": {
+        "device_id": {
+          "name": "Saber",
+          "description": "The saber to use."
+        },
+        "folder": {
+          "name": "Folder or zip",
+          "description": "Folder or .zip file on the Home Assistant host with the font's WAV files (44.1 kHz, 16-bit, mono). Subfolders named after a sound type are read too."
+        },
+        "font": {
+          "name": "Font",
+          "description": "Number of the font folder on the saber, starting at 1. The next free number adds a new font, as in the app."
+        },
+        "name": {
+          "name": "Name",
+          "description": "Optional new name for the font."
+        },
+        "replace": {
+          "name": "Replace",
+          "description": "Delete the old font's files that the new one does not overwrite."
+        },
+        "delete_first": {
+          "name": "Delete old font first",
+          "description": "Delete all files of the target font before sending, to make room. Export it first: the old font cannot be recovered otherwise."
+        },
+        "dry_run": {
+          "name": "Dry run",
+          "description": "Only show how the files would be named; send nothing."
+        }
+      }
+    },
+    "export_sound_font": {
+      "name": "Export sound font",
+      "description": "Copies every sound file of one font from the saber's card into a .zip on the Home Assistant host, to back it up or edit it. Upload sound font accepts the zip back. As slow as an upload; the blade must be off.",
+      "fields": {
+        "device_id": {
+          "name": "Saber",
+          "description": "The saber to use."
+        },
+        "font": {
+          "name": "Font",
+          "description": "Number of the font folder on the saber's card, starting at 1."
+        },
+        "destination": {
+          "name": "Destination",
+          "description": "Zip file to write on the Home Assistant host."
+        },
+        "overwrite": {
+          "name": "Overwrite",
+          "description": "Replace the destination if it exists."
+        }
+      }
+    },
+    "backup_saber": {
+      "name": "Back up saber",
+      "description": "Copies everything on the saber's storage into a .zip on the Home Assistant host: every font, config.ini, the custom button mapping if any, the system sounds, and a description of the saber and its settings. The zip is laid out like a Xeno SD card. Over Bluetooth this takes hours for a full saber; the blade must be off.",
+      "fields": {
+        "device_id": {
+          "name": "Saber",
+          "description": "The saber to use."
+        },
+        "destination": {
+          "name": "Destination",
+          "description": "Zip file to write on the Home Assistant host."
+        },
+        "overwrite": {
+          "name": "Overwrite",
+          "description": "Replace the destination if it exists."
+        },
+        "fonts": {
+          "name": "Fonts",
+          "description": "Font folders to include; all of them if empty."
+        },
+        "include_system_sounds": {
+          "name": "System sounds",
+          "description": "Also save the voice prompts and menu sounds of the setting folder (about 430 small files). The saber cannot list them, so the ones it does not have are skipped."
+        }
+      }
+    },
+    "restore_backup": {
+      "name": "Restore backup",
+      "description": "Writes a backup made by Back up saber (or a zip of a Xeno SD card) back to the saber: the fonts and their names, then config.ini and the custom button mapping. Fonts on the saber are replaced; missing ones are created if they are the next free folders. System sounds are only written on request. Over Bluetooth a full restore takes hours; the blade must be off.",
+      "fields": {
+        "device_id": {
+          "name": "Saber",
+          "description": "The saber to use."
+        },
+        "source": {
+          "name": "Source",
+          "description": "Backup zip on the Home Assistant host."
+        },
+        "fonts": {
+          "name": "Fonts",
+          "description": "Font folders of the backup to restore; all of them if empty."
+        },
+        "include_settings": {
+          "name": "Settings",
+          "description": "Restore config.ini and the custom button mapping. Refused if the backup comes from a board with another hardware version."
+        },
+        "include_system_sounds": {
+          "name": "System sounds",
+          "description": "Also restore the voice prompts and menu sounds of the setting folder. Only needed if they were changed or lost."
+        },
+        "dry_run": {
+          "name": "Dry run",
+          "description": "Only check the backup and return what would be written."
+        },
+        "confirm": {
+          "name": "Confirm",
+          "description": "Required: the fonts restored replace the ones on the saber."
+        }
+      }
+    },
+    "copy_sound_font": {
+      "name": "Copy sound font",
+      "description": "Copies one font folder over another on the saber's card. The saber copies the files itself, so this is quick. The blade must be off.",
+      "fields": {
+        "device_id": {
+          "name": "Saber",
+          "description": "The saber to use."
+        },
+        "source_font": {
+          "name": "Source font",
+          "description": "Font folder to copy from."
+        },
+        "destination_font": {
+          "name": "Destination font",
+          "description": "Font folder to replace."
+        },
+        "name": {
+          "name": "Name",
+          "description": "Name for the copy; by default, the source font's name."
+        },
+        "replace": {
+          "name": "Replace",
+          "description": "Delete the destination font's files that the copy does not overwrite."
+        }
+      }
+    },
+    "list_sound_fonts": {
+      "name": "List sound fonts",
+      "description": "Returns the font folders on the saber's card, their names, and the card's usage.",
+      "fields": {
+        "device_id": {
+          "name": "Saber",
+          "description": "The saber to use."
+        }
+      }
+    },
+    "list_sound_files": {
+      "name": "List sound files",
+      "description": "Returns the sound files of one font, grouped by type.",
+      "fields": {
+        "device_id": {
+          "name": "Saber",
+          "description": "The saber to use."
+        },
+        "font": {
+          "name": "Font",
+          "description": "Number of the font folder on the saber's card, starting at 1."
+        }
+      }
+    },
+    "rename_sound_font": {
+      "name": "Rename sound font",
+      "description": "Changes the name the saber shows for a font.",
+      "fields": {
+        "device_id": {
+          "name": "Saber",
+          "description": "The saber to use."
+        },
+        "font": {
+          "name": "Font",
+          "description": "Number of the font folder on the saber's card, starting at 1."
+        },
+        "name": {
+          "name": "Name",
+          "description": "New name, up to 16 characters."
+        }
+      }
+    },
+    "play_sound": {
+      "name": "Play sound",
+      "description": "Plays a sound file from the saber's card, or stops playback when no path is given.",
+      "fields": {
+        "device_id": {
+          "name": "Saber",
+          "description": "The saber to use."
+        },
+        "path": {
+          "name": "Path",
+          "description": "File on the saber, for example /3/hum (1).wav. Leave empty to stop."
+        }
+      }
+    },
+    "upload_file": {
+      "name": "Upload file",
+      "description": "Sends a file to the saber's card, for example config.ini to restore its settings. The blade must be off.",
+      "fields": {
+        "device_id": {
+          "name": "Saber",
+          "description": "The saber to use."
+        },
+        "source": {
+          "name": "Source",
+          "description": "File on the Home Assistant host."
+        },
+        "destination": {
+          "name": "Destination",
+          "description": "Path on the saber: config.ini for the settings file, or /3/hum (1).wav."
+        }
+      }
+    },
+    "download_file": {
+      "name": "Download file",
+      "description": "Copies a file from the saber's card to Home Assistant, for example config.ini as a backup. The blade must be off.",
+      "fields": {
+        "device_id": {
+          "name": "Saber",
+          "description": "The saber to use."
+        },
+        "source": {
+          "name": "Source",
+          "description": "Path on the saber, for example config.ini."
+        },
+        "destination": {
+          "name": "Destination",
+          "description": "File to write on the Home Assistant host."
+        },
+        "overwrite": {
+          "name": "Overwrite",
+          "description": "Replace the destination if it exists."
+        }
+      }
+    },
+    "copy_file": {
+      "name": "Copy file",
+      "description": "Copies a file from one place on the saber's card to another.",
+      "fields": {
+        "device_id": {
+          "name": "Saber",
+          "description": "The saber to use."
+        },
+        "source": {
+          "name": "Source",
+          "description": "Path on the saber."
+        },
+        "destination": {
+          "name": "Destination",
+          "description": "Path on the saber."
+        }
+      }
+    },
+    "delete_file": {
+      "name": "Delete file",
+      "description": "Deletes a file from the saber's card. There is no undo.",
+      "fields": {
+        "device_id": {
+          "name": "Saber",
+          "description": "The saber to use."
+        },
+        "path": {
+          "name": "Path",
+          "description": "File on the saber, for example /3/clash (9).wav."
+        },
+        "confirm": {
+          "name": "Confirm",
+          "description": "Required to delete the settings file (config.ini or anything under /setting): without it the saber reports an error at start."
+        }
+      }
+    },
+    "update_firmware": {
+      "name": "Update firmware",
+      "description": "Sends a firmware file (update.bin) to the saber, which installs it and restarts. A wrong or interrupted update can leave the saber unusable, and newer firmware may not work with this integration. The blade must be off and the battery at least 30%.",
+      "fields": {
+        "device_id": {
+          "name": "Saber",
+          "description": "The saber to use."
+        },
+        "file": {
+          "name": "File",
+          "description": "Firmware file on the Home Assistant host, from the saber's vendor."
+        },
+        "confirm": {
+          "name": "Confirm",
+          "description": "Must be on. This action can leave the saber unusable if it goes wrong."
+        }
+      }
+    },
+    "set_blade_firmware": {
+      "name": "Set blade firmware",
+      "description": "Switches the saber between Pixel and RGB blade firmware, then restarts it. The blade only lights correctly with the firmware that matches it.",
+      "fields": {
+        "device_id": {
+          "name": "Saber",
+          "description": "The saber to use."
+        },
+        "type": {
+          "name": "Type",
+          "description": "Pixel for a neopixel blade, RGB for an in-hilt LED."
+        },
+        "confirm": {
+          "name": "Confirm",
+          "description": "Must be on. This action can leave the saber unusable if it goes wrong."
+        }
+      }
+    },
+    "set_hardware_type": {
+      "name": "Set hardware type",
+      "description": "Tells the board how it is wired (Pixel or RGB) and how many buttons it has, then restarts it. The official app warns that changing the hardware type requires soldering; only change it if the board was rewired.",
+      "fields": {
+        "device_id": {
+          "name": "Saber",
+          "description": "The saber to use."
+        },
+        "type": {
+          "name": "Type",
+          "description": "How the board is wired."
+        },
+        "buttons": {
+          "name": "Buttons",
+          "description": "Number of buttons on the hilt (1 or 2)."
+        },
+        "confirm": {
+          "name": "Confirm",
+          "description": "Must be on. This action can leave the saber unusable if it goes wrong."
+        }
+      }
+    }
+  },
+  "selector": {
+    "blade_type": {
+      "options": {
+        "pixel": "Pixel",
+        "rgb": "RGB"
+      }
+    }
+  }
+}

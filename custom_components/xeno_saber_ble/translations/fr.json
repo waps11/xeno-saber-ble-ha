@@ -1,0 +1,689 @@
+{
+  "config": {
+    "flow_title": "{name}",
+    "step": {
+      "user": {
+        "title": "Choisir un sabre",
+        "description": "Choisissez le sabre à ajouter. Il doit être réveillé (bouton maintenu) et l'application Xeno Configurator doit être fermée.",
+        "data": {
+          "address": "Sabre"
+        },
+        "data_description": {
+          "address": "Sabres détectés en Bluetooth. Seuls les sabres réveillés apparaissent ; Home Assistant se connecte brièvement à celui que tu choisis pour le vérifier."
+        }
+      },
+      "bluetooth_confirm": {
+        "description": "Voulez-vous configurer {name} ?"
+      }
+    },
+    "abort": {
+      "already_configured": "Ce sabre est déjà configuré.",
+      "already_in_progress": "La configuration de ce sabre est déjà en cours.",
+      "no_devices_found": "Aucun sabre compatible (carte Xenopixel V3) détecté. Réveillez-le et réessayez."
+    },
+    "error": {
+      "cannot_connect": "Impossible de se connecter au sabre. Vérifie qu'il est réveillé et à portée, et que l'app Xeno Configurator est fermée, puis réessaie."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Connexion et synchronisation",
+        "data": {
+          "idle_disconnect": "Déconnexion après inactivité (secondes)",
+          "keepalive": "Intervalle de maintien en éveil (secondes)",
+          "sync_light": "Synchro couleur : lumière à suivre",
+          "wled_udp": "Synchro couleur : écouter les diffusions WLED",
+          "wled_udp_source": "Adresse source WLED"
+        },
+        "data_description": {
+          "idle_disconnect": "0 = rester connecté (état en direct, mais l'application mobile ne peut pas se connecter). Sinon, Home Assistant se connecte à la demande et libère le sabre après ce délai.",
+          "keepalive": "0 = désactivé (recommandé). Toute autre valeur renvoie la luminosité actuelle toutes les N secondes pour que le sabre ne se mette jamais en veille. ATTENTION : la carte et la radio Bluetooth du sabre restent alors allumées en permanence, ce qui VIDERA LA BATTERIE, même lame éteinte. À utiliser seulement quand le sabre est sur son chargeur, ou pour de courtes sessions. Exige « Déconnexion après inactivité » = 0.",
+          "sync_light": "Facultatif. Tant que l'interrupteur Synchro couleur est activé, la lame copie l'état allumé/éteint, la couleur et la luminosité de cette lumière. Allumer cette lumière allume la lame.",
+          "wled_udp": "Tant que la synchro couleur est activée, écoute le port UDP 21324 pour les paquets de synchro WLED (dans WLED : Settings > Sync Interfaces > Send notifications on change). Ces paquets ne sont pas authentifiés : n'importe quel appareil du réseau peut piloter la lame, sauf si tu indiques une adresse source ci-dessous.",
+          "wled_udp_source": "Facultatif. N'obéir qu'aux paquets WLED envoyés depuis cette adresse IPv4."
+        }
+      }
+    },
+    "error": {
+      "keepalive_needs_persistent": "Le maintien en éveil exige une connexion permanente : mets « Déconnexion après inactivité » à 0.",
+      "sync_self": "La lame ne peut pas se suivre elle-même.",
+      "invalid_ip": "Entre une adresse IPv4, par exemple 192.168.1.50."
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "connected": {
+        "name": "Connecté"
+      },
+      "authorized": {
+        "name": "Autorisé"
+      }
+    },
+    "light": {
+      "blade": {
+        "name": "Lame"
+      }
+    },
+    "number": {
+      "volume": {
+        "name": "Volume"
+      },
+      "blade_brightness": {
+        "name": "Luminosité de la lame"
+      },
+      "main_blade_length": {
+        "name": "Longueur de lame"
+      },
+      "side_blade_length": {
+        "name": "Longueur de la lame latérale"
+      },
+      "side_blade_delay": {
+        "name": "Délai de la lame latérale"
+      },
+      "power_on_time": {
+        "name": "Durée d'allumage (réveil)"
+      },
+      "power_off_time": {
+        "name": "Durée d'extinction (veille)"
+      },
+      "auto_deep_sleep": {
+        "name": "Veille profonde auto"
+      },
+      "ignition_time": {
+        "name": "Durée d'ignition"
+      },
+      "retraction_time": {
+        "name": "Durée de rétraction"
+      },
+      "preon_time": {
+        "name": "Durée de pré-allumage"
+      },
+      "clash_sensitivity": {
+        "name": "Sensibilité au clash"
+      },
+      "swing_sensitivity": {
+        "name": "Sensibilité au mouvement"
+      },
+      "twist_sensitivity": {
+        "name": "Sensibilité à la torsion"
+      },
+      "push_sensitivity": {
+        "name": "Sensibilité à la poussée"
+      },
+      "pull_sensitivity": {
+        "name": "Sensibilité à la traction"
+      },
+      "accent_swing_sensitivity": {
+        "name": "Sensibilité du swing accentué"
+      },
+      "motor_speed": {
+        "name": "Vitesse du moteur"
+      }
+    },
+    "select": {
+      "sound_font": {
+        "name": "Font sonore"
+      },
+      "light_effect": {
+        "name": "Effet de lame"
+      },
+      "blaster_effect": {
+        "name": "Effet blaster"
+      },
+      "force_effect": {
+        "name": "Effet Force"
+      },
+      "lockup_effect": {
+        "name": "Effet de blocage"
+      },
+      "clash_effect": {
+        "name": "Effet de clash"
+      },
+      "post_off_effect": {
+        "name": "Effet après extinction"
+      },
+      "mode": {
+        "name": "Mode"
+      }
+    },
+    "sensor": {
+      "battery": {
+        "name": "Batterie"
+      },
+      "font_name": {
+        "name": "Nom de la font"
+      },
+      "blade_firmware": {
+        "name": "Firmware de lame",
+        "state": {
+          "pixel": "Pixel",
+          "rgb": "RGB"
+        }
+      },
+      "hardware_type": {
+        "name": "Type de matériel",
+        "state": {
+          "pixel": "Pixel",
+          "rgb": "RGB"
+        }
+      },
+      "button_count": {
+        "name": "Boutons"
+      },
+      "file_transfer": {
+        "name": "Transfert de fichier"
+      }
+    },
+    "switch": {
+      "background_music": {
+        "name": "Musique de fond"
+      },
+      "motion_control": {
+        "name": "Contrôle gestuel"
+      },
+      "lockup": {
+        "name": "Blocage"
+      },
+      "drag": {
+        "name": "Frottement"
+      },
+      "color_sync": {
+        "name": "Synchro couleur"
+      },
+      "fast_color_changing": {
+        "name": "Cycle de couleurs rapide"
+      },
+      "smooth_color_changing": {
+        "name": "Cycle de couleurs doux"
+      },
+      "flash_on_clash": {
+        "name": "Flash au clash"
+      },
+      "countdown": {
+        "name": "Compte à rebours"
+      },
+      "led_screen": {
+        "name": "Écran LED"
+      },
+      "velocity_mode": {
+        "name": "Mode vélocité"
+      },
+      "torch_mode": {
+        "name": "Mode torche"
+      },
+      "ghost_mode": {
+        "name": "Mode fantôme"
+      },
+      "lightning_block_mode": {
+        "name": "Mode blocage éclair"
+      },
+      "blaster_mode": {
+        "name": "Mode blaster"
+      },
+      "multiblock_mode": {
+        "name": "Mode multi-blocage"
+      },
+      "multilock_mode": {
+        "name": "Mode multi-verrouillage"
+      },
+      "pull_push_ignition": {
+        "name": "Allumage tirer-pousser"
+      },
+      "push_pull_retraction": {
+        "name": "Extinction pousser-tirer"
+      },
+      "twist_ignition": {
+        "name": "Allumage par torsion"
+      },
+      "twist_retraction": {
+        "name": "Extinction par torsion"
+      },
+      "swing_ignition": {
+        "name": "Allumage par mouvement"
+      }
+    },
+    "button": {
+      "clash": {
+        "name": "Clash"
+      },
+      "blaster": {
+        "name": "Blaster"
+      },
+      "force": {
+        "name": "Force"
+      },
+      "reconnect": {
+        "name": "Reconnecter"
+      },
+      "save_settings": {
+        "name": "Enregistrer les réglages"
+      },
+      "restart": {
+        "name": "Redémarrer"
+      }
+    }
+  },
+  "exceptions": {
+    "connection_failed": {
+      "message": "Impossible de se connecter au sabre {address} : {error}"
+    },
+    "command_failed": {
+      "message": "La commande envoyée au sabre a échoué : {error}"
+    },
+    "sync_unavailable": {
+      "message": "La synchro couleur n'a pas pu démarrer : {error}"
+    },
+    "entry_not_loaded": {
+      "message": "{name} n'est pas chargé. Vérifiez que le sabre est configuré et joignable."
+    },
+    "path_not_allowed": {
+      "message": "Home Assistant n'a pas accès à {path}. Placez le fichier sous /media, ou ajoutez son dossier à allowlist_external_dirs dans configuration.yaml."
+    },
+    "file_not_found": {
+      "message": "Fichier introuvable : {path}"
+    },
+    "folder_not_found": {
+      "message": "Dossier introuvable : {path}"
+    },
+    "file_exists": {
+      "message": "{path} existe déjà. Activez « Écraser » pour le remplacer."
+    },
+    "blade_must_be_off": {
+      "message": "Éteignez d'abord la lame : le sabre refuse cette opération lame allumée."
+    },
+    "confirm_required": {
+      "message": "Cette action peut rendre le sabre inutilisable si elle échoue. Mettez « Confirmer » à vrai pour continuer."
+    },
+    "use_update_firmware": {
+      "message": "Le sabre installe {path} à son prochain démarrage. Utilisez l'action update_firmware pour envoyer un firmware."
+    },
+    "saber_refused": {
+      "message": "Le sabre a refusé : {operation}"
+    },
+    "no_sound_files": {
+      "message": "Aucun fichier son reconnu dans {path}. Les fichiers doivent être des WAV nommés comme hum.wav, clash1.wav ou clash (1).wav, ou se trouver dans des dossiers portant le nom du type de son."
+    },
+    "wav_format": {
+      "message": "{count} fichier(s) ne peuvent pas être joués par le sabre, qui exige du WAV PCM 44,1 kHz, 16 bits, mono : {files}"
+    },
+    "font_not_found": {
+      "message": "Le sabre n'a pas de dossier de font {font} (il a : {available}). Utilisez un dossier existant pour remplacer une font, ou {next} pour en ajouter une."
+    },
+    "firmware_size": {
+      "message": "Ce fichier ({size} octets) ne ressemble pas à un firmware de sabre."
+    },
+    "battery_too_low": {
+      "message": "Batterie à {level} % : chargez le sabre à au moins {minimum} % avant de mettre à jour son firmware."
+    },
+    "bad_archive": {
+      "message": "{path} n'est pas utilisable comme font : {error}"
+    },
+    "font_empty": {
+      "message": "La font {font} n'a aucun fichier son."
+    },
+    "same_font": {
+      "message": "La source et la destination sont la même font ({font})."
+    },
+    "not_enough_space": {
+      "message": "Pas assez d'espace sur le sabre : la font demande environ {needed} Mo et il en reste {free} Mo. Supprimez d'abord l'ancienne font (delete_first, après l'avoir exportée) ou utilisez une font plus petite."
+    },
+    "font_not_in_backup": {
+      "message": "La font {font} n'est pas dans la sauvegarde (elle contient : {available})."
+    },
+    "backup_other_saber": {
+      "message": "La sauvegarde vient d'une carte de version matérielle {backup}, ce sabre est {saber}. Ses paramètres ne sont pas restaurés sur une autre carte; désactivez Paramètres pour ne restaurer que les fonts."
+    },
+    "device_not_saber": {
+      "message": "L'appareil {device_id} n'est pas un sabre Xeno."
+    }
+  },
+  "issues": {
+    "keepalive_battery_drain": {
+      "title": "Le maintien en éveil vide la batterie de {name}",
+      "description": "Le maintien en éveil est actif pour {name} (toutes les {interval} s). Le sabre ne peut pas se mettre en veille : sa carte et sa radio Bluetooth restent allumées et la batterie va se vider, même lame éteinte. Pour l'arrêter, mets l'intervalle de maintien en éveil à 0 dans les options de l'intégration (Paramètres > Appareils et services > Xeno Saber BLE > Configurer)."
+    }
+  },
+  "services": {
+    "upload_sound_font": {
+      "name": "Envoyer une font sonore",
+      "description": "Envoie un dossier de fichiers WAV dans un des dossiers de font du sabre par Bluetooth, en remplaçant cette font. Les fichiers sont renommés selon la convention du sabre (hum (1).wav, clash (1).wav…). Comptez plusieurs minutes par mégaoctet ; la lame doit être éteinte.",
+      "fields": {
+        "device_id": {
+          "name": "Sabre",
+          "description": "Le sabre à utiliser."
+        },
+        "folder": {
+          "name": "Dossier ou zip",
+          "description": "Dossier ou fichier .zip sur l'hôte Home Assistant contenant les WAV de la font (44,1 kHz, 16 bits, mono). Les sous-dossiers portant le nom d'un type de son sont aussi lus."
+        },
+        "font": {
+          "name": "Font",
+          "description": "Numéro du dossier de font sur le sabre, à partir de 1. Le prochain numéro libre ajoute une nouvelle font, comme dans l'app."
+        },
+        "name": {
+          "name": "Nom",
+          "description": "Nouveau nom facultatif pour la font."
+        },
+        "replace": {
+          "name": "Remplacer",
+          "description": "Supprimer les fichiers de l'ancienne font que la nouvelle n'écrase pas."
+        },
+        "delete_first": {
+          "name": "Supprimer l'ancienne font d'abord",
+          "description": "Supprimer tous les fichiers de la font cible avant l'envoi, pour faire de la place. Exportez-la d'abord : sinon l'ancienne font est irrécupérable."
+        },
+        "dry_run": {
+          "name": "Essai à blanc",
+          "description": "Montrer seulement comment les fichiers seraient nommés, sans rien envoyer."
+        }
+      }
+    },
+    "export_sound_font": {
+      "name": "Exporter une font sonore",
+      "description": "Copie tous les fichiers son d'une font de la carte du sabre dans un .zip sur l'hôte Home Assistant, pour la sauvegarder ou la modifier. « Envoyer une font sonore » accepte ce zip en retour. Aussi lent qu'un envoi ; la lame doit être éteinte.",
+      "fields": {
+        "device_id": {
+          "name": "Sabre",
+          "description": "Le sabre à utiliser."
+        },
+        "font": {
+          "name": "Font",
+          "description": "Numéro du dossier de font sur la carte du sabre, à partir de 1."
+        },
+        "destination": {
+          "name": "Destination",
+          "description": "Fichier zip à écrire sur l'hôte Home Assistant."
+        },
+        "overwrite": {
+          "name": "Écraser",
+          "description": "Remplacer la destination si elle existe."
+        }
+      }
+    },
+    "backup_saber": {
+      "name": "Sauvegarder le sabre",
+      "description": "Copie tout le contenu du stockage du sabre dans un .zip sur l'hôte Home Assistant : toutes les fonts, config.ini, le mappage des boutons s'il existe, les sons système et une description du sabre et de ses réglages. Le zip est organisé comme une carte SD Xeno. Par Bluetooth, cela prend des heures pour un sabre plein ; la lame doit être éteinte.",
+      "fields": {
+        "device_id": {
+          "name": "Sabre",
+          "description": "Le sabre à utiliser."
+        },
+        "destination": {
+          "name": "Destination",
+          "description": "Fichier zip à écrire sur l'hôte Home Assistant."
+        },
+        "overwrite": {
+          "name": "Écraser",
+          "description": "Remplacer la destination si elle existe."
+        },
+        "fonts": {
+          "name": "Fonts",
+          "description": "Dossiers de font à inclure ; tous si vide."
+        },
+        "include_system_sounds": {
+          "name": "Sons système",
+          "description": "Sauvegarder aussi les annonces vocales et les sons de menu du dossier setting (environ 430 petits fichiers). Le sabre ne sait pas les lister : ceux qu'il n'a pas sont ignorés."
+        }
+      }
+    },
+    "restore_backup": {
+      "name": "Restaurer une sauvegarde",
+      "description": "Réécrit sur le sabre une sauvegarde faite par Sauvegarder le sabre (ou le zip d'une carte SD Xeno) : les fonts et leurs noms, puis config.ini et l'assignation personnalisée des boutons. Les fonts du sabre sont remplacées; celles qui manquent sont créées si ce sont les prochains dossiers libres. Les sons système ne sont écrits que sur demande. Par Bluetooth, une restauration complète prend des heures; la lame doit être éteinte.",
+      "fields": {
+        "device_id": {
+          "name": "Sabre",
+          "description": "Le sabre à utiliser."
+        },
+        "source": {
+          "name": "Source",
+          "description": "Zip de sauvegarde sur l'hôte Home Assistant."
+        },
+        "fonts": {
+          "name": "Fonts",
+          "description": "Dossiers de font de la sauvegarde à restaurer; tous si vide."
+        },
+        "include_settings": {
+          "name": "Paramètres",
+          "description": "Restaurer config.ini et l'assignation personnalisée des boutons. Refusé si la sauvegarde vient d'une carte d'une autre version matérielle."
+        },
+        "include_system_sounds": {
+          "name": "Sons système",
+          "description": "Restaurer aussi les messages vocaux et les sons de menu du dossier setting. Utile seulement s'ils ont été modifiés ou perdus."
+        },
+        "dry_run": {
+          "name": "Simulation",
+          "description": "Vérifier la sauvegarde et indiquer ce qui serait écrit, sans rien écrire."
+        },
+        "confirm": {
+          "name": "Confirmer",
+          "description": "Obligatoire : les fonts restaurées remplacent celles du sabre."
+        }
+      }
+    },
+    "copy_sound_font": {
+      "name": "Copier une font sonore",
+      "description": "Copie un dossier de font par-dessus un autre sur la carte du sabre. Le sabre copie lui-même les fichiers, c'est donc rapide. La lame doit être éteinte.",
+      "fields": {
+        "device_id": {
+          "name": "Sabre",
+          "description": "Le sabre à utiliser."
+        },
+        "source_font": {
+          "name": "Font source",
+          "description": "Dossier de font à copier."
+        },
+        "destination_font": {
+          "name": "Font de destination",
+          "description": "Dossier de font à remplacer."
+        },
+        "name": {
+          "name": "Nom",
+          "description": "Nom de la copie ; par défaut, celui de la font source."
+        },
+        "replace": {
+          "name": "Remplacer",
+          "description": "Supprimer les fichiers de la font de destination que la copie n'écrase pas."
+        }
+      }
+    },
+    "list_sound_fonts": {
+      "name": "Lister les fonts sonores",
+      "description": "Renvoie les dossiers de font de la carte du sabre, leurs noms et l'occupation de la carte.",
+      "fields": {
+        "device_id": {
+          "name": "Sabre",
+          "description": "Le sabre à utiliser."
+        }
+      }
+    },
+    "list_sound_files": {
+      "name": "Lister les fichiers son",
+      "description": "Renvoie les fichiers son d'une font, groupés par type.",
+      "fields": {
+        "device_id": {
+          "name": "Sabre",
+          "description": "Le sabre à utiliser."
+        },
+        "font": {
+          "name": "Font",
+          "description": "Numéro du dossier de font sur la carte du sabre, à partir de 1."
+        }
+      }
+    },
+    "rename_sound_font": {
+      "name": "Renommer une font sonore",
+      "description": "Change le nom que le sabre affiche pour une font.",
+      "fields": {
+        "device_id": {
+          "name": "Sabre",
+          "description": "Le sabre à utiliser."
+        },
+        "font": {
+          "name": "Font",
+          "description": "Numéro du dossier de font sur la carte du sabre, à partir de 1."
+        },
+        "name": {
+          "name": "Nom",
+          "description": "Nouveau nom, 16 caractères au plus."
+        }
+      }
+    },
+    "play_sound": {
+      "name": "Jouer un son",
+      "description": "Joue un fichier son de la carte du sabre, ou arrête la lecture si aucun chemin n'est donné.",
+      "fields": {
+        "device_id": {
+          "name": "Sabre",
+          "description": "Le sabre à utiliser."
+        },
+        "path": {
+          "name": "Chemin",
+          "description": "Fichier sur le sabre, par exemple /3/hum (1).wav. Laissez vide pour arrêter."
+        }
+      }
+    },
+    "upload_file": {
+      "name": "Envoyer un fichier",
+      "description": "Envoie un fichier sur la carte du sabre, par exemple config.ini pour restaurer ses réglages. La lame doit être éteinte.",
+      "fields": {
+        "device_id": {
+          "name": "Sabre",
+          "description": "Le sabre à utiliser."
+        },
+        "source": {
+          "name": "Source",
+          "description": "Fichier sur l'hôte Home Assistant."
+        },
+        "destination": {
+          "name": "Destination",
+          "description": "Chemin sur le sabre : config.ini pour le fichier de réglages, ou /3/hum (1).wav."
+        }
+      }
+    },
+    "download_file": {
+      "name": "Récupérer un fichier",
+      "description": "Copie un fichier de la carte du sabre vers Home Assistant, par exemple config.ini comme sauvegarde. La lame doit être éteinte.",
+      "fields": {
+        "device_id": {
+          "name": "Sabre",
+          "description": "Le sabre à utiliser."
+        },
+        "source": {
+          "name": "Source",
+          "description": "Chemin sur le sabre, par exemple config.ini."
+        },
+        "destination": {
+          "name": "Destination",
+          "description": "Fichier à écrire sur l'hôte Home Assistant."
+        },
+        "overwrite": {
+          "name": "Écraser",
+          "description": "Remplacer la destination si elle existe."
+        }
+      }
+    },
+    "copy_file": {
+      "name": "Copier un fichier",
+      "description": "Copie un fichier d'un emplacement à un autre sur la carte du sabre.",
+      "fields": {
+        "device_id": {
+          "name": "Sabre",
+          "description": "Le sabre à utiliser."
+        },
+        "source": {
+          "name": "Source",
+          "description": "Chemin sur le sabre."
+        },
+        "destination": {
+          "name": "Destination",
+          "description": "Chemin sur le sabre."
+        }
+      }
+    },
+    "delete_file": {
+      "name": "Supprimer un fichier",
+      "description": "Supprime un fichier de la carte du sabre. Impossible d'annuler.",
+      "fields": {
+        "device_id": {
+          "name": "Sabre",
+          "description": "Le sabre à utiliser."
+        },
+        "path": {
+          "name": "Chemin",
+          "description": "Fichier sur le sabre, par exemple /3/clash (9).wav."
+        },
+        "confirm": {
+          "name": "Confirmer",
+          "description": "Requis pour supprimer le fichier de réglages (config.ini ou tout ce qui est sous /setting) : sans lui, le sabre signale une erreur au démarrage."
+        }
+      }
+    },
+    "update_firmware": {
+      "name": "Mettre à jour le firmware",
+      "description": "Envoie un fichier de firmware (update.bin) au sabre, qui l'installe et redémarre. Une mise à jour erronée ou interrompue peut rendre le sabre inutilisable, et un firmware plus récent peut ne pas fonctionner avec cette intégration. La lame doit être éteinte et la batterie à au moins 30 %.",
+      "fields": {
+        "device_id": {
+          "name": "Sabre",
+          "description": "Le sabre à utiliser."
+        },
+        "file": {
+          "name": "Fichier",
+          "description": "Fichier de firmware sur l'hôte Home Assistant, fourni par le vendeur du sabre."
+        },
+        "confirm": {
+          "name": "Confirmer",
+          "description": "Doit être activé. Cette action peut rendre le sabre inutilisable si elle échoue."
+        }
+      }
+    },
+    "set_blade_firmware": {
+      "name": "Choisir le firmware de lame",
+      "description": "Fait passer le sabre du firmware de lame Pixel au firmware RGB, ou l'inverse, puis le redémarre. La lame ne s'allume correctement qu'avec le firmware qui lui correspond.",
+      "fields": {
+        "device_id": {
+          "name": "Sabre",
+          "description": "Le sabre à utiliser."
+        },
+        "type": {
+          "name": "Type",
+          "description": "Pixel pour une lame neopixel, RGB pour une LED dans la poignée."
+        },
+        "confirm": {
+          "name": "Confirmer",
+          "description": "Doit être activé. Cette action peut rendre le sabre inutilisable si elle échoue."
+        }
+      }
+    },
+    "set_hardware_type": {
+      "name": "Choisir le type de matériel",
+      "description": "Indique à la carte comment elle est câblée (Pixel ou RGB) et combien de boutons elle a, puis la redémarre. L'application officielle prévient que changer le type de matériel exige de souder ; ne le changez que si la carte a été recâblée.",
+      "fields": {
+        "device_id": {
+          "name": "Sabre",
+          "description": "Le sabre à utiliser."
+        },
+        "type": {
+          "name": "Type",
+          "description": "Câblage de la carte."
+        },
+        "buttons": {
+          "name": "Boutons",
+          "description": "Nombre de boutons sur la poignée (1 ou 2)."
+        },
+        "confirm": {
+          "name": "Confirmer",
+          "description": "Doit être activé. Cette action peut rendre le sabre inutilisable si elle échoue."
+        }
+      }
+    }
+  },
+  "selector": {
+    "blade_type": {
+      "options": {
+        "pixel": "Pixel",
+        "rgb": "RGB"
+      }
+    }
+  }
+}

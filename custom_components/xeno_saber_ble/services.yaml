@@ -1,0 +1,255 @@
+upload_sound_font:
+  fields:
+    device_id: &device
+      required: true
+      selector:
+        device:
+          integration: xeno_saber_ble
+    folder:
+      required: true
+      example: /media/fonts/Kyber Workshop.zip
+      selector:
+        text:
+    font: &font
+      required: true
+      example: 3
+      selector:
+        number:
+          min: 1
+          max: 99
+          mode: box
+    name:
+      example: Kyber Workshop
+      selector:
+        text:
+    replace:
+      default: true
+      selector:
+        boolean:
+    delete_first:
+      default: false
+      selector:
+        boolean:
+    dry_run:
+      default: false
+      selector:
+        boolean:
+
+export_sound_font:
+  fields:
+    device_id: *device
+    font: *font
+    destination:
+      required: true
+      example: /media/saber/font-3.zip
+      selector:
+        text:
+    overwrite:
+      default: false
+      selector:
+        boolean:
+
+backup_saber:
+  fields:
+    device_id: *device
+    destination:
+      required: true
+      example: /media/saber/backup.zip
+      selector:
+        text:
+    overwrite:
+      default: false
+      selector:
+        boolean:
+    fonts:
+      example: "[1, 2, 3]"
+      selector:
+        text:
+          multiple: true
+    include_system_sounds:
+      default: true
+      selector:
+        boolean:
+
+restore_backup:
+  fields:
+    device_id: *device
+    source:
+      required: true
+      example: /media/saber/backup.zip
+      selector:
+        text:
+    fonts:
+      example: "[1, 2, 3]"
+      selector:
+        text:
+          multiple: true
+    include_settings:
+      default: true
+      selector:
+        boolean:
+    include_system_sounds:
+      default: false
+      selector:
+        boolean:
+    dry_run:
+      default: false
+      selector:
+        boolean:
+    confirm:
+      default: false
+      selector:
+        boolean:
+
+copy_sound_font:
+  fields:
+    device_id: *device
+    source_font:
+      required: true
+      example: 3
+      selector:
+        number:
+          min: 1
+          max: 99
+          mode: box
+    destination_font:
+      required: true
+      example: 5
+      selector:
+        number:
+          min: 1
+          max: 99
+          mode: box
+    name:
+      example: Kyber Workshop
+      selector:
+        text:
+    replace:
+      default: true
+      selector:
+        boolean:
+
+list_sound_fonts:
+  fields:
+    device_id: *device
+
+list_sound_files:
+  fields:
+    device_id: *device
+    font: *font
+
+rename_sound_font:
+  fields:
+    device_id: *device
+    font: *font
+    name:
+      required: true
+      example: Kyber Workshop
+      selector:
+        text:
+
+play_sound:
+  fields:
+    device_id: *device
+    path:
+      example: /3/hum (1).wav
+      selector:
+        text:
+
+upload_file:
+  fields:
+    device_id: *device
+    source:
+      required: true
+      example: /media/saber/config.ini
+      selector:
+        text:
+    destination:
+      required: true
+      example: config.ini
+      selector:
+        text:
+
+download_file:
+  fields:
+    device_id: *device
+    source:
+      required: true
+      example: config.ini
+      selector:
+        text:
+    destination:
+      required: true
+      example: /media/saber/config-backup.ini
+      selector:
+        text:
+    overwrite:
+      default: false
+      selector:
+        boolean:
+
+copy_file:
+  fields:
+    device_id: *device
+    source:
+      required: true
+      example: /3/clash (1).wav
+      selector:
+        text:
+    destination:
+      required: true
+      example: /5/clash (1).wav
+      selector:
+        text:
+
+delete_file:
+  fields:
+    device_id: *device
+    path:
+      required: true
+      example: /3/clash (9).wav
+      selector:
+        text:
+    confirm:
+      default: false
+      selector:
+        boolean:
+
+update_firmware:
+  fields:
+    device_id: *device
+    file:
+      required: true
+      example: /media/saber/update.bin
+      selector:
+        text:
+    confirm: &confirm
+      required: true
+      default: false
+      selector:
+        boolean:
+
+set_blade_firmware:
+  fields:
+    device_id: *device
+    type: &blade_type
+      required: true
+      selector:
+        select:
+          translation_key: blade_type
+          options:
+            - pixel
+            - rgb
+    confirm: *confirm
+
+set_hardware_type:
+  fields:
+    device_id: *device
+    type: *blade_type
+    buttons:
+      selector:
+        select:
+          options:
+            - "1"
+            - "2"
+    confirm: *confirm

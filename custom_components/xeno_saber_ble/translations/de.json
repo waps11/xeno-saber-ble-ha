@@ -1,0 +1,689 @@
+{
+  "config": {
+    "flow_title": "{name}",
+    "step": {
+      "user": {
+        "title": "Schwert auswählen",
+        "description": "Wähle das Schwert aus, das hinzugefügt werden soll. Es muss wach sein (Taste gedrückt halten) und die Xeno-Configurator-App muss geschlossen sein.",
+        "data": {
+          "address": "Schwert"
+        },
+        "data_description": {
+          "address": "Per Bluetooth gefundene Lichtschwerter. Nur wache Schwerter erscheinen; Home Assistant verbindet sich kurz mit dem gewählten, um es zu prüfen."
+        }
+      },
+      "bluetooth_confirm": {
+        "description": "Möchtest du {name} einrichten?"
+      }
+    },
+    "abort": {
+      "already_configured": "Dieses Schwert ist bereits eingerichtet.",
+      "already_in_progress": "Die Einrichtung dieses Schwerts läuft bereits.",
+      "no_devices_found": "Kein kompatibles Schwert (Xenopixel-V3-Platine) gefunden. Wecke es auf und versuche es erneut."
+    },
+    "error": {
+      "cannot_connect": "Verbindung zum Lichtschwert nicht möglich. Stelle sicher, dass es wach und in Reichweite ist und die App Xeno Configurator geschlossen ist, und versuche es erneut."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Verbindung und Synchronisierung",
+        "data": {
+          "idle_disconnect": "Trennen nach Inaktivität (Sekunden)",
+          "keepalive": "Keepalive-Intervall (Sekunden)",
+          "sync_light": "Farbsynchronisierung: Licht, dem gefolgt wird",
+          "wled_udp": "Farbsynchronisierung: WLED-Broadcasts empfangen",
+          "wled_udp_source": "WLED-Quelladresse"
+        },
+        "data_description": {
+          "idle_disconnect": "0 = verbunden bleiben (Live-Status, aber die Handy-App kann sich nicht verbinden). Andernfalls verbindet sich Home Assistant bei Bedarf und gibt das Schwert nach dieser Zeit wieder frei.",
+          "keepalive": "0 = aus (empfohlen). Jeder andere Wert sendet alle N Sekunden die aktuelle Helligkeit erneut, damit das Lichtschwert nie in den Ruhezustand geht. WARNUNG: Platine und Bluetooth-Funk bleiben dann ständig aktiv und der AKKU WIRD LEER, auch bei ausgeschalteter Klinge. Nur verwenden, während das Schwert am Ladegerät hängt, oder für kurze Sitzungen. Erfordert „Trennen nach Inaktivität“ = 0.",
+          "sync_light": "Optional. Solange der Schalter Farbsynchronisierung an ist, übernimmt die Klinge Ein/Aus-Zustand, Farbe und Helligkeit dieses Lichts. Wird das Licht eingeschaltet, zündet die Klinge.",
+          "wled_udp": "Solange die Farbsynchronisierung an ist, auf UDP-Port 21324 auf WLED-Sync-Pakete hören (in WLED: Settings > Sync Interfaces > Send notifications on change). Diese Pakete sind nicht authentifiziert: Jedes Gerät im Netzwerk kann die Klinge steuern, sofern unten keine Quelladresse gesetzt ist.",
+          "wled_udp_source": "Optional. Nur WLED-Pakete von dieser IPv4-Adresse befolgen."
+        }
+      }
+    },
+    "error": {
+      "keepalive_needs_persistent": "Keepalive braucht eine dauerhafte Verbindung: „Trennen nach Inaktivität“ auf 0 setzen.",
+      "sync_self": "Die Klinge kann sich nicht selbst folgen.",
+      "invalid_ip": "Gib eine IPv4-Adresse ein, z. B. 192.168.1.50."
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "connected": {
+        "name": "Verbunden"
+      },
+      "authorized": {
+        "name": "Autorisiert"
+      }
+    },
+    "light": {
+      "blade": {
+        "name": "Klinge"
+      }
+    },
+    "number": {
+      "volume": {
+        "name": "Lautstärke"
+      },
+      "blade_brightness": {
+        "name": "Klingenhelligkeit"
+      },
+      "main_blade_length": {
+        "name": "Klingenlänge"
+      },
+      "side_blade_length": {
+        "name": "Länge der Seitenklinge"
+      },
+      "side_blade_delay": {
+        "name": "Verzögerung der Seitenklinge"
+      },
+      "power_on_time": {
+        "name": "Einschaltzeit (Aufwecken)"
+      },
+      "power_off_time": {
+        "name": "Ausschaltzeit (Tiefschlaf)"
+      },
+      "auto_deep_sleep": {
+        "name": "Automatischer Tiefschlaf"
+      },
+      "ignition_time": {
+        "name": "Zündzeit"
+      },
+      "retraction_time": {
+        "name": "Einfahrzeit"
+      },
+      "preon_time": {
+        "name": "Pre-On-Zeit"
+      },
+      "clash_sensitivity": {
+        "name": "Clash-Empfindlichkeit"
+      },
+      "swing_sensitivity": {
+        "name": "Schwung-Empfindlichkeit"
+      },
+      "twist_sensitivity": {
+        "name": "Dreh-Empfindlichkeit"
+      },
+      "push_sensitivity": {
+        "name": "Stoß-Empfindlichkeit"
+      },
+      "pull_sensitivity": {
+        "name": "Zug-Empfindlichkeit"
+      },
+      "accent_swing_sensitivity": {
+        "name": "Akzent-Schwung-Empfindlichkeit"
+      },
+      "motor_speed": {
+        "name": "Motordrehzahl"
+      }
+    },
+    "select": {
+      "sound_font": {
+        "name": "Soundfont"
+      },
+      "light_effect": {
+        "name": "Klingeneffekt"
+      },
+      "blaster_effect": {
+        "name": "Blaster-Effekt"
+      },
+      "force_effect": {
+        "name": "Force-Effekt"
+      },
+      "lockup_effect": {
+        "name": "Lockup-Effekt"
+      },
+      "clash_effect": {
+        "name": "Clash-Effekt"
+      },
+      "post_off_effect": {
+        "name": "Nachglüh-Effekt"
+      },
+      "mode": {
+        "name": "Modus"
+      }
+    },
+    "sensor": {
+      "battery": {
+        "name": "Akku"
+      },
+      "font_name": {
+        "name": "Name des Soundfonts"
+      },
+      "blade_firmware": {
+        "name": "Klingen-Firmware",
+        "state": {
+          "pixel": "Pixel",
+          "rgb": "RGB"
+        }
+      },
+      "hardware_type": {
+        "name": "Hardwaretyp",
+        "state": {
+          "pixel": "Pixel",
+          "rgb": "RGB"
+        }
+      },
+      "button_count": {
+        "name": "Tasten"
+      },
+      "file_transfer": {
+        "name": "Dateiübertragung"
+      }
+    },
+    "switch": {
+      "background_music": {
+        "name": "Hintergrundmusik"
+      },
+      "motion_control": {
+        "name": "Bewegungssteuerung"
+      },
+      "lockup": {
+        "name": "Lockup"
+      },
+      "drag": {
+        "name": "Drag"
+      },
+      "color_sync": {
+        "name": "Farbsynchronisierung"
+      },
+      "fast_color_changing": {
+        "name": "Schneller Farbwechsel"
+      },
+      "smooth_color_changing": {
+        "name": "Sanfter Farbwechsel"
+      },
+      "flash_on_clash": {
+        "name": "Blitz bei Clash"
+      },
+      "countdown": {
+        "name": "Countdown"
+      },
+      "led_screen": {
+        "name": "LED-Anzeige"
+      },
+      "velocity_mode": {
+        "name": "Velocity-Modus"
+      },
+      "torch_mode": {
+        "name": "Fackel-Modus"
+      },
+      "ghost_mode": {
+        "name": "Geister-Modus"
+      },
+      "lightning_block_mode": {
+        "name": "Blitzblock-Modus"
+      },
+      "blaster_mode": {
+        "name": "Blaster-Modus"
+      },
+      "multiblock_mode": {
+        "name": "Multi-Block-Modus"
+      },
+      "multilock_mode": {
+        "name": "Multi-Lock-Modus"
+      },
+      "pull_push_ignition": {
+        "name": "Zünden durch Ziehen-Stoßen"
+      },
+      "push_pull_retraction": {
+        "name": "Einfahren durch Stoßen-Ziehen"
+      },
+      "twist_ignition": {
+        "name": "Zünden durch Drehen"
+      },
+      "twist_retraction": {
+        "name": "Einfahren durch Drehen"
+      },
+      "swing_ignition": {
+        "name": "Zünden durch Schwingen"
+      }
+    },
+    "button": {
+      "clash": {
+        "name": "Clash"
+      },
+      "blaster": {
+        "name": "Blaster"
+      },
+      "force": {
+        "name": "Force"
+      },
+      "reconnect": {
+        "name": "Neu verbinden"
+      },
+      "save_settings": {
+        "name": "Einstellungen speichern"
+      },
+      "restart": {
+        "name": "Neu starten"
+      }
+    }
+  },
+  "exceptions": {
+    "connection_failed": {
+      "message": "Verbindung zum Schwert {address} fehlgeschlagen: {error}"
+    },
+    "command_failed": {
+      "message": "Befehl an das Schwert fehlgeschlagen: {error}"
+    },
+    "sync_unavailable": {
+      "message": "Farbsynchronisierung konnte nicht starten: {error}"
+    },
+    "entry_not_loaded": {
+      "message": "{name} ist nicht geladen. Prüfe, ob das Schwert eingerichtet und erreichbar ist."
+    },
+    "path_not_allowed": {
+      "message": "Home Assistant darf nicht auf {path} zugreifen. Lege die Datei unter /media ab oder füge ihren Ordner in configuration.yaml zu allowlist_external_dirs hinzu."
+    },
+    "file_not_found": {
+      "message": "Datei nicht gefunden: {path}"
+    },
+    "folder_not_found": {
+      "message": "Ordner nicht gefunden: {path}"
+    },
+    "file_exists": {
+      "message": "{path} existiert bereits. Aktiviere „Überschreiben“, um sie zu ersetzen."
+    },
+    "blade_must_be_off": {
+      "message": "Schalte zuerst die Klinge aus: Das Schwert lehnt dies bei leuchtender Klinge ab."
+    },
+    "confirm_required": {
+      "message": "Diese Aktion kann das Schwert bei einem Fehler unbrauchbar machen. Setze „Bestätigen“ auf wahr, um fortzufahren."
+    },
+    "use_update_firmware": {
+      "message": "Das Schwert installiert {path} beim nächsten Start. Verwende die Aktion update_firmware, um Firmware zu senden."
+    },
+    "saber_refused": {
+      "message": "Das Schwert hat abgelehnt: {operation}"
+    },
+    "no_sound_files": {
+      "message": "Keine erkennbaren Sounddateien in {path}. Die Dateien müssen WAVs mit Namen wie hum.wav, clash1.wav oder clash (1).wav sein oder in Ordnern liegen, die nach dem Soundtyp benannt sind."
+    },
+    "wav_format": {
+      "message": "{count} Datei(en) kann das Schwert nicht abspielen; es braucht PCM-WAV mit 44,1 kHz, 16 Bit, mono: {files}"
+    },
+    "font_not_found": {
+      "message": "Das Schwert hat keinen Font-Ordner {font} (vorhanden: {available}). Nimm einen vorhandenen Ordner, um einen Font zu ersetzen, oder {next}, um einen neuen hinzuzufügen."
+    },
+    "firmware_size": {
+      "message": "Diese Datei ({size} Bytes) sieht nicht nach Schwert-Firmware aus."
+    },
+    "battery_too_low": {
+      "message": "Akku bei {level} %: Lade das Schwert auf mindestens {minimum} %, bevor du die Firmware aktualisierst."
+    },
+    "bad_archive": {
+      "message": "{path} kann nicht als Font verwendet werden: {error}"
+    },
+    "font_empty": {
+      "message": "Font {font} hat keine Sounddateien."
+    },
+    "same_font": {
+      "message": "Quelle und Ziel sind derselbe Font ({font})."
+    },
+    "not_enough_space": {
+      "message": "Nicht genug Platz auf dem Schwert: Der Font braucht etwa {needed} MB, frei sind {free} MB. Lösche zuerst den alten Font (delete_first, nachdem du ihn exportiert hast) oder nimm einen kleineren Font."
+    },
+    "font_not_in_backup": {
+      "message": "Font {font} ist nicht in der Sicherung (enthalten: {available})."
+    },
+    "backup_other_saber": {
+      "message": "Die Sicherung stammt von einer Platine mit Hardwareversion {backup}, dieses Schwert hat {saber}. Ihre Einstellungen werden nicht auf eine andere Platine übertragen; deaktiviere Einstellungen, um nur die Fonts wiederherzustellen."
+    },
+    "device_not_saber": {
+      "message": "Gerät {device_id} ist kein Xeno-Schwert."
+    }
+  },
+  "issues": {
+    "keepalive_battery_drain": {
+      "title": "Keepalive entleert den Akku von {name}",
+      "description": "Keepalive ist für {name} aktiv (alle {interval} s). Das Lichtschwert kann nicht in den Ruhezustand gehen: Platine und Bluetooth-Funk bleiben eingeschaltet und der Akku wird leer, auch bei ausgeschalteter Klinge. Zum Beenden das Keepalive-Intervall in den Optionen der Integration auf 0 setzen (Einstellungen > Geräte & Dienste > Xeno Saber BLE > Konfigurieren)."
+    }
+  },
+  "services": {
+    "upload_sound_font": {
+      "name": "Soundfont hochladen",
+      "description": "Sendet einen Ordner mit WAV-Dateien per Bluetooth in einen der Font-Ordner des Schwerts und ersetzt diesen Font. Die Dateien werden nach dem Schema des Schwerts umbenannt (hum (1).wav, clash (1).wav …). Rechne mit mehreren Minuten pro Megabyte; die Klinge muss aus sein.",
+      "fields": {
+        "device_id": {
+          "name": "Schwert",
+          "description": "Das zu verwendende Schwert."
+        },
+        "folder": {
+          "name": "Ordner oder ZIP",
+          "description": "Ordner oder .zip-Datei auf dem Home-Assistant-Host mit den WAV-Dateien des Fonts (44,1 kHz, 16 Bit, mono). Unterordner, die nach einem Soundtyp benannt sind, werden ebenfalls gelesen."
+        },
+        "font": {
+          "name": "Font",
+          "description": "Nummer des Font-Ordners auf dem Schwert, ab 1. Die nächste freie Nummer fügt einen neuen Font hinzu, wie in der App."
+        },
+        "name": {
+          "name": "Name",
+          "description": "Optionaler neuer Name für den Font."
+        },
+        "replace": {
+          "name": "Ersetzen",
+          "description": "Dateien des alten Fonts löschen, die der neue nicht überschreibt."
+        },
+        "delete_first": {
+          "name": "Alten Font zuerst löschen",
+          "description": "Alle Dateien des Ziel-Fonts vor dem Senden löschen, um Platz zu schaffen. Exportiere ihn vorher: Sonst ist der alte Font verloren."
+        },
+        "dry_run": {
+          "name": "Probelauf",
+          "description": "Nur anzeigen, wie die Dateien benannt würden; nichts senden."
+        }
+      }
+    },
+    "export_sound_font": {
+      "name": "Soundfont exportieren",
+      "description": "Kopiert alle Sounddateien eines Fonts von der Karte des Schwerts in eine .zip-Datei auf dem Home-Assistant-Host, zum Sichern oder Bearbeiten. „Soundfont hochladen“ nimmt die ZIP-Datei wieder an. So langsam wie ein Upload; die Klinge muss aus sein.",
+      "fields": {
+        "device_id": {
+          "name": "Schwert",
+          "description": "Das zu verwendende Schwert."
+        },
+        "font": {
+          "name": "Font",
+          "description": "Nummer des Font-Ordners auf der Karte des Schwerts, ab 1."
+        },
+        "destination": {
+          "name": "Ziel",
+          "description": "Zu schreibende ZIP-Datei auf dem Home-Assistant-Host."
+        },
+        "overwrite": {
+          "name": "Überschreiben",
+          "description": "Das Ziel ersetzen, falls es existiert."
+        }
+      }
+    },
+    "backup_saber": {
+      "name": "Schwert sichern",
+      "description": "Kopiert den gesamten Speicherinhalt des Schwerts in eine .zip-Datei auf dem Home-Assistant-Host: alle Fonts, config.ini, die Tastenbelegung (falls vorhanden), die Systemklänge und eine Beschreibung des Schwerts und seiner Einstellungen. Die ZIP-Datei ist wie eine Xeno-SD-Karte aufgebaut. Per Bluetooth dauert das bei einem vollen Schwert Stunden; die Klinge muss aus sein.",
+      "fields": {
+        "device_id": {
+          "name": "Schwert",
+          "description": "Das zu verwendende Schwert."
+        },
+        "destination": {
+          "name": "Ziel",
+          "description": "Zu schreibende ZIP-Datei auf dem Home-Assistant-Host."
+        },
+        "overwrite": {
+          "name": "Überschreiben",
+          "description": "Das Ziel ersetzen, falls es existiert."
+        },
+        "fonts": {
+          "name": "Fonts",
+          "description": "Einzuschließende Font-Ordner; alle, wenn leer."
+        },
+        "include_system_sounds": {
+          "name": "Systemklänge",
+          "description": "Auch die Sprachansagen und Menüklänge des Ordners setting sichern (etwa 430 kleine Dateien). Das Schwert kann sie nicht auflisten; fehlende werden übersprungen."
+        }
+      }
+    },
+    "restore_backup": {
+      "name": "Sicherung wiederherstellen",
+      "description": "Schreibt eine mit „Schwert sichern“ erstellte Sicherung (oder ein Zip einer Xeno-SD-Karte) zurück auf das Schwert: die Fonts und ihre Namen, danach config.ini und die eigene Tastenbelegung. Fonts auf dem Schwert werden ersetzt; fehlende werden angelegt, wenn es die nächsten freien Ordner sind. Systemklänge werden nur auf Wunsch geschrieben. Über Bluetooth dauert eine vollständige Wiederherstellung Stunden; die Klinge muss aus sein.",
+      "fields": {
+        "device_id": {
+          "name": "Schwert",
+          "description": "Das zu verwendende Schwert."
+        },
+        "source": {
+          "name": "Quelle",
+          "description": "Sicherungs-Zip auf dem Home-Assistant-Host."
+        },
+        "fonts": {
+          "name": "Fonts",
+          "description": "Wiederherzustellende Font-Ordner der Sicherung; alle, wenn leer."
+        },
+        "include_settings": {
+          "name": "Einstellungen",
+          "description": "config.ini und die eigene Tastenbelegung wiederherstellen. Abgelehnt, wenn die Sicherung von einer Platine mit anderer Hardwareversion stammt."
+        },
+        "include_system_sounds": {
+          "name": "Systemklänge",
+          "description": "Auch die Sprachansagen und Menüklänge des Ordners setting wiederherstellen. Nur nötig, wenn sie geändert wurden oder verloren gingen."
+        },
+        "dry_run": {
+          "name": "Probelauf",
+          "description": "Nur die Sicherung prüfen und zurückgeben, was geschrieben würde."
+        },
+        "confirm": {
+          "name": "Bestätigen",
+          "description": "Erforderlich: die wiederhergestellten Fonts ersetzen die auf dem Schwert."
+        }
+      }
+    },
+    "copy_sound_font": {
+      "name": "Soundfont kopieren",
+      "description": "Kopiert einen Font-Ordner über einen anderen auf der Karte des Schwerts. Das Schwert kopiert die Dateien selbst, daher geht es schnell. Die Klinge muss aus sein.",
+      "fields": {
+        "device_id": {
+          "name": "Schwert",
+          "description": "Das zu verwendende Schwert."
+        },
+        "source_font": {
+          "name": "Quell-Font",
+          "description": "Font-Ordner, aus dem kopiert wird."
+        },
+        "destination_font": {
+          "name": "Ziel-Font",
+          "description": "Zu ersetzender Font-Ordner."
+        },
+        "name": {
+          "name": "Name",
+          "description": "Name der Kopie; standardmäßig der Name des Quell-Fonts."
+        },
+        "replace": {
+          "name": "Ersetzen",
+          "description": "Dateien des Ziel-Fonts löschen, die die Kopie nicht überschreibt."
+        }
+      }
+    },
+    "list_sound_fonts": {
+      "name": "Soundfonts auflisten",
+      "description": "Gibt die Font-Ordner auf der Karte des Schwerts, ihre Namen und die Belegung der Karte zurück.",
+      "fields": {
+        "device_id": {
+          "name": "Schwert",
+          "description": "Das zu verwendende Schwert."
+        }
+      }
+    },
+    "list_sound_files": {
+      "name": "Sounddateien auflisten",
+      "description": "Gibt die Sounddateien eines Fonts nach Typ gruppiert zurück.",
+      "fields": {
+        "device_id": {
+          "name": "Schwert",
+          "description": "Das zu verwendende Schwert."
+        },
+        "font": {
+          "name": "Font",
+          "description": "Nummer des Font-Ordners auf der Karte des Schwerts, ab 1."
+        }
+      }
+    },
+    "rename_sound_font": {
+      "name": "Soundfont umbenennen",
+      "description": "Ändert den Namen, den das Schwert für einen Font anzeigt.",
+      "fields": {
+        "device_id": {
+          "name": "Schwert",
+          "description": "Das zu verwendende Schwert."
+        },
+        "font": {
+          "name": "Font",
+          "description": "Nummer des Font-Ordners auf der Karte des Schwerts, ab 1."
+        },
+        "name": {
+          "name": "Name",
+          "description": "Neuer Name, höchstens 16 Zeichen."
+        }
+      }
+    },
+    "play_sound": {
+      "name": "Sound abspielen",
+      "description": "Spielt eine Sounddatei von der Karte des Schwerts ab oder stoppt die Wiedergabe, wenn kein Pfad angegeben ist.",
+      "fields": {
+        "device_id": {
+          "name": "Schwert",
+          "description": "Das zu verwendende Schwert."
+        },
+        "path": {
+          "name": "Pfad",
+          "description": "Datei auf dem Schwert, zum Beispiel /3/hum (1).wav. Leer lassen zum Stoppen."
+        }
+      }
+    },
+    "upload_file": {
+      "name": "Datei hochladen",
+      "description": "Sendet eine Datei auf die Karte des Schwerts, zum Beispiel config.ini, um seine Einstellungen wiederherzustellen. Die Klinge muss aus sein.",
+      "fields": {
+        "device_id": {
+          "name": "Schwert",
+          "description": "Das zu verwendende Schwert."
+        },
+        "source": {
+          "name": "Quelle",
+          "description": "Datei auf dem Home-Assistant-Host."
+        },
+        "destination": {
+          "name": "Ziel",
+          "description": "Pfad auf dem Schwert: config.ini für die Einstellungsdatei oder /3/hum (1).wav."
+        }
+      }
+    },
+    "download_file": {
+      "name": "Datei herunterladen",
+      "description": "Kopiert eine Datei von der Karte des Schwerts zu Home Assistant, zum Beispiel config.ini als Sicherung. Die Klinge muss aus sein.",
+      "fields": {
+        "device_id": {
+          "name": "Schwert",
+          "description": "Das zu verwendende Schwert."
+        },
+        "source": {
+          "name": "Quelle",
+          "description": "Pfad auf dem Schwert, zum Beispiel config.ini."
+        },
+        "destination": {
+          "name": "Ziel",
+          "description": "Zu schreibende Datei auf dem Home-Assistant-Host."
+        },
+        "overwrite": {
+          "name": "Überschreiben",
+          "description": "Das Ziel ersetzen, falls es existiert."
+        }
+      }
+    },
+    "copy_file": {
+      "name": "Datei kopieren",
+      "description": "Kopiert eine Datei von einer Stelle der Karte des Schwerts an eine andere.",
+      "fields": {
+        "device_id": {
+          "name": "Schwert",
+          "description": "Das zu verwendende Schwert."
+        },
+        "source": {
+          "name": "Quelle",
+          "description": "Pfad auf dem Schwert."
+        },
+        "destination": {
+          "name": "Ziel",
+          "description": "Pfad auf dem Schwert."
+        }
+      }
+    },
+    "delete_file": {
+      "name": "Datei löschen",
+      "description": "Löscht eine Datei von der Karte des Schwerts. Kann nicht rückgängig gemacht werden.",
+      "fields": {
+        "device_id": {
+          "name": "Schwert",
+          "description": "Das zu verwendende Schwert."
+        },
+        "path": {
+          "name": "Pfad",
+          "description": "Datei auf dem Schwert, zum Beispiel /3/clash (9).wav."
+        },
+        "confirm": {
+          "name": "Bestätigen",
+          "description": "Erforderlich, um die Einstellungsdatei zu löschen (config.ini oder alles unter /setting): Ohne sie meldet das Schwert beim Start einen Fehler."
+        }
+      }
+    },
+    "update_firmware": {
+      "name": "Firmware aktualisieren",
+      "description": "Sendet eine Firmware-Datei (update.bin) an das Schwert, das sie installiert und neu startet. Ein falsches oder abgebrochenes Update kann das Schwert unbrauchbar machen, und neuere Firmware funktioniert eventuell nicht mit dieser Integration. Die Klinge muss aus sein und der Akku mindestens 30 % haben.",
+      "fields": {
+        "device_id": {
+          "name": "Schwert",
+          "description": "Das zu verwendende Schwert."
+        },
+        "file": {
+          "name": "Datei",
+          "description": "Firmware-Datei auf dem Home-Assistant-Host, vom Händler des Schwerts."
+        },
+        "confirm": {
+          "name": "Bestätigen",
+          "description": "Muss aktiviert sein. Diese Aktion kann das Schwert bei einem Fehler unbrauchbar machen."
+        }
+      }
+    },
+    "set_blade_firmware": {
+      "name": "Klingen-Firmware festlegen",
+      "description": "Schaltet das Schwert zwischen Pixel- und RGB-Klingen-Firmware um und startet es neu. Die Klinge leuchtet nur mit der passenden Firmware richtig.",
+      "fields": {
+        "device_id": {
+          "name": "Schwert",
+          "description": "Das zu verwendende Schwert."
+        },
+        "type": {
+          "name": "Typ",
+          "description": "Pixel für eine Neopixel-Klinge, RGB für eine LED im Griff."
+        },
+        "confirm": {
+          "name": "Bestätigen",
+          "description": "Muss aktiviert sein. Diese Aktion kann das Schwert bei einem Fehler unbrauchbar machen."
+        }
+      }
+    },
+    "set_hardware_type": {
+      "name": "Hardwaretyp festlegen",
+      "description": "Teilt der Platine mit, wie sie verdrahtet ist (Pixel oder RGB) und wie viele Tasten sie hat, und startet sie neu. Die offizielle App warnt, dass ein Wechsel des Hardwaretyps Löten erfordert; ändere ihn nur, wenn die Platine umverdrahtet wurde.",
+      "fields": {
+        "device_id": {
+          "name": "Schwert",
+          "description": "Das zu verwendende Schwert."
+        },
+        "type": {
+          "name": "Typ",
+          "description": "Wie die Platine verdrahtet ist."
+        },
+        "buttons": {
+          "name": "Tasten",
+          "description": "Anzahl der Tasten am Griff (1 oder 2)."
+        },
+        "confirm": {
+          "name": "Bestätigen",
+          "description": "Muss aktiviert sein. Diese Aktion kann das Schwert bei einem Fehler unbrauchbar machen."
+        }
+      }
+    }
+  },
+  "selector": {
+    "blade_type": {
+      "options": {
+        "pixel": "Pixel",
+        "rgb": "RGB"
+      }
+    }
+  }
+}
