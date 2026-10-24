@@ -15,7 +15,18 @@ updates:
       - requirements_test_min.txt
     schedule:
       interval: weekly
+    # These follow the versions the Home Assistant release pins, not their own
+    # releases: update them together with pytest-homeassistant-custom-component.
+    ignore:
+      - dependency-name: aiousbwatcher
+      - dependency-name: serialx
+      - dependency-name: bleak
+      - dependency-name: bleak-retry-connector
+      - dependency-name: bluetooth-adapters
+      - dependency-name: bluetooth-auto-recovery
+      - dependency-name: bluetooth-data-tools
+      - dependency-name: dbus-fast
+      - dependency-name: habluetooth
     groups:
-      # The plugin and the bluetooth requirements must move together.
       test-dependencies:
         patterns: ["*"]
