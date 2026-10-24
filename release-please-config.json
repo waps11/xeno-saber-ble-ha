@@ -1,0 +1,69 @@
+{
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "release-type": "simple",
+  "include-component-in-tag": false,
+  "include-v-in-tag": true,
+  "bump-minor-pre-major": true,
+  "changelog-sections": [
+    {
+      "type": "feat",
+      "section": "Added"
+    },
+    {
+      "type": "fix",
+      "section": "Fixed"
+    },
+    {
+      "type": "perf",
+      "section": "Changed"
+    },
+    {
+      "type": "revert",
+      "section": "Reverted"
+    },
+    {
+      "type": "docs",
+      "section": "Documentation"
+    },
+    {
+      "type": "ci",
+      "section": "Project"
+    },
+    {
+      "type": "build",
+      "section": "Project"
+    },
+    {
+      "type": "refactor",
+      "section": "Code",
+      "hidden": true
+    },
+    {
+      "type": "test",
+      "section": "Tests",
+      "hidden": true
+    },
+    {
+      "type": "style",
+      "section": "Style",
+      "hidden": true
+    },
+    {
+      "type": "chore",
+      "section": "Miscellaneous",
+      "hidden": true
+    }
+  ],
+  "packages": {
+    ".": {
+      "package-name": "xeno_saber_ble",
+      "extra-files": [
+        {
+          "type": "json",
+          "path": "custom_components/xeno_saber_ble/manifest.json",
+          "jsonpath": "$.version"
+        }
+      ]
+    }
+  }
+}

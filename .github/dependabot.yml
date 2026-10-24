@@ -4,12 +4,16 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    commit-message:
+      prefix: ci # Conventional Commits: listed under "Project" in the changelog
     groups:
       actions:
         patterns: ["*"]
 
   - package-ecosystem: pip
     directory: /
+    commit-message:
+      prefix: chore # test tooling only: not in the changelog
     # The oldest supported Home Assistant stays pinned.
     exclude-paths:
       - requirements_test_min.txt

@@ -1,0 +1,103 @@
+name: Release
+
+# On every push to main, release-please keeps a "chore: release X.Y.Z" pull
+# request up to date from the Conventional Commits since the last release: the
+# version in manifest.json and the CHANGELOG.md entry. Merging that pull request
+# creates the tag and the GitHub release; the jobs below then run the tests and
+# validation, build xeno_saber_ble-<version>.zip, attest its build provenance
+# and attach it to the release.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # tags, releases and the release branch
+      pull-requests: write # the release pull request
+      issues: write # its labels
+    outputs:
+      created: ${{ steps.release.outputs.release_created }}
+      tag: ${{ steps.release.outputs.tag_name }}
+      version: ${{ steps.release.outputs.version }}
+    steps:
+      - id: release
+        uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
+
+  tests:
+    needs: release-please
+    if: needs.release-please.outputs.created == 'true'
+    uses: ./.github/workflows/tests.yaml
+
+  validate:
+    needs: release-please
+    if: needs.release-please.outputs.created == 'true'
+    uses: ./.github/workflows/validate.yaml
+
+  assets:
+    needs: [release-please, tests, validate]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # upload to the release
+      id-token: write # sign the provenance attestation
+      attestations: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.release-please.outputs.tag }}
+          persist-credentials: false
+
+      - name: Check that manifest.json has the released version
+        env:
+          VERSION: ${{ needs.release-please.outputs.version }}
+        run: |
+          found=$(python3 -c "import json; print(json.load(open('custom_components/xeno_saber_ble/manifest.json'))['version'])")
+          if [ "$found" != "$VERSION" ]; then
+            echo "manifest.json says $found, the release is $VERSION" >&2
+            exit 1
+          fi
+
+      - name: Build the zip
+        env:
+          VERSION: ${{ needs.release-please.outputs.version }}
+        run: |
+          mkdir -p dist build
+          cp -r custom_components/xeno_saber_ble build/
+          cp CHANGELOG.md build/xeno_saber_ble/
+          (cd build && zip -qrX "../dist/xeno_saber_ble-$VERSION.zip" xeno_saber_ble)
+          (cd dist && sha256sum "xeno_saber_ble-$VERSION.zip" | tee SHA256SUMS)
+
+      - uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: dist/xeno_saber_ble-${{ needs.release-please.outputs.version }}.zip
+
+      - name: Attach the zip and installation notes to the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.release-please.outputs.tag }}
+          VERSION: ${{ needs.release-please.outputs.version }}
+        run: |
+          gh release upload "$TAG" "dist/xeno_saber_ble-$VERSION.zip" dist/SHA256SUMS \
+            --repo "$GITHUB_REPOSITORY" --clobber
+          gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json body --jq .body > notes.md
+          {
+            echo
+            echo "### Installation"
+            echo
+            echo "- **HACS**: add this repository as a custom repository (category: Integration), install, then restart Home Assistant."
+            echo "- **Manual**: unzip \`xeno_saber_ble-$VERSION.zip\` into \`config/custom_components/\`, then restart Home Assistant."
+            echo
+            echo "### Verify the download"
+            echo
+            echo "SHA-256: \`$(cut -d' ' -f1 dist/SHA256SUMS)\`. Build provenance: \`gh attestation verify xeno_saber_ble-$VERSION.zip --repo $GITHUB_REPOSITORY\`"
+          } >> notes.md
+          gh release edit "$TAG" --repo "$GITHUB_REPOSITORY" --notes-file notes.md

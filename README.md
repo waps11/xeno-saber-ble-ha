@@ -429,7 +429,7 @@ tests: `tests/test_translations.py` checks that every file matches the source.
 pip install -r requirements_test.txt
 script/check            # what the CI runs: ruff, ruff format, strict mypy, all tests
 script/check --tests    # tests only
-pre-commit install      # optional: ruff, format and mypy on every commit
+pre-commit install --hook-type pre-commit --hook-type commit-msg   # optional
 ```
 
 The tests drive the protocol, the Bluetooth client and the file transfer
@@ -445,13 +445,20 @@ is met (target: Platinum).
 
 ## Releases
 
-Releases are built by the *Release* workflow from `main`: it runs the tests and
-validation, builds `xeno_saber_ble-<version>.zip` and publishes it with a
+Releases are prepared by [release-please](https://github.com/googleapis/release-please)
+from [Conventional Commits](https://www.conventionalcommits.org/) messages:
+`feat:` (a new version's *Added* section, minor version), `fix:` (*Fixed*,
+patch version), `docs:`, `ci:` or `build:` (listed too), and `chore:`,
+`test:` or `refactor:` (not listed). On every push to `main` it keeps a
+*chore(main): release X.Y.Z* pull request up to date, with the new version in
+`manifest.json` and the CHANGELOG entry. Merging that pull request publishes
+the release: the tests and validation run again, then
+`xeno_saber_ble-<version>.zip` is built and attached with a
 [build provenance attestation](https://docs.github.com/actions/security-for-github-actions/using-artifact-attestations).
 To check that a downloaded zip was built from this repository:
 
 ```bash
-gh attestation verify xeno_saber_ble-0.1.1.zip --repo waps11/xeno-saber-ble-ha
+gh attestation verify xeno_saber_ble-0.1.2.zip --repo waps11/xeno-saber-ble-ha
 ```
 
 Changes are listed in [CHANGELOG.md](CHANGELOG.md). To report a security
