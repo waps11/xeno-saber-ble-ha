@@ -481,9 +481,9 @@ from [Conventional Commits](https://www.conventionalcommits.org/) messages:
 patch version), `docs:`, `ci:` or `build:` (listed too), and `chore:`,
 `test:` or `refactor:` (not listed). On every push to `main` it keeps a
 *chore(main): release X.Y.Z* pull request up to date, with the new version in
-`manifest.json` and the CHANGELOG entry. Merging that pull request publishes
-the release: the tests and validation run again, then
-`xeno_saber_ble-<version>.zip` is built and attached with a
+`manifest.json` and the CHANGELOG entry. Merging that pull request creates a draft
+release; it is published only after the tests and validation pass again on
+the merged commit and `xeno_saber_ble-<version>.zip` is built and attached with a
 [build provenance attestation](https://docs.github.com/actions/security-for-github-actions/using-artifact-attestations).
 To check that a downloaded zip was built from this repository:
 
