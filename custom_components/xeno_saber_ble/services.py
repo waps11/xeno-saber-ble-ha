@@ -255,33 +255,39 @@ async def _on_saber(coro: Coroutine[Any, Any, _T]) -> _T:
 async def _local_path(hass: HomeAssistant, raw: str, *, kind: str) -> Path:
     """Resolve a path on the Home Assistant host and check it is allowed.
 
-    ``kind`` is "file" or "dir" for something that must exist, "new" for a
-    file about to be written. Relative paths are relative to the config folder.
+    ``kind`` is "file" or "dir" for something that must exist, "font" for a
+    folder or a .zip, "new" for a file about to be written. Relative paths are
+    relative to the config folder.
     """
+    path, _is_dir = await _resolve_local_path(hass, raw, kind)
+    return path
+
+
+async def _resolve_local_path(hass: HomeAssistant, raw: str, kind: str) -> tuple[Path, bool]:
+    """``_local_path``, plus whether the path is a folder (one executor job)."""
     path = Path(raw).expanduser()
     if not path.is_absolute():
         path = Path(hass.config.path(raw))
 
-    def _check() -> str | None:
+    def _check() -> tuple[str | None, bool]:
         if not hass.config.is_allowed_path(str(path)):
-            return "path_not_allowed"
+            return "path_not_allowed", False
+        is_dir = path.is_dir()
         if kind == "file" and not path.is_file():
-            return "file_not_found"
-        if kind == "dir" and not path.is_dir():
-            return "folder_not_found"
-        if kind == "font" and not (
-            path.is_dir() or (path.suffix.lower() == ".zip" and path.is_file())
-        ):
-            return "folder_not_found"
+            return "file_not_found", is_dir
+        if kind == "dir" and not is_dir:
+            return "folder_not_found", is_dir
+        if kind == "font" and not (is_dir or (path.suffix.lower() == ".zip" and path.is_file())):
+            return "folder_not_found", is_dir
         if kind == "new" and not path.parent.is_dir():
-            return "folder_not_found"
-        return None
+            return "folder_not_found", is_dir
+        return None, is_dir
 
-    problem = await hass.async_add_executor_job(_check)
+    problem, is_dir = await hass.async_add_executor_job(_check)
     if problem is not None:
         shown = path.parent if problem == "folder_not_found" and kind == "new" else path
         raise _invalid(problem, path=shown)
-    return path
+    return path, is_dir
 
 
 async def _require_blade_off(saber: XenoSaber) -> None:
@@ -432,8 +438,8 @@ async def _require_space(saber: XenoSaber, size: int) -> None:
 
 
 async def _upload_sound_font(hass: HomeAssistant, call: ServiceCall) -> ServiceResponse:
-    source = await _local_path(hass, call.data[ATTR_FOLDER], kind="font")
-    if source.is_dir():
+    source, is_dir = await _resolve_local_path(hass, call.data[ATTR_FOLDER], "font")
+    if is_dir:
         return await _upload_font_folder(hass, call, source)
     # A .zip: extract its WAVs to a private temporary folder first.
     tmp = await hass.async_add_executor_job(tempfile.TemporaryDirectory, None, "xeno_font_")

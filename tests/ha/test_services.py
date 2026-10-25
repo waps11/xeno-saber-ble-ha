@@ -1,5 +1,6 @@
 """Actions: sound fonts, files, firmware and board configuration, end to end."""
 
+import contextlib
 from pathlib import Path
 import sys
 from unittest.mock import MagicMock, patch
@@ -842,3 +843,71 @@ async def test_sensitive_actions_need_an_admin(
     )
     assert len(result["fonts"]) == 3
     assert {"list_sound_fonts", "list_sound_files", "play_sound"} == svc.PUBLIC_SERVICES
+
+
+@contextlib.contextmanager
+def _no_filesystem_on_event_loop():
+    """Fail if a pathlib call touches the disk from the event loop thread."""
+    import pathlib
+    import threading
+
+    loop_thread = threading.get_ident()
+    calls: list[str] = []
+    names = (
+        "is_dir",
+        "is_file",
+        "exists",
+        "stat",
+        "iterdir",
+        "glob",
+        "open",
+        "read_bytes",
+        "write_bytes",
+        "mkdir",
+        "unlink",
+        "replace",
+        "rename",
+    )
+    originals = {name: getattr(pathlib.Path, name) for name in names}
+
+    def guard(name):
+        original = originals[name]
+
+        def wrapper(self, *args, **kwargs):
+            if threading.get_ident() == loop_thread:
+                calls.append(f"Path.{name}({self})")
+            return original(self, *args, **kwargs)
+
+        return wrapper
+
+    with contextlib.ExitStack() as stack:
+        for name in names:
+            stack.enter_context(patch.object(pathlib.Path, name, guard(name)))
+        yield calls
+
+
+async def test_actions_do_no_filesystem_io_on_the_event_loop(hass: HomeAssistant, saber) -> None:
+    import zipfile
+
+    tmp = saber["tmp"]
+    folder = _font(tmp / "font")
+    archive = tmp / "font.zip"
+    with zipfile.ZipFile(archive, "w") as zf:
+        for f in folder.rglob("*.wav"):
+            zf.write(f, f.relative_to(folder).as_posix())
+    (tmp / "config.ini").write_bytes(b"volume=1\n")
+    with _no_filesystem_on_event_loop() as calls, patch.object(dev.t, "REPLY_TIMEOUT", 0.01):
+        await _call(hass, saber, "upload_sound_font", folder=str(folder), font=1)
+        await _call(hass, saber, "upload_sound_font", folder=str(archive), font=2)
+        await _call(hass, saber, "export_sound_font", font=1, destination=str(tmp / "out.zip"))
+        await _call(
+            hass, saber, "upload_file", source=str(tmp / "config.ini"), destination="config.ini"
+        )
+        await _call(
+            hass, saber, "download_file", source="config.ini", destination=str(tmp / "c.ini")
+        )
+        await _call(
+            hass, saber, "backup_saber", destination=str(tmp / "b.zip"), include_system_sounds=False
+        )
+        await _call(hass, saber, "restore_backup", source=str(tmp / "b.zip"), confirm=True)
+    assert calls == []
