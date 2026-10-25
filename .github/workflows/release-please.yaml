@@ -1,11 +1,13 @@
 name: Release
 
-# On every push to main, release-please keeps a "chore: release X.Y.Z" pull
-# request up to date from the Conventional Commits since the last release: the
-# version in manifest.json and the CHANGELOG.md entry. Merging that pull request
-# creates the tag and the GitHub release; the jobs below then run the tests and
-# validation, build xeno_saber_ble-<version>.zip, attest its build provenance
-# and attach it to the release.
+# On every push to main, release-please keeps a "chore(main): release X.Y.Z"
+# pull request up to date from the Conventional Commits since the last release:
+# the version in manifest.json and the CHANGELOG.md entry. Merging that pull
+# request creates the tag and a *draft* release, which neither HACS nor users
+# see. The jobs below then run the tests and validation on the merged commit,
+# build xeno_saber_ble-<version>.zip, attest its build provenance, attach it,
+# and only then publish the release. If anything fails, the release stays a
+# draft: fix it, then publish or delete the draft by hand.
 on:
   push:
     branches: [main]
@@ -81,7 +83,7 @@ jobs:
         with:
           subject-path: dist/xeno_saber_ble-${{ needs.release-please.outputs.version }}.zip
 
-      - name: Attach the zip and installation notes to the release
+      - name: Attach the zip and installation notes to the draft release
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ needs.release-please.outputs.tag }}
@@ -102,3 +104,9 @@ jobs:
             echo "SHA-256: \`$(cut -d' ' -f1 dist/SHA256SUMS)\`. Build provenance: \`gh attestation verify xeno_saber_ble-$VERSION.zip --repo $GITHUB_REPOSITORY\`"
           } >> notes.md
           gh release edit "$TAG" --repo "$GITHUB_REPOSITORY" --notes-file notes.md
+
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.release-please.outputs.tag }}
+        run: gh release edit "$TAG" --repo "$GITHUB_REPOSITORY" --draft=false --latest

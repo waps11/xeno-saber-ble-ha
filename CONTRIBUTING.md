@@ -53,9 +53,12 @@ those commits to choose the next version and write `CHANGELOG.md`:
 
 release-please keeps a *chore(main): release X.Y.Z* pull request up to date.
 Its checks wait for a maintainer's approval (*Approve workflows to run*)
-because a bot opened it. Merging it creates the tag and the release; the
-*Release* workflow then reruns the tests and validation and attaches
-`xeno_saber_ble-<version>.zip` with a build provenance attestation.
+because a bot opened it. Merging it creates the tag and a draft release; the
+*Release* workflow then reruns the tests and validation on the merged commit,
+attaches `xeno_saber_ble-<version>.zip` with a build provenance attestation,
+and only then publishes the release. If a step fails, the release stays a
+draft that nobody sees: fix the problem on a branch, then publish or delete
+the draft by hand.
 
 ## Experimental features
 
