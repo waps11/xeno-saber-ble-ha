@@ -5,6 +5,28 @@ All notable changes to Xeno Saber BLE are listed here. The project uses
 [release-please](https://github.com/googleapis/release-please) from
 [Conventional Commits](https://www.conventionalcommits.org/).
 
+## [0.2.0](https://github.com/waps11/xeno-saber-ble-ha/compare/v0.1.2...v0.2.0) (2026-10-25)
+
+
+### ⚠ BREAKING CHANGES
+
+* **services:** hold back firmware and board actions until tested on a saber ([#4](https://github.com/waps11/xeno-saber-ble-ha/issues/4))
+
+### Fixed
+
+* **services:** decide folder or zip off the event loop ([#3](https://github.com/waps11/xeno-saber-ble-ha/issues/3)) ([08f12ee](https://github.com/waps11/xeno-saber-ble-ha/commit/08f12eea190f261d70cb6891e5214915e6b52f95))
+* **services:** hold back firmware and board actions until tested on a saber ([#4](https://github.com/waps11/xeno-saber-ble-ha/issues/4)) ([d460fa6](https://github.com/waps11/xeno-saber-ble-ha/commit/d460fa63e9d8a6f8a9909c3618735406fcd424a5))
+
+
+### Documentation
+
+* lead the installation with HACS search ([#6](https://github.com/waps11/xeno-saber-ble-ha/issues/6)) ([5751855](https://github.com/waps11/xeno-saber-ble-ha/commit/5751855f907bbacf0cbe66ea43850dfd24f5235a))
+
+
+### Project
+
+* one branch per change, squash-merged with a Conventional Commits title ([#5](https://github.com/waps11/xeno-saber-ble-ha/issues/5)) ([68870c7](https://github.com/waps11/xeno-saber-ble-ha/commit/68870c71aa27f8115ccfb49f50823b67d20ffc46))
+
 ## [0.1.2](https://github.com/waps11/xeno-saber-ble-ha/compare/v0.1.1...v0.1.2) (2026-10-24)
 
 
