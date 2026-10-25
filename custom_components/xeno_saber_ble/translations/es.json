@@ -295,8 +295,8 @@
     "confirm_required": {
       "message": "Esta acción puede dejar el sable inutilizable si falla. Pon «Confirmar» en verdadero para continuar."
     },
-    "use_update_firmware": {
-      "message": "El sable instala {path} en su próximo arranque. Usa la acción update_firmware para enviar firmware."
+    "firmware_file_protected": {
+      "message": "{path} es el archivo de actualización del firmware del sable: escribirlo o borrarlo cambiaría su firmware en el próximo arranque, así que esta integración lo rechaza."
     },
     "saber_refused": {
       "message": "El sable lo rechazó: {operation}"
@@ -309,12 +309,6 @@
     },
     "font_not_found": {
       "message": "El sable no tiene la carpeta de fuente {font} (tiene: {available}). Usa una carpeta existente para reemplazar una fuente, o {next} para añadir una nueva."
-    },
-    "firmware_size": {
-      "message": "Este archivo ({size} bytes) no parece un firmware de sable."
-    },
-    "battery_too_low": {
-      "message": "Batería al {level} %: carga el sable al menos al {minimum} % antes de actualizar su firmware."
     },
     "bad_archive": {
       "message": "{path} no se puede usar como fuente: {error}"
@@ -617,72 +611,6 @@
           "name": "Confirmar",
           "description": "Necesario para borrar el archivo de ajustes (config.ini o cualquier cosa en /setting): sin él, el sable indica un error al arrancar."
         }
-      }
-    },
-    "update_firmware": {
-      "name": "Actualizar firmware",
-      "description": "Envía un archivo de firmware (update.bin) al sable, que lo instala y se reinicia. Una actualización incorrecta o interrumpida puede dejar el sable inutilizable, y un firmware más nuevo puede no funcionar con esta integración. La hoja debe estar apagada y la batería al menos al 30 %.",
-      "fields": {
-        "device_id": {
-          "name": "Sable",
-          "description": "El sable que se usa."
-        },
-        "file": {
-          "name": "Archivo",
-          "description": "Archivo de firmware en el host de Home Assistant, del vendedor del sable."
-        },
-        "confirm": {
-          "name": "Confirmar",
-          "description": "Debe estar activado. Esta acción puede dejar el sable inutilizable si falla."
-        }
-      }
-    },
-    "set_blade_firmware": {
-      "name": "Elegir firmware de la hoja",
-      "description": "Cambia el sable entre el firmware de hoja Pixel y RGB, y luego lo reinicia. La hoja solo se enciende correctamente con el firmware que le corresponde.",
-      "fields": {
-        "device_id": {
-          "name": "Sable",
-          "description": "El sable que se usa."
-        },
-        "type": {
-          "name": "Tipo",
-          "description": "Pixel para una hoja neopixel, RGB para un LED en la empuñadura."
-        },
-        "confirm": {
-          "name": "Confirmar",
-          "description": "Debe estar activado. Esta acción puede dejar el sable inutilizable si falla."
-        }
-      }
-    },
-    "set_hardware_type": {
-      "name": "Elegir tipo de hardware",
-      "description": "Indica a la placa cómo está cableada (Pixel o RGB) y cuántos botones tiene, y luego la reinicia. La aplicación oficial advierte que cambiar el tipo de hardware requiere soldar; cámbialo solo si la placa se ha recableado.",
-      "fields": {
-        "device_id": {
-          "name": "Sable",
-          "description": "El sable que se usa."
-        },
-        "type": {
-          "name": "Tipo",
-          "description": "Cómo está cableada la placa."
-        },
-        "buttons": {
-          "name": "Botones",
-          "description": "Número de botones de la empuñadura (1 o 2)."
-        },
-        "confirm": {
-          "name": "Confirmar",
-          "description": "Debe estar activado. Esta acción puede dejar el sable inutilizable si falla."
-        }
-      }
-    }
-  },
-  "selector": {
-    "blade_type": {
-      "options": {
-        "pixel": "Pixel",
-        "rgb": "RGB"
       }
     }
   }

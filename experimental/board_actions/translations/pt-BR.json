@@ -1,0 +1,78 @@
+{
+  "services": {
+    "update_firmware": {
+      "name": "Atualizar firmware",
+      "description": "Envia um arquivo de firmware (update.bin) para o sabre, que o instala e reinicia. Uma atualização errada ou interrompida pode deixar o sabre inutilizável, e um firmware mais novo pode não funcionar com esta integração. A lâmina precisa estar desligada e a bateria em pelo menos 30%.",
+      "fields": {
+        "device_id": {
+          "name": "Sabre",
+          "description": "O sabre a usar."
+        },
+        "file": {
+          "name": "Arquivo",
+          "description": "Arquivo de firmware no host do Home Assistant, do vendedor do sabre."
+        },
+        "confirm": {
+          "name": "Confirmar",
+          "description": "Precisa estar ativado. Esta ação pode deixar o sabre inutilizável se der errado."
+        }
+      }
+    },
+    "set_blade_firmware": {
+      "name": "Definir firmware da lâmina",
+      "description": "Alterna o sabre entre o firmware de lâmina Pixel e RGB e depois o reinicia. A lâmina só acende corretamente com o firmware correspondente.",
+      "fields": {
+        "device_id": {
+          "name": "Sabre",
+          "description": "O sabre a usar."
+        },
+        "type": {
+          "name": "Tipo",
+          "description": "Pixel para uma lâmina neopixel, RGB para um LED no cabo."
+        },
+        "confirm": {
+          "name": "Confirmar",
+          "description": "Precisa estar ativado. Esta ação pode deixar o sabre inutilizável se der errado."
+        }
+      }
+    },
+    "set_hardware_type": {
+      "name": "Definir tipo de hardware",
+      "description": "Informa à placa como ela está ligada (Pixel ou RGB) e quantos botões tem, e depois a reinicia. O aplicativo oficial avisa que mudar o tipo de hardware exige solda; só mude se a placa tiver sido religada.",
+      "fields": {
+        "device_id": {
+          "name": "Sabre",
+          "description": "O sabre a usar."
+        },
+        "type": {
+          "name": "Tipo",
+          "description": "Como a placa está ligada."
+        },
+        "buttons": {
+          "name": "Botões",
+          "description": "Número de botões no cabo (1 ou 2)."
+        },
+        "confirm": {
+          "name": "Confirmar",
+          "description": "Precisa estar ativado. Esta ação pode deixar o sabre inutilizável se der errado."
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "firmware_size": {
+      "message": "Este arquivo ({size} bytes) não parece firmware de sabre."
+    },
+    "battery_too_low": {
+      "message": "Bateria em {level}%: carregue o sabre até pelo menos {minimum}% antes de atualizar o firmware."
+    }
+  },
+  "selector": {
+    "blade_type": {
+      "options": {
+        "pixel": "Pixel",
+        "rgb": "RGB"
+      }
+    }
+  }
+}

@@ -1,0 +1,51 @@
+# Appended to services.yaml by script/build --experimental board_actions.
+update_firmware:
+  fields:
+    device_id:
+      required: true
+      selector:
+        device:
+          integration: xeno_saber_ble
+    file:
+      required: true
+      example: /media/saber/update.bin
+      selector:
+        text:
+    confirm: &confirm
+      required: true
+      default: false
+      selector:
+        boolean:
+
+set_blade_firmware:
+  fields:
+    device_id:
+      required: true
+      selector:
+        device:
+          integration: xeno_saber_ble
+    type: &blade_type
+      required: true
+      selector:
+        select:
+          translation_key: blade_type
+          options:
+            - pixel
+            - rgb
+    confirm: *confirm
+
+set_hardware_type:
+  fields:
+    device_id:
+      required: true
+      selector:
+        device:
+          integration: xeno_saber_ble
+    type: *blade_type
+    buttons:
+      selector:
+        select:
+          options:
+            - "1"
+            - "2"
+    confirm: *confirm

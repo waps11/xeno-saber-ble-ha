@@ -295,8 +295,8 @@
     "confirm_required": {
       "message": "此操作失败可能导致光剑无法使用。将“确认”设为 true 以继续。"
     },
-    "use_update_firmware": {
-      "message": "光剑会在下次启动时安装 {path}。请使用 update_firmware 操作发送固件。"
+    "firmware_file_protected": {
+      "message": "{path} 是光剑的固件更新文件：写入或删除它会在下次启动时更改固件，因此本集成拒绝此操作。"
     },
     "saber_refused": {
       "message": "光剑拒绝了：{operation}"
@@ -309,12 +309,6 @@
     },
     "font_not_found": {
       "message": "光剑没有字体文件夹 {font}（现有：{available}）。指定现有文件夹会替换该字体，指定 {next} 则新增一个字体。"
-    },
-    "firmware_size": {
-      "message": "此文件（{size} 字节）看起来不像光剑固件。"
-    },
-    "battery_too_low": {
-      "message": "电量 {level}%：更新固件前请先将光剑充电到至少 {minimum}%。"
     },
     "bad_archive": {
       "message": "{path} 不能用作字体：{error}"
@@ -617,72 +611,6 @@
           "name": "确认",
           "description": "删除设置文件（config.ini 或 /setting 下的任何文件）时必须打开：没有设置文件，光剑启动时会报错。"
         }
-      }
-    },
-    "update_firmware": {
-      "name": "更新固件",
-      "description": "将固件文件（update.bin）发送到光剑，光剑安装后重启。错误或中断的更新可能导致光剑无法使用，较新的固件也可能与此集成不兼容。剑刃必须关闭且电量至少 30%。",
-      "fields": {
-        "device_id": {
-          "name": "光剑",
-          "description": "要使用的光剑。"
-        },
-        "file": {
-          "name": "文件",
-          "description": "来自光剑卖家、位于 Home Assistant 主机上的固件文件。"
-        },
-        "confirm": {
-          "name": "确认",
-          "description": "必须打开。此操作失败可能导致光剑无法使用。"
-        }
-      }
-    },
-    "set_blade_firmware": {
-      "name": "设置剑刃固件",
-      "description": "在 Pixel 与 RGB 剑刃固件之间切换光剑，然后重启。剑刃只有在固件匹配时才能正确点亮。",
-      "fields": {
-        "device_id": {
-          "name": "光剑",
-          "description": "要使用的光剑。"
-        },
-        "type": {
-          "name": "类型",
-          "description": "Pixel 用于 neopixel 剑刃，RGB 用于剑柄内 LED。"
-        },
-        "confirm": {
-          "name": "确认",
-          "description": "必须打开。此操作失败可能导致光剑无法使用。"
-        }
-      }
-    },
-    "set_hardware_type": {
-      "name": "设置硬件类型",
-      "description": "告诉主板其接线方式（Pixel 或 RGB）以及按钮数量，然后重启。官方应用警告更改硬件类型需要焊接；只有在主板重新接线后才应更改。",
-      "fields": {
-        "device_id": {
-          "name": "光剑",
-          "description": "要使用的光剑。"
-        },
-        "type": {
-          "name": "类型",
-          "description": "主板的接线方式。"
-        },
-        "buttons": {
-          "name": "按钮数",
-          "description": "剑柄上的按钮数（1 或 2）。"
-        },
-        "confirm": {
-          "name": "确认",
-          "description": "必须打开。此操作失败可能导致光剑无法使用。"
-        }
-      }
-    }
-  },
-  "selector": {
-    "blade_type": {
-      "options": {
-        "pixel": "Pixel",
-        "rgb": "RGB"
       }
     }
   }

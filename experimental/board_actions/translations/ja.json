@@ -1,0 +1,78 @@
+{
+  "services": {
+    "update_firmware": {
+      "name": "ファームウェアを更新",
+      "description": "ファームウェアファイル（update.bin）をセイバーに送ると、セイバーがインストールして再起動します。誤った更新や中断した更新はセイバーを使用不能にするおそれがあり、新しいファームウェアはこの統合で動作しない可能性があります。ブレードを消灯し、バッテリーを 30% 以上にしてください。",
+      "fields": {
+        "device_id": {
+          "name": "セイバー",
+          "description": "使用するセイバー。"
+        },
+        "file": {
+          "name": "ファイル",
+          "description": "セイバーの販売元から入手した、Home Assistant ホスト上のファームウェアファイル。"
+        },
+        "confirm": {
+          "name": "確認",
+          "description": "オンにする必要があります。この操作に失敗するとセイバーが使用できなくなるおそれがあります。"
+        }
+      }
+    },
+    "set_blade_firmware": {
+      "name": "ブレードファームウェアを設定",
+      "description": "セイバーを Pixel 用と RGB 用のブレードファームウェアで切り替え、再起動します。ブレードは対応するファームウェアでのみ正しく点灯します。",
+      "fields": {
+        "device_id": {
+          "name": "セイバー",
+          "description": "使用するセイバー。"
+        },
+        "type": {
+          "name": "タイプ",
+          "description": "ネオピクセルブレードは Pixel、ヒルト内 LED は RGB。"
+        },
+        "confirm": {
+          "name": "確認",
+          "description": "オンにする必要があります。この操作に失敗するとセイバーが使用できなくなるおそれがあります。"
+        }
+      }
+    },
+    "set_hardware_type": {
+      "name": "ハードウェアタイプを設定",
+      "description": "ボードの配線（Pixel または RGB）とボタン数を設定し、再起動します。公式アプリはハードウェアタイプの変更にははんだ付けが必要だと警告しています。ボードの配線を変えた場合にのみ変更してください。",
+      "fields": {
+        "device_id": {
+          "name": "セイバー",
+          "description": "使用するセイバー。"
+        },
+        "type": {
+          "name": "タイプ",
+          "description": "ボードの配線。"
+        },
+        "buttons": {
+          "name": "ボタン数",
+          "description": "ヒルトのボタン数（1 または 2）。"
+        },
+        "confirm": {
+          "name": "確認",
+          "description": "オンにする必要があります。この操作に失敗するとセイバーが使用できなくなるおそれがあります。"
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "firmware_size": {
+      "message": "このファイル（{size} バイト）はセイバーのファームウェアではないようです。"
+    },
+    "battery_too_low": {
+      "message": "バッテリー残量 {level}%: ファームウェアを更新する前に {minimum}% 以上まで充電してください。"
+    }
+  },
+  "selector": {
+    "blade_type": {
+      "options": {
+        "pixel": "Pixel",
+        "rgb": "RGB"
+      }
+    }
+  }
+}

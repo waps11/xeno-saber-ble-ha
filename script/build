@@ -1,0 +1,122 @@
+#!/usr/bin/env python3
+"""Build the integration package, optionally with experimental features.
+
+    script/build                                   dist/xeno_saber_ble-<version>.zip
+    script/build --experimental board_actions      dist/xeno_saber_ble-<version>-experimental.zip
+    script/build --experimental board_actions --dir build/
+                                                   the folder only, to copy into
+                                                   config/custom_components/ or check
+
+Experimental features live in experimental/<feature>/ and are never part of
+the repository's integration folder, which is what HACS installs and what
+releases are built from. A feature folder may hold Python modules (copied into
+the integration), a services.yaml fragment (appended), and strings.json,
+translations/*.json and icons.json fragments (merged).
+"""
+
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+from pathlib import Path
+import shutil
+import sys
+import tempfile
+import zipfile
+
+ROOT = Path(__file__).resolve().parent.parent
+INTEGRATION = ROOT / "custom_components" / "xeno_saber_ble"
+EXPERIMENTAL = ROOT / "experimental"
+JSON_FRAGMENTS = ("strings.json", "icons.json")
+
+
+def _merge(base: dict, extra: dict, where: str) -> None:
+    for key, value in extra.items():
+        if isinstance(value, dict) and isinstance(base.get(key), dict):
+            _merge(base[key], value, f"{where}.{key}")
+        elif key in base:
+            sys.exit(f"{where}.{key} is already defined in the integration")
+        else:
+            base[key] = value
+
+
+def _merge_json(target: Path, fragment: Path) -> None:
+    data = json.loads(target.read_text(encoding="utf-8"))
+    _merge(data, json.loads(fragment.read_text(encoding="utf-8")), target.name)
+    target.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+
+
+def add_feature(package: Path, feature: str) -> None:
+    source = EXPERIMENTAL / feature
+    if not source.is_dir():
+        known = ", ".join(sorted(p.name for p in EXPERIMENTAL.iterdir() if p.is_dir()))
+        sys.exit(f"unknown experimental feature {feature!r} (known: {known})")
+    for module in sorted(source.glob("*.py")):
+        if (package / module.name).exists():
+            sys.exit(f"{module.name} already exists in the integration")
+        shutil.copy2(module, package / module.name)
+    if (fragment := source / "services.yaml").exists():
+        with (package / "services.yaml").open("a", encoding="utf-8") as out:
+            out.write("\n" + fragment.read_text(encoding="utf-8"))
+    for name in JSON_FRAGMENTS:
+        if (fragment := source / name).exists():
+            _merge_json(package / name, fragment)
+    for fragment in sorted((source / "translations").glob("*.json")):
+        _merge_json(package / "translations" / fragment.name, fragment)
+
+
+def build(features: list[str], destination: Path) -> Path:
+    """Write the integration folder, with the features, to destination/xeno_saber_ble."""
+    package = destination / INTEGRATION.name
+    if package.exists():
+        sys.exit(f"{package} already exists")
+    shutil.copytree(
+        INTEGRATION, package, ignore=shutil.ignore_patterns("__pycache__", "*.pyc", ".*_cache")
+    )
+    shutil.copy2(ROOT / "CHANGELOG.md", package / "CHANGELOG.md")
+    for feature in features:
+        add_feature(package, feature)
+    return package
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
+    parser.add_argument(
+        "--experimental",
+        action="append",
+        default=[],
+        metavar="FEATURE",
+        help="add an experimental feature from experimental/ (repeatable)",
+    )
+    parser.add_argument("--dir", type=Path, help="write the folder here instead of a zip")
+    parser.add_argument(
+        "--out", type=Path, default=ROOT / "dist", help="zip folder (default: dist/)"
+    )
+    args = parser.parse_args()
+
+    if args.dir:
+        args.dir.mkdir(parents=True, exist_ok=True)
+        print(build(args.experimental, args.dir))
+        return
+
+    version = json.loads((INTEGRATION / "manifest.json").read_text())["version"]
+    suffix = "-experimental" if args.experimental else ""
+    args.out.mkdir(parents=True, exist_ok=True)
+    archive = args.out / f"xeno_saber_ble-{version}{suffix}.zip"
+    with tempfile.TemporaryDirectory() as tmp:
+        package = build(args.experimental, Path(tmp))
+        with zipfile.ZipFile(archive, "w", zipfile.ZIP_DEFLATED) as zf:
+            for path in sorted(package.rglob("*")):
+                if path.is_file():
+                    info = zipfile.ZipInfo(path.relative_to(tmp).as_posix(), (1980, 1, 1, 0, 0, 0))
+                    info.compress_type = zipfile.ZIP_DEFLATED
+                    info.external_attr = 0o644 << 16
+                    zf.writestr(info, path.read_bytes())
+    digest = hashlib.sha256(archive.read_bytes()).hexdigest()
+    print(f"{digest}  {archive.name}")
+    print(archive)
+
+
+if __name__ == "__main__":
+    main()

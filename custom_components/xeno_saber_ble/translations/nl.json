@@ -295,8 +295,8 @@
     "confirm_required": {
       "message": "Deze actie kan het zwaard onbruikbaar maken als ze misgaat. Zet 'Bevestigen' op waar om door te gaan."
     },
-    "use_update_firmware": {
-      "message": "Het zwaard installeert {path} bij de volgende start. Gebruik de actie update_firmware om firmware te sturen."
+    "firmware_file_protected": {
+      "message": "{path} is het firmware-updatebestand van het zwaard: het schrijven of verwijderen ervan zou de firmware bij de volgende start wijzigen, dus deze integratie weigert dat."
     },
     "saber_refused": {
       "message": "Het zwaard weigerde: {operation}"
@@ -309,12 +309,6 @@
     },
     "font_not_found": {
       "message": "Het zwaard heeft geen fontmap {font} (wel: {available}). Gebruik een bestaande map om een font te vervangen, of {next} om een nieuw font toe te voegen."
-    },
-    "firmware_size": {
-      "message": "Dit bestand ({size} bytes) lijkt geen zwaardfirmware."
-    },
-    "battery_too_low": {
-      "message": "Batterij op {level}%: laad het zwaard op tot minstens {minimum}% voordat je de firmware bijwerkt."
     },
     "bad_archive": {
       "message": "{path} kan niet als font worden gebruikt: {error}"
@@ -617,72 +611,6 @@
           "name": "Bevestigen",
           "description": "Vereist om het instellingenbestand te verwijderen (config.ini of alles onder /setting): zonder dat meldt het zwaard een fout bij het opstarten."
         }
-      }
-    },
-    "update_firmware": {
-      "name": "Firmware bijwerken",
-      "description": "Stuurt een firmwarebestand (update.bin) naar het zwaard, dat het installeert en herstart. Een verkeerde of onderbroken update kan het zwaard onbruikbaar maken, en nieuwere firmware werkt mogelijk niet met deze integratie. De kling moet uit zijn en de batterij minstens 30%.",
-      "fields": {
-        "device_id": {
-          "name": "Zwaard",
-          "description": "Het te gebruiken zwaard."
-        },
-        "file": {
-          "name": "Bestand",
-          "description": "Firmwarebestand op de Home Assistant-host, van de verkoper van het zwaard."
-        },
-        "confirm": {
-          "name": "Bevestigen",
-          "description": "Moet aan staan. Deze actie kan het zwaard onbruikbaar maken als ze misgaat."
-        }
-      }
-    },
-    "set_blade_firmware": {
-      "name": "Kling-firmware instellen",
-      "description": "Schakelt het zwaard tussen Pixel- en RGB-klingfirmware en herstart het daarna. De kling brandt alleen goed met de firmware die erbij past.",
-      "fields": {
-        "device_id": {
-          "name": "Zwaard",
-          "description": "Het te gebruiken zwaard."
-        },
-        "type": {
-          "name": "Type",
-          "description": "Pixel voor een neopixelkling, RGB voor een led in het gevest."
-        },
-        "confirm": {
-          "name": "Bevestigen",
-          "description": "Moet aan staan. Deze actie kan het zwaard onbruikbaar maken als ze misgaat."
-        }
-      }
-    },
-    "set_hardware_type": {
-      "name": "Hardwaretype instellen",
-      "description": "Vertelt het bord hoe het bedraad is (Pixel of RGB) en hoeveel knoppen het heeft, en herstart het daarna. De officiële app waarschuwt dat het wijzigen van het hardwaretype solderen vereist; wijzig het alleen als het bord opnieuw bedraad is.",
-      "fields": {
-        "device_id": {
-          "name": "Zwaard",
-          "description": "Het te gebruiken zwaard."
-        },
-        "type": {
-          "name": "Type",
-          "description": "Hoe het bord bedraad is."
-        },
-        "buttons": {
-          "name": "Knoppen",
-          "description": "Aantal knoppen op het gevest (1 of 2)."
-        },
-        "confirm": {
-          "name": "Bevestigen",
-          "description": "Moet aan staan. Deze actie kan het zwaard onbruikbaar maken als ze misgaat."
-        }
-      }
-    }
-  },
-  "selector": {
-    "blade_type": {
-      "options": {
-        "pixel": "Pixel",
-        "rgb": "RGB"
       }
     }
   }

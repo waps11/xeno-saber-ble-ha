@@ -295,8 +295,8 @@
     "confirm_required": {
       "message": "Questa azione può rendere la spada inutilizzabile se va storta. Imposta «Conferma» su vero per procedere."
     },
-    "use_update_firmware": {
-      "message": "La spada installa {path} al prossimo avvio. Usa l'azione update_firmware per inviare il firmware."
+    "firmware_file_protected": {
+      "message": "{path} è il file di aggiornamento del firmware della spada: scriverlo o eliminarlo cambierebbe il firmware al prossimo avvio, quindi questa integrazione lo rifiuta."
     },
     "saber_refused": {
       "message": "La spada ha rifiutato: {operation}"
@@ -309,12 +309,6 @@
     },
     "font_not_found": {
       "message": "La spada non ha la cartella font {font} (ha: {available}). Usa una cartella esistente per sostituire un font, oppure {next} per aggiungerne uno nuovo."
-    },
-    "firmware_size": {
-      "message": "Questo file ({size} byte) non sembra un firmware per spada."
-    },
-    "battery_too_low": {
-      "message": "Batteria al {level}%: carica la spada almeno al {minimum}% prima di aggiornarne il firmware."
     },
     "bad_archive": {
       "message": "{path} non può essere usato come font: {error}"
@@ -617,72 +611,6 @@
           "name": "Conferma",
           "description": "Necessario per eliminare il file delle impostazioni (config.ini o qualsiasi file in /setting): senza di esso la spada segnala un errore all'avvio."
         }
-      }
-    },
-    "update_firmware": {
-      "name": "Aggiorna firmware",
-      "description": "Invia un file firmware (update.bin) alla spada, che lo installa e si riavvia. Un aggiornamento errato o interrotto può rendere la spada inutilizzabile, e un firmware più recente potrebbe non funzionare con questa integrazione. La lama deve essere spenta e la batteria almeno al 30%.",
-      "fields": {
-        "device_id": {
-          "name": "Spada",
-          "description": "La spada da usare."
-        },
-        "file": {
-          "name": "File",
-          "description": "File firmware sull'host di Home Assistant, fornito dal venditore della spada."
-        },
-        "confirm": {
-          "name": "Conferma",
-          "description": "Deve essere attivo. Questa azione può rendere la spada inutilizzabile se va storta."
-        }
-      }
-    },
-    "set_blade_firmware": {
-      "name": "Imposta firmware della lama",
-      "description": "Passa la spada dal firmware per lama Pixel a quello RGB o viceversa, poi la riavvia. La lama si accende correttamente solo con il firmware adatto.",
-      "fields": {
-        "device_id": {
-          "name": "Spada",
-          "description": "La spada da usare."
-        },
-        "type": {
-          "name": "Tipo",
-          "description": "Pixel per una lama neopixel, RGB per un LED nell'elsa."
-        },
-        "confirm": {
-          "name": "Conferma",
-          "description": "Deve essere attivo. Questa azione può rendere la spada inutilizzabile se va storta."
-        }
-      }
-    },
-    "set_hardware_type": {
-      "name": "Imposta tipo di hardware",
-      "description": "Indica alla scheda come è cablata (Pixel o RGB) e quanti pulsanti ha, poi la riavvia. L'app ufficiale avverte che cambiare il tipo di hardware richiede saldature; cambialo solo se la scheda è stata ricablata.",
-      "fields": {
-        "device_id": {
-          "name": "Spada",
-          "description": "La spada da usare."
-        },
-        "type": {
-          "name": "Tipo",
-          "description": "Come è cablata la scheda."
-        },
-        "buttons": {
-          "name": "Pulsanti",
-          "description": "Numero di pulsanti sull'elsa (1 o 2)."
-        },
-        "confirm": {
-          "name": "Conferma",
-          "description": "Deve essere attivo. Questa azione può rendere la spada inutilizzabile se va storta."
-        }
-      }
-    }
-  },
-  "selector": {
-    "blade_type": {
-      "options": {
-        "pixel": "Pixel",
-        "rgb": "RGB"
       }
     }
   }

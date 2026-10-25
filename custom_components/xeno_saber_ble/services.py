@@ -3,13 +3,14 @@
 from __future__ import annotations
 
 from collections.abc import Awaitable, Callable, Coroutine
-import hashlib
+import importlib
 import json
 import logging
 from pathlib import Path
 import re
 import tempfile
 import time
+from types import ModuleType
 from typing import TYPE_CHECKING, Any, TypeVar
 import zipfile
 
@@ -33,6 +34,20 @@ from . import protocol as p, soundfont
 from .const import DOMAIN
 from .device import XenoSaber, XenoSaberError
 
+
+def _experimental(name: str) -> ModuleType | None:
+    """A module only packages built with ``script/build --experimental`` contain."""
+    module = f"{__package__}.{name}"
+    try:
+        return importlib.import_module(module)
+    except ModuleNotFoundError as err:
+        if err.name != module:
+            raise
+        return None
+
+
+_board = _experimental("board")  # firmware and board configuration actions
+
 if TYPE_CHECKING:
     from . import XenoConfigEntry
 
@@ -49,10 +64,7 @@ ATTR_NAME = "name"
 ATTR_REPLACE = "replace"
 ATTR_DRY_RUN = "dry_run"
 ATTR_PATH = "path"
-ATTR_FILE = "file"
 ATTR_CONFIRM = "confirm"
-ATTR_TYPE = "type"
-ATTR_BUTTONS = "buttons"
 ATTR_SOURCE_FONT = "source_font"
 ATTR_DESTINATION_FONT = "destination_font"
 ATTR_DELETE_FIRST = "delete_first"
@@ -73,16 +85,8 @@ SERVICE_RENAME_SOUND_FONT = "rename_sound_font"
 SERVICE_DELETE_FILE = "delete_file"
 SERVICE_COPY_FILE = "copy_file"
 SERVICE_PLAY_SOUND = "play_sound"
-SERVICE_UPDATE_FIRMWARE = "update_firmware"
-SERVICE_SET_BLADE_FIRMWARE = "set_blade_firmware"
-SERVICE_SET_HARDWARE_TYPE = "set_hardware_type"
 
-FIRMWARE_PATH = "update.bin"  # what the app sends; the saber installs it and reboots
-FIRMWARE_MIN_BYTES = 16 * 1024
-FIRMWARE_MAX_BYTES = 8 * 1024 * 1024
-FIRMWARE_MIN_BATTERY = 30
-_FIRMWARE_VERSION = re.compile(rb"DMN_[A-Z0-9]+_[A-Z0-9]+_SV\d+\.\d+\.\d+")
-# Files only update_firmware may write: a stray one is installed at next boot.
+# Writing these makes the saber install firmware at its next start.
 _PROTECTED = frozenset({"update.bin", "update_factory.bin", "update_factory.ini"})
 
 # Deleting these leaves the saber without settings ("error" at boot).
@@ -109,7 +113,6 @@ def _font_name(value: Any) -> str:
 # The saber is picked as a device: the picker shows the names given in HA.
 _ENTRY = {vol.Required(ATTR_DEVICE_ID): cv.string}
 _FONT_NUMBER = vol.All(vol.Coerce(int), vol.Range(min=1, max=99))
-_BLADE_TYPE = vol.In([t.lower() for t in p.BLADE_TYPES])
 
 SCHEMAS: dict[str, vol.Schema] = {
     SERVICE_UPLOAD_FILE: vol.Schema(
@@ -201,20 +204,6 @@ SCHEMAS: dict[str, vol.Schema] = {
         }
     ),
     SERVICE_PLAY_SOUND: vol.Schema({**_ENTRY, vol.Optional(ATTR_PATH): _saber_path}),
-    SERVICE_UPDATE_FIRMWARE: vol.Schema(
-        {**_ENTRY, vol.Required(ATTR_FILE): cv.string, vol.Required(ATTR_CONFIRM): cv.boolean}
-    ),
-    SERVICE_SET_BLADE_FIRMWARE: vol.Schema(
-        {**_ENTRY, vol.Required(ATTR_TYPE): _BLADE_TYPE, vol.Required(ATTR_CONFIRM): cv.boolean}
-    ),
-    SERVICE_SET_HARDWARE_TYPE: vol.Schema(
-        {
-            **_ENTRY,
-            vol.Required(ATTR_TYPE): _BLADE_TYPE,
-            vol.Optional(ATTR_BUTTONS): vol.All(vol.Coerce(int), vol.In([1, 2])),
-            vol.Required(ATTR_CONFIRM): cv.boolean,
-        }
-    ),
 }
 
 
@@ -311,7 +300,7 @@ async def _upload_file(hass: HomeAssistant, call: ServiceCall) -> ServiceRespons
     saber = _saber(hass, call)
     destination: str = call.data[ATTR_DESTINATION]
     if destination.strip("/").lower() in _PROTECTED:
-        raise _invalid("use_update_firmware", path=destination)
+        raise _invalid("firmware_file_protected", path=destination)
     source = await _local_path(hass, call.data[ATTR_SOURCE], kind="file")
     await _require_blade_off(saber)
     data = await _read(hass, source)
@@ -350,7 +339,7 @@ async def _copy_file(hass: HomeAssistant, call: ServiceCall) -> ServiceResponse:
     source: str = call.data[ATTR_SOURCE]
     destination: str = call.data[ATTR_DESTINATION]
     if destination.strip("/").lower() in _PROTECTED:
-        raise _invalid("use_update_firmware", path=destination)
+        raise _invalid("firmware_file_protected", path=destination)
     if not await _on_saber(saber.file_command(p.FILE_CP, [source, destination])):
         raise HomeAssistantError(
             translation_domain=DOMAIN,
@@ -869,77 +858,10 @@ async def _copy_sound_font(hass: HomeAssistant, call: ServiceCall) -> ServiceRes
     }
 
 
-# ------------------------------------------------- firmware and board settings
-async def _update_firmware(hass: HomeAssistant, call: ServiceCall) -> ServiceResponse:
-    _require_confirm(call)
-    saber = _saber(hass, call)
-    source = await _local_path(hass, call.data[ATTR_FILE], kind="file")
-    data = await _read(hass, source)
-    if not FIRMWARE_MIN_BYTES <= len(data) <= FIRMWARE_MAX_BYTES:
-        raise _invalid("firmware_size", size=len(data))
-    found = _FIRMWARE_VERSION.search(data)
-    detected = found.group().decode() if found else None
-    await _require_blade_off(saber)
-    battery = saber.battery
-    if battery is not None and battery < FIRMWARE_MIN_BATTERY:
-        raise _invalid("battery_too_low", level=battery, minimum=FIRMWARE_MIN_BATTERY)
-    current = saber.state.get(p.KEY_SW_VERSION)
-    # The vendor's firmware is not signed: nothing can check it, but the hash
-    # records exactly which file was sent.
-    sha256 = await hass.async_add_executor_job(lambda: hashlib.sha256(data).hexdigest())
-    _LOGGER.warning(
-        "Sending firmware %s (%s, %d bytes, SHA-256 %s) to %s (currently %s). Keep "
-        "it close and powered until it restarts; later firmware may not work with "
-        "this integration",
-        source.name,
-        detected or "version not found in file",
-        len(data),
-        sha256,
-        saber.name,
-        current,
-    )
-    await _on_saber(saber.send_file(FIRMWARE_PATH, data, header_name=FIRMWARE_PATH))
-    return {
-        "bytes": len(data),
-        "sha256": sha256,
-        "previous_version": current,
-        "detected_version": detected,
-    }
-
-
-async def _set_blade_firmware(hass: HomeAssistant, call: ServiceCall) -> ServiceResponse:
-    _require_confirm(call)
-    saber = _saber(hass, call)
-    wanted = _blade_type(call.data[ATTR_TYPE])
-    await _require_blade_off(saber)
-    if saber.state.get(p.KEY_SOFTWARE_TYPE) == wanted:
-        return {"type": wanted, "changed": False}
-    await _on_saber(saber.send(p.KEY_SOFTWARE_TYPE, wanted))
-    await _on_saber(saber.send(p.KEY_RESTART, True))
-    return {"type": wanted, "changed": True}
-
-
-async def _set_hardware_type(hass: HomeAssistant, call: ServiceCall) -> ServiceResponse:
-    _require_confirm(call)
-    saber = _saber(hass, call)
-    wanted = _blade_type(call.data[ATTR_TYPE])
-    await _require_blade_off(saber)
-    await _on_saber(saber.send(p.KEY_HARDWARE_TYPE, wanted))
-    buttons: int | None = call.data.get(ATTR_BUTTONS)
-    if buttons is not None:
-        await _on_saber(saber.send(p.KEY_BUTTON_NUM, buttons))
-    await _on_saber(saber.send(p.KEY_RESTART, True))
-    return {"type": wanted, "buttons": buttons}
-
-
-def _blade_type(value: str) -> str:
-    return next(t for t in p.BLADE_TYPES if t.lower() == value)
-
-
 # --------------------------------------------------------------- registration
-_Handler = Callable[[HomeAssistant, ServiceCall], Awaitable[ServiceResponse]]
+Handler = Callable[[HomeAssistant, ServiceCall], Awaitable[ServiceResponse]]
 
-HANDLERS: dict[str, tuple[_Handler, SupportsResponse]] = {
+HANDLERS: dict[str, tuple[Handler, SupportsResponse]] = {
     SERVICE_UPLOAD_FILE: (_upload_file, SupportsResponse.OPTIONAL),
     SERVICE_DOWNLOAD_FILE: (_download_file, SupportsResponse.OPTIONAL),
     SERVICE_UPLOAD_SOUND_FONT: (_upload_sound_font, SupportsResponse.OPTIONAL),
@@ -953,9 +875,6 @@ HANDLERS: dict[str, tuple[_Handler, SupportsResponse]] = {
     SERVICE_DELETE_FILE: (_delete_file, SupportsResponse.OPTIONAL),
     SERVICE_COPY_FILE: (_copy_file, SupportsResponse.OPTIONAL),
     SERVICE_PLAY_SOUND: (_play_sound, SupportsResponse.NONE),
-    SERVICE_UPDATE_FIRMWARE: (_update_firmware, SupportsResponse.OPTIONAL),
-    SERVICE_SET_BLADE_FIRMWARE: (_set_blade_firmware, SupportsResponse.OPTIONAL),
-    SERVICE_SET_HARDWARE_TYPE: (_set_hardware_type, SupportsResponse.OPTIONAL),
 }
 
 # Open to every user: they only read the saber or play a sound. Everything
@@ -968,16 +887,22 @@ PUBLIC_SERVICES = frozenset(
 
 def async_setup_services(hass: HomeAssistant) -> None:
     """Register the integration's actions (once, not per saber)."""
-    for name, (handler, supports_response) in HANDLERS.items():
+    handlers = dict(HANDLERS)
+    schemas = dict(SCHEMAS)
+    if _board is not None:  # experimental build: untested on a real saber
+        _LOGGER.warning("Experimental firmware and board configuration actions are enabled")
+        handlers.update(_board.HANDLERS)
+        schemas.update(_board.SCHEMAS)
+    for name, (handler, supports_response) in handlers.items():
 
-        async def _call(call: ServiceCall, handler: _Handler = handler) -> ServiceResponse:
+        async def _call(call: ServiceCall, handler: Handler = handler) -> ServiceResponse:
             return await handler(hass, call)
 
         if name in PUBLIC_SERVICES:
             hass.services.async_register(
-                DOMAIN, name, _call, schema=SCHEMAS[name], supports_response=supports_response
+                DOMAIN, name, _call, schema=schemas[name], supports_response=supports_response
             )
         else:
             async_register_admin_service(
-                hass, DOMAIN, name, _call, schema=SCHEMAS[name], supports_response=supports_response
+                hass, DOMAIN, name, _call, schema=schemas[name], supports_response=supports_response
             )
