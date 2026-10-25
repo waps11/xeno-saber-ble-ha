@@ -1,0 +1,78 @@
+{
+  "services": {
+    "update_firmware": {
+      "name": "Aktualizuj oprogramowanie",
+      "description": "Wysyła plik oprogramowania (update.bin) do miecza, który go instaluje i uruchamia się ponownie. Błędna lub przerwana aktualizacja może unieruchomić miecz, a nowsze oprogramowanie może nie działać z tą integracją. Ostrze musi być wyłączone, a bateria naładowana co najmniej w 30%.",
+      "fields": {
+        "device_id": {
+          "name": "Miecz",
+          "description": "Miecz, którego użyć."
+        },
+        "file": {
+          "name": "Plik",
+          "description": "Plik oprogramowania na hoście Home Assistant, od sprzedawcy miecza."
+        },
+        "confirm": {
+          "name": "Potwierdź",
+          "description": "Musi być włączone. Ta akcja może unieruchomić miecz, jeśli coś pójdzie nie tak."
+        }
+      }
+    },
+    "set_blade_firmware": {
+      "name": "Ustaw oprogramowanie ostrza",
+      "description": "Przełącza miecz między oprogramowaniem ostrza Pixel i RGB, a następnie go restartuje. Ostrze świeci poprawnie tylko z pasującym oprogramowaniem.",
+      "fields": {
+        "device_id": {
+          "name": "Miecz",
+          "description": "Miecz, którego użyć."
+        },
+        "type": {
+          "name": "Typ",
+          "description": "Pixel dla ostrza neopixel, RGB dla diody LED w rękojeści."
+        },
+        "confirm": {
+          "name": "Potwierdź",
+          "description": "Musi być włączone. Ta akcja może unieruchomić miecz, jeśli coś pójdzie nie tak."
+        }
+      }
+    },
+    "set_hardware_type": {
+      "name": "Ustaw typ sprzętu",
+      "description": "Informuje płytkę, jak jest okablowana (Pixel lub RGB) i ile ma przycisków, a następnie ją restartuje. Oficjalna aplikacja ostrzega, że zmiana typu sprzętu wymaga lutowania; zmieniaj go tylko, jeśli płytka została przerobiona.",
+      "fields": {
+        "device_id": {
+          "name": "Miecz",
+          "description": "Miecz, którego użyć."
+        },
+        "type": {
+          "name": "Typ",
+          "description": "Jak okablowana jest płytka."
+        },
+        "buttons": {
+          "name": "Przyciski",
+          "description": "Liczba przycisków na rękojeści (1 lub 2)."
+        },
+        "confirm": {
+          "name": "Potwierdź",
+          "description": "Musi być włączone. Ta akcja może unieruchomić miecz, jeśli coś pójdzie nie tak."
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "firmware_size": {
+      "message": "Ten plik ({size} bajtów) nie wygląda na oprogramowanie miecza."
+    },
+    "battery_too_low": {
+      "message": "Bateria na {level}%: naładuj miecz do co najmniej {minimum}% przed aktualizacją oprogramowania."
+    }
+  },
+  "selector": {
+    "blade_type": {
+      "options": {
+        "pixel": "Pixel",
+        "rgb": "RGB"
+      }
+    }
+  }
+}

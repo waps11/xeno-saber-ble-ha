@@ -1,0 +1,78 @@
+{
+  "services": {
+    "update_firmware": {
+      "name": "Firmware aktualisieren",
+      "description": "Sendet eine Firmware-Datei (update.bin) an das Schwert, das sie installiert und neu startet. Ein falsches oder abgebrochenes Update kann das Schwert unbrauchbar machen, und neuere Firmware funktioniert eventuell nicht mit dieser Integration. Die Klinge muss aus sein und der Akku mindestens 30 % haben.",
+      "fields": {
+        "device_id": {
+          "name": "Schwert",
+          "description": "Das zu verwendende Schwert."
+        },
+        "file": {
+          "name": "Datei",
+          "description": "Firmware-Datei auf dem Home-Assistant-Host, vom Händler des Schwerts."
+        },
+        "confirm": {
+          "name": "Bestätigen",
+          "description": "Muss aktiviert sein. Diese Aktion kann das Schwert bei einem Fehler unbrauchbar machen."
+        }
+      }
+    },
+    "set_blade_firmware": {
+      "name": "Klingen-Firmware festlegen",
+      "description": "Schaltet das Schwert zwischen Pixel- und RGB-Klingen-Firmware um und startet es neu. Die Klinge leuchtet nur mit der passenden Firmware richtig.",
+      "fields": {
+        "device_id": {
+          "name": "Schwert",
+          "description": "Das zu verwendende Schwert."
+        },
+        "type": {
+          "name": "Typ",
+          "description": "Pixel für eine Neopixel-Klinge, RGB für eine LED im Griff."
+        },
+        "confirm": {
+          "name": "Bestätigen",
+          "description": "Muss aktiviert sein. Diese Aktion kann das Schwert bei einem Fehler unbrauchbar machen."
+        }
+      }
+    },
+    "set_hardware_type": {
+      "name": "Hardwaretyp festlegen",
+      "description": "Teilt der Platine mit, wie sie verdrahtet ist (Pixel oder RGB) und wie viele Tasten sie hat, und startet sie neu. Die offizielle App warnt, dass ein Wechsel des Hardwaretyps Löten erfordert; ändere ihn nur, wenn die Platine umverdrahtet wurde.",
+      "fields": {
+        "device_id": {
+          "name": "Schwert",
+          "description": "Das zu verwendende Schwert."
+        },
+        "type": {
+          "name": "Typ",
+          "description": "Wie die Platine verdrahtet ist."
+        },
+        "buttons": {
+          "name": "Tasten",
+          "description": "Anzahl der Tasten am Griff (1 oder 2)."
+        },
+        "confirm": {
+          "name": "Bestätigen",
+          "description": "Muss aktiviert sein. Diese Aktion kann das Schwert bei einem Fehler unbrauchbar machen."
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "firmware_size": {
+      "message": "Diese Datei ({size} Bytes) sieht nicht nach Schwert-Firmware aus."
+    },
+    "battery_too_low": {
+      "message": "Akku bei {level} %: Lade das Schwert auf mindestens {minimum} %, bevor du die Firmware aktualisierst."
+    }
+  },
+  "selector": {
+    "blade_type": {
+      "options": {
+        "pixel": "Pixel",
+        "rgb": "RGB"
+      }
+    }
+  }
+}

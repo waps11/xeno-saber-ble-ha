@@ -94,21 +94,19 @@ the saber reports them.
 
 ## Actions
 
-Sound fonts, files on the saber's card, firmware and board configuration are
-handled by actions (*Developer tools → Actions*, or in scripts). Each takes
+Sound fonts, files on the saber's card and backups are handled by actions (*Developer tools → Actions*, or in scripts). Each takes
 the saber as a device (`device_id`): the picker shows the names you gave the
 devices.
 
 Only administrators can run the actions that read or write files on the Home
-Assistant host, change the saber's storage, or update its firmware or board
-configuration. `list_sound_fonts`, `list_sound_files` and `play_sound` are open
+Assistant host or change the saber's storage. `list_sound_fonts`, `list_sound_files` and `play_sound` are open
 to every user.
 
 Files on the Home Assistant host must be in a folder Home Assistant may read:
 `/media` works out of the box, other folders go in
 [`allowlist_external_dirs`](https://www.home-assistant.io/integrations/homeassistant/#allowlist_external_dirs).
-Transfers, firmware and board changes refuse to run while the blade is lit,
-like the app.
+Transfers refuse to run while the blade is lit, like the app. Writing or
+deleting the saber's firmware update files (`update.bin`…) is refused.
 
 | Action | What it does |
 |---|---|
@@ -123,15 +121,9 @@ like the app.
 | `xeno_saber_ble.play_sound` | Plays a file from the card, or stops |
 | `xeno_saber_ble.upload_file` / `download_file` | Copies a file to / from the card, for example `config.ini` to back up or restore the settings |
 | `xeno_saber_ble.copy_file` / `delete_file` | Copies or deletes a file on the card |
-| `xeno_saber_ble.update_firmware` | Sends a vendor `update.bin`; the saber installs it and reboots. Needs `confirm: true` and 30 % battery. |
-| `xeno_saber_ble.set_blade_firmware` | Switches between Pixel and RGB blade firmware, then reboots. Needs `confirm: true`. |
-| `xeno_saber_ble.set_hardware_type` | Sets how the board is wired and its button count, then reboots. The app warns this requires soldering. Needs `confirm: true`. |
 
-> [!CAUTION]
-> `update_firmware`, `set_blade_firmware` and `set_hardware_type` can leave the
-> saber unusable if the file, the type or the timing is wrong. A firmware newer
-> than the tested one may also stop this integration from working. Keep the
-> saber close to the adapter, charged, and out of use until it has restarted.
+Firmware updates and board configuration (Pixel/RGB, wiring, buttons) are not
+available: see *Known limitations*.
 
 Example, replacing font 3 and naming it:
 
@@ -391,10 +383,13 @@ reconnection, so a normal log is enough to see when the saber dropped out.
 - **Security**: the protocol has no real authentication (a static password
   shared by every saber). Anyone in BLE range can control the saber; this
   integration does not create that weakness, it documents it.
-- **Firmware update and board configuration** (`update_firmware`,
-  `set_blade_firmware`, `set_hardware_type`): implemented from the app's code
-  and tested against a simulated saber, not yet on a real one. File transfers,
-  sound fonts and backups are confirmed on a real saber.
+- **No firmware update or board configuration**: updating the firmware, and
+  switching the blade firmware (Pixel/RGB), the board wiring or the button
+  count, are held back until they have been tested on a real saber, since a
+  mistake there can leave it unusable. They are not part of the integration;
+  developers can build a test package that includes them (see *Experimental
+  features*). File transfers, sound fonts and backups are confirmed on a real
+  saber.
 - **Custom button and gesture mappings** (the app's function editor) have no
   editor in Home Assistant yet. Their file format is documented in section 8
   of [PROTOCOL.md](PROTOCOL.md). `backup_saber` and `restore_backup` save
@@ -442,6 +437,24 @@ instance. GitHub Actions runs them on the oldest supported Home Assistant
 Home Assistant's
 [Integration Quality Scale](https://developers.home-assistant.io/docs/core/integration-quality-scale/)
 is met (target: Platinum).
+
+## Experimental features
+
+Features that are not ready for users live in `experimental/<feature>/`,
+outside the integration folder, so neither HACS nor the releases ship them.
+To try one on your own Home Assistant, build a test package:
+
+```bash
+script/build --experimental board_actions          # dist/xeno_saber_ble-<version>-experimental.zip
+script/build --experimental board_actions --dir /config/custom_components   # or straight into a config folder
+```
+
+| Feature | What it adds | Status |
+|---|---|---|
+| `board_actions` | `update_firmware`, `set_blade_firmware`, `set_hardware_type` (administrators only, each needs `confirm: true`) | Tested against a simulated saber only. A wrong file, type or timing can leave the saber unusable. |
+
+`script/check` type-checks and validates the experimental build as well, and
+the tests cover it.
 
 ## Releases
 

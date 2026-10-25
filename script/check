@@ -29,11 +29,26 @@ if $lint; then
   echo "== mypy (strict)"
   mypy custom_components/xeno_saber_ble
 
+  # Experimental features are not in the integration folder: check them the
+  # way they would be built.
+  experimental=$(mktemp -d)
+  trap 'rm -rf "$experimental"' EXIT
+  features=()
+  for feature in experimental/*/; do
+    features+=(--experimental "$(basename "$feature")")
+  done
+  python3 script/build "${features[@]}" --dir "$experimental/custom_components" > /dev/null
+  echo "== mypy (strict), experimental build: ${features[*]}"
+  (cd "$experimental" && mypy --config-file "$OLDPWD/mypy.ini" custom_components/xeno_saber_ble)
+
   if [[ -n "${HA_CORE:-}" ]]; then
     echo "== hassfest"
     integration="$PWD/custom_components/xeno_saber_ble"
     (cd "$HA_CORE" && "${HA_CORE_PYTHON:-python3}" -m script.hassfest \
       --action validate --integration-path "$integration")
+    echo "== hassfest, experimental build"
+    (cd "$HA_CORE" && "${HA_CORE_PYTHON:-python3}" -m script.hassfest \
+      --action validate --integration-path "$experimental/custom_components/xeno_saber_ble")
   else
     echo "== hassfest skipped (set HA_CORE to run it)"
   fi
@@ -42,11 +57,11 @@ fi
 if $tests; then
   echo "== protocol, BLE client and translation tests"
   pytest tests/test_*.py -p no:homeassistant -q \
-    --cov=custom_components/xeno_saber_ble --cov-report=
+    --cov=custom_components/xeno_saber_ble --cov=experimental --cov-report=
 
   echo "== Home Assistant integration tests"
   pytest tests/ha -o asyncio_mode=auto -q \
-    --cov=custom_components/xeno_saber_ble --cov-append \
+    --cov=custom_components/xeno_saber_ble --cov=experimental --cov-append \
     --cov-report=term-missing:skip-covered --cov-fail-under="${COV_FAIL_UNDER:-95}"
 fi
 

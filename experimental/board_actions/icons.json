@@ -1,0 +1,13 @@
+{
+  "services": {
+    "update_firmware": {
+      "service": "mdi:update"
+    },
+    "set_blade_firmware": {
+      "service": "mdi:chip"
+    },
+    "set_hardware_type": {
+      "service": "mdi:expansion-card"
+    }
+  }
+}

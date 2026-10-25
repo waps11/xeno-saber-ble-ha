@@ -21,8 +21,8 @@ Only the latest release receives security fixes.
 In scope, this integration's code, for example:
 
 - an action reachable without the rights it should need (actions that touch
-  files on the Home Assistant host, the saber's storage, its firmware or its
-  board configuration are reserved to administrators);
+  files on the Home Assistant host or the saber's storage are reserved to
+  administrators);
 - reading or writing files outside the directories Home Assistant allows
   (`allowlist_external_dirs`, `/media`), including through a crafted `.zip`;
 - secrets or identifiers left in the diagnostics file;

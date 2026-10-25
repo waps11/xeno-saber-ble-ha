@@ -1,0 +1,78 @@
+{
+  "services": {
+    "update_firmware": {
+      "name": "Uppdatera firmware",
+      "description": "Skickar en firmwarefil (update.bin) till svärdet, som installerar den och startar om. En felaktig eller avbruten uppdatering kan göra svärdet obrukbart, och nyare firmware kanske inte fungerar med den här integrationen. Klingan måste vara släckt och batteriet minst 30 %.",
+      "fields": {
+        "device_id": {
+          "name": "Svärd",
+          "description": "Svärdet som ska användas."
+        },
+        "file": {
+          "name": "Fil",
+          "description": "Firmwarefil på Home Assistant-värden, från svärdets återförsäljare."
+        },
+        "confirm": {
+          "name": "Bekräfta",
+          "description": "Måste vara på. Den här åtgärden kan göra svärdet obrukbart om något går fel."
+        }
+      }
+    },
+    "set_blade_firmware": {
+      "name": "Ange klingans firmware",
+      "description": "Växlar svärdet mellan Pixel- och RGB-firmware för klingan och startar sedan om det. Klingan lyser bara rätt med den firmware som passar den.",
+      "fields": {
+        "device_id": {
+          "name": "Svärd",
+          "description": "Svärdet som ska användas."
+        },
+        "type": {
+          "name": "Typ",
+          "description": "Pixel för en neopixelklinga, RGB för en lysdiod i fästet."
+        },
+        "confirm": {
+          "name": "Bekräfta",
+          "description": "Måste vara på. Den här åtgärden kan göra svärdet obrukbart om något går fel."
+        }
+      }
+    },
+    "set_hardware_type": {
+      "name": "Ange hårdvarutyp",
+      "description": "Talar om för kortet hur det är kopplat (Pixel eller RGB) och hur många knappar det har, och startar sedan om det. Den officiella appen varnar för att byte av hårdvarutyp kräver lödning; ändra det bara om kortet har kopplats om.",
+      "fields": {
+        "device_id": {
+          "name": "Svärd",
+          "description": "Svärdet som ska användas."
+        },
+        "type": {
+          "name": "Typ",
+          "description": "Hur kortet är kopplat."
+        },
+        "buttons": {
+          "name": "Knappar",
+          "description": "Antal knappar på fästet (1 eller 2)."
+        },
+        "confirm": {
+          "name": "Bekräfta",
+          "description": "Måste vara på. Den här åtgärden kan göra svärdet obrukbart om något går fel."
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "firmware_size": {
+      "message": "Den här filen ({size} byte) ser inte ut som svärdsfirmware."
+    },
+    "battery_too_low": {
+      "message": "Batteriet på {level} %: ladda svärdet till minst {minimum} % innan du uppdaterar firmware."
+    }
+  },
+  "selector": {
+    "blade_type": {
+      "options": {
+        "pixel": "Pixel",
+        "rgb": "RGB"
+      }
+    }
+  }
+}

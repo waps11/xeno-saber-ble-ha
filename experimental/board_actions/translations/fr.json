@@ -1,0 +1,78 @@
+{
+  "services": {
+    "update_firmware": {
+      "name": "Mettre à jour le firmware",
+      "description": "Envoie un fichier de firmware (update.bin) au sabre, qui l'installe et redémarre. Une mise à jour erronée ou interrompue peut rendre le sabre inutilisable, et un firmware plus récent peut ne pas fonctionner avec cette intégration. La lame doit être éteinte et la batterie à au moins 30 %.",
+      "fields": {
+        "device_id": {
+          "name": "Sabre",
+          "description": "Le sabre à utiliser."
+        },
+        "file": {
+          "name": "Fichier",
+          "description": "Fichier de firmware sur l'hôte Home Assistant, fourni par le vendeur du sabre."
+        },
+        "confirm": {
+          "name": "Confirmer",
+          "description": "Doit être activé. Cette action peut rendre le sabre inutilisable si elle échoue."
+        }
+      }
+    },
+    "set_blade_firmware": {
+      "name": "Choisir le firmware de lame",
+      "description": "Fait passer le sabre du firmware de lame Pixel au firmware RGB, ou l'inverse, puis le redémarre. La lame ne s'allume correctement qu'avec le firmware qui lui correspond.",
+      "fields": {
+        "device_id": {
+          "name": "Sabre",
+          "description": "Le sabre à utiliser."
+        },
+        "type": {
+          "name": "Type",
+          "description": "Pixel pour une lame neopixel, RGB pour une LED dans la poignée."
+        },
+        "confirm": {
+          "name": "Confirmer",
+          "description": "Doit être activé. Cette action peut rendre le sabre inutilisable si elle échoue."
+        }
+      }
+    },
+    "set_hardware_type": {
+      "name": "Choisir le type de matériel",
+      "description": "Indique à la carte comment elle est câblée (Pixel ou RGB) et combien de boutons elle a, puis la redémarre. L'application officielle prévient que changer le type de matériel exige de souder ; ne le changez que si la carte a été recâblée.",
+      "fields": {
+        "device_id": {
+          "name": "Sabre",
+          "description": "Le sabre à utiliser."
+        },
+        "type": {
+          "name": "Type",
+          "description": "Câblage de la carte."
+        },
+        "buttons": {
+          "name": "Boutons",
+          "description": "Nombre de boutons sur la poignée (1 ou 2)."
+        },
+        "confirm": {
+          "name": "Confirmer",
+          "description": "Doit être activé. Cette action peut rendre le sabre inutilisable si elle échoue."
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "firmware_size": {
+      "message": "Ce fichier ({size} octets) ne ressemble pas à un firmware de sabre."
+    },
+    "battery_too_low": {
+      "message": "Batterie à {level} % : chargez le sabre à au moins {minimum} % avant de mettre à jour son firmware."
+    }
+  },
+  "selector": {
+    "blade_type": {
+      "options": {
+        "pixel": "Pixel",
+        "rgb": "RGB"
+      }
+    }
+  }
+}

@@ -244,15 +244,6 @@
     "rename_sound_font": {
       "service": "mdi:rename"
     },
-    "set_blade_firmware": {
-      "service": "mdi:chip"
-    },
-    "set_hardware_type": {
-      "service": "mdi:expansion-card"
-    },
-    "update_firmware": {
-      "service": "mdi:update"
-    },
     "upload_file": {
       "service": "mdi:file-upload"
     },

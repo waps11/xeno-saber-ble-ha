@@ -1,6 +1,7 @@
 # Lint and format settings following Home Assistant core's (pyproject.toml).
 target-version = "py313"  # Python of the oldest supported Home Assistant (2026.2)
 line-length = 100
+extend-include = ["script/build"]  # Python without a .py extension
 
 [lint]
 select = [

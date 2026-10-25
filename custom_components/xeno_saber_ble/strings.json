@@ -295,8 +295,8 @@
     "confirm_required": {
       "message": "This action can leave the saber unusable if it goes wrong. Set confirm to true to go ahead."
     },
-    "use_update_firmware": {
-      "message": "The saber installs {path} at its next start. Use the update_firmware action to send firmware."
+    "firmware_file_protected": {
+      "message": "{path} is the saber's firmware update file: writing or deleting it would change its firmware at the next start, so this integration refuses it."
     },
     "saber_refused": {
       "message": "The saber refused: {operation}"
@@ -309,12 +309,6 @@
     },
     "font_not_found": {
       "message": "The saber has no font folder {font} (it has: {available}). Use an existing folder to replace a font, or {next} to add a new one."
-    },
-    "firmware_size": {
-      "message": "This file ({size} bytes) does not look like saber firmware."
-    },
-    "battery_too_low": {
-      "message": "Battery at {level}%: charge the saber to at least {minimum}% before updating its firmware."
     },
     "bad_archive": {
       "message": "{path} cannot be used as a font: {error}"
@@ -617,72 +611,6 @@
           "name": "Confirm",
           "description": "Required to delete the settings file (config.ini or anything under /setting): without it the saber reports an error at start."
         }
-      }
-    },
-    "update_firmware": {
-      "name": "Update firmware",
-      "description": "Sends a firmware file (update.bin) to the saber, which installs it and restarts. A wrong or interrupted update can leave the saber unusable, and newer firmware may not work with this integration. The blade must be off and the battery at least 30%.",
-      "fields": {
-        "device_id": {
-          "name": "Saber",
-          "description": "The saber to use."
-        },
-        "file": {
-          "name": "File",
-          "description": "Firmware file on the Home Assistant host, from the saber's vendor."
-        },
-        "confirm": {
-          "name": "Confirm",
-          "description": "Must be on. This action can leave the saber unusable if it goes wrong."
-        }
-      }
-    },
-    "set_blade_firmware": {
-      "name": "Set blade firmware",
-      "description": "Switches the saber between Pixel and RGB blade firmware, then restarts it. The blade only lights correctly with the firmware that matches it.",
-      "fields": {
-        "device_id": {
-          "name": "Saber",
-          "description": "The saber to use."
-        },
-        "type": {
-          "name": "Type",
-          "description": "Pixel for a neopixel blade, RGB for an in-hilt LED."
-        },
-        "confirm": {
-          "name": "Confirm",
-          "description": "Must be on. This action can leave the saber unusable if it goes wrong."
-        }
-      }
-    },
-    "set_hardware_type": {
-      "name": "Set hardware type",
-      "description": "Tells the board how it is wired (Pixel or RGB) and how many buttons it has, then restarts it. The official app warns that changing the hardware type requires soldering; only change it if the board was rewired.",
-      "fields": {
-        "device_id": {
-          "name": "Saber",
-          "description": "The saber to use."
-        },
-        "type": {
-          "name": "Type",
-          "description": "How the board is wired."
-        },
-        "buttons": {
-          "name": "Buttons",
-          "description": "Number of buttons on the hilt (1 or 2)."
-        },
-        "confirm": {
-          "name": "Confirm",
-          "description": "Must be on. This action can leave the saber unusable if it goes wrong."
-        }
-      }
-    }
-  },
-  "selector": {
-    "blade_type": {
-      "options": {
-        "pixel": "Pixel",
-        "rgb": "RGB"
       }
     }
   }

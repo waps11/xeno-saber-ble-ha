@@ -125,9 +125,6 @@ async def test_all_actions_registered(hass: HomeAssistant, saber) -> None:
         "download_file",
         "copy_file",
         "delete_file",
-        "update_firmware",
-        "set_blade_firmware",
-        "set_hardware_type",
     }
 
 
@@ -221,7 +218,7 @@ async def test_upload_and_download_files(hass: HomeAssistant, saber) -> None:
     assert sim.files["config.ini"] == b"volume=10\nend=1\n" and result["bytes"] == 16
     await _expect_invalid(
         _call(hass, saber, "upload_file", source=str(new), destination="/update.bin"),
-        "use_update_firmware",
+        "firmware_file_protected",
     )
     await _expect_invalid(
         _call(hass, saber, "upload_file", source=str(tmp / "missing"), destination="x"),
@@ -259,7 +256,7 @@ async def test_file_system_actions(hass: HomeAssistant, saber) -> None:
     assert err.value.translation_key == "saber_refused"
     await _expect_invalid(
         _call(hass, saber, "copy_file", source="/1/hum (1).wav", destination="update.bin"),
-        "use_update_firmware",
+        "firmware_file_protected",
     )
 
     await _call(hass, saber, "delete_file", path="/2/hum (2).wav")
@@ -289,72 +286,6 @@ async def test_saber_errors_become_ha_errors(hass: HomeAssistant, saber) -> None
     with patch.object(dev, "REPLY_TIMEOUT", 0.01), pytest.raises(HomeAssistantError) as err:
         await _call(hass, saber, "list_sound_fonts")
     assert err.value.translation_key == "command_failed"
-
-
-async def test_update_firmware(hass: HomeAssistant, saber) -> None:
-    tmp, sim, fw = saber["tmp"], saber["sim"], saber["fw"]
-    image = tmp / "update.bin"
-    image.write_bytes(bytes(20000) + b"DMN_XENO_B_SV1.5.0" + bytes(100))
-
-    await _expect_invalid(
-        _call(hass, saber, "update_firmware", file=str(image), confirm=False), "confirm_required"
-    )
-    small = tmp / "small.bin"
-    small.write_bytes(b"tiny")
-    await _expect_invalid(
-        _call(hass, saber, "update_firmware", file=str(small), confirm=True), "firmware_size"
-    )
-    fw._push(DATA, [3, {"Power": 12}])
-    await hass.async_block_till_done()
-    await _expect_invalid(
-        _call(hass, saber, "update_firmware", file=str(image), confirm=True), "battery_too_low"
-    )
-    fw._push(DATA, [3, {"Power": 80}])
-    await hass.async_block_till_done()
-
-    result = await _call(hass, saber, "update_firmware", file=str(image), confirm=True)
-    assert sim.files["update.bin"] == image.read_bytes()
-    assert sim.headers[-1] == ("update.bin", image.stat().st_size, "")
-    import hashlib
-
-    assert result == {
-        "bytes": image.stat().st_size,
-        "sha256": hashlib.sha256(image.read_bytes()).hexdigest(),
-        "previous_version": "1.0",
-        "detected_version": "DMN_XENO_B_SV1.5.0",
-    }
-
-
-async def test_blade_firmware_and_hardware_type(hass: HomeAssistant, saber) -> None:
-    fw = saber["fw"]
-    await _expect_invalid(
-        _call(hass, saber, "set_blade_firmware", type="rgb", confirm=False), "confirm_required"
-    )
-    n = len(fw.writes)
-    assert await _call(hass, saber, "set_blade_firmware", type="rgb", confirm=True) == {
-        "type": "RGB",
-        "changed": True,
-    }
-    assert [w[1] for w in fw.writes[n:]] == [
-        b'[2,{"SoftwareType":"RGB"}]',
-        b'[2,{"Reset":true}]',
-    ]
-    n = len(fw.writes)
-    assert await _call(hass, saber, "set_blade_firmware", type="rgb", confirm=True) == {
-        "type": "RGB",
-        "changed": False,
-    }
-    assert len(fw.writes) == n
-
-    await _call(hass, saber, "set_hardware_type", type="pixel", buttons=2, confirm=True)
-    assert [w[1] for w in fw.writes[n:]] == [
-        b'[2,{"HardwareType":"Pixel"}]',
-        b'[2,{"ButtonNum":2}]',
-        b'[2,{"Reset":true}]',
-    ]
-    n = len(fw.writes)
-    await _call(hass, saber, "set_hardware_type", type="rgb", confirm=True)
-    assert [w[1] for w in fw.writes[n:]] == [b'[2,{"HardwareType":"RGB"}]', b'[2,{"Reset":true}]']
 
 
 async def test_unloaded_saber(hass: HomeAssistant, saber) -> None:
@@ -814,9 +745,6 @@ async def test_sensitive_actions_need_an_admin(
         "rename_sound_font": {"font": 1, "name": "x"},
         "delete_file": {"path": "/1/hum (1).wav"},
         "copy_file": {"source": "/1/hum (1).wav", "destination": "/2/hum (9).wav"},
-        "update_firmware": {"file": f"{tmp}/x", "confirm": True},
-        "set_blade_firmware": {"type": "rgb", "confirm": True},
-        "set_hardware_type": {"type": "rgb", "confirm": True},
     }
     assert set(valid) == set(svc.HANDLERS) - svc.PUBLIC_SERVICES
     before = dict(saber["sim"].files)
