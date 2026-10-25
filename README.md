@@ -461,8 +461,9 @@ To check that a downloaded zip was built from this repository:
 gh attestation verify xeno_saber_ble-0.1.2.zip --repo waps11/xeno-saber-ble-ha
 ```
 
-Changes are listed in [CHANGELOG.md](CHANGELOG.md). To report a security
-issue, see [SECURITY.md](SECURITY.md).
+Changes are listed in [CHANGELOG.md](CHANGELOG.md). To contribute, see
+[CONTRIBUTING.md](CONTRIBUTING.md); to report a security issue, see
+[SECURITY.md](SECURITY.md).
 
 ## Credits
 
