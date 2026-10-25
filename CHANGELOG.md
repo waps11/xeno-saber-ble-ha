@@ -5,6 +5,13 @@ All notable changes to Xeno Saber BLE are listed here. The project uses
 [release-please](https://github.com/googleapis/release-please) from
 [Conventional Commits](https://www.conventionalcommits.org/).
 
+## [0.2.1](https://github.com/waps11/xeno-saber-ble-ha/compare/v0.2.0...v0.2.1) (2026-10-25)
+
+
+### Project
+
+* publish a release only after its checks pass ([#8](https://github.com/waps11/xeno-saber-ble-ha/issues/8)) ([ffb39c5](https://github.com/waps11/xeno-saber-ble-ha/commit/ffb39c51699f5e5c0848950fadcb6dc7d06edd1c))
+
 ## [0.2.0](https://github.com/waps11/xeno-saber-ble-ha/compare/v0.1.2...v0.2.0) (2026-10-25)
 
 
