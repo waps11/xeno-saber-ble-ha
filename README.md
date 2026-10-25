@@ -151,12 +151,29 @@ uses the card instead.
 
 ## Installation
 
-1. Copy `custom_components/xeno_saber_ble/` into the `custom_components/`
-   folder of your HA config (or add this repository as a HACS custom repository).
+### With HACS (recommended)
+
+1. In HACS (or *Settings → Marketplace* from Home Assistant 2026.11), search
+   for **Xeno Saber BLE** and download it.
 2. Restart Home Assistant.
-3. **Close the Xeno Configurator app** on your phone: the saber only accepts
+
+HACS then offers each new release as an update. Until the integration appears
+in the search, add `https://github.com/waps11/xeno-saber-ble-ha` as a custom
+repository (*HACS → ⋮ → Custom repositories*, type *Integration*) first.
+
+### Manually
+
+Download `xeno_saber_ble-<version>.zip` from the
+[latest release](https://github.com/waps11/xeno-saber-ble-ha/releases/latest),
+unzip it into the `custom_components/` folder of your Home Assistant
+configuration (you get `custom_components/xeno_saber_ble/`), and restart Home
+Assistant. Updates are manual too.
+
+### Adding the saber
+
+1. **Close the Xeno Configurator app** on your phone: the saber only accepts
    one BLE connection at a time.
-4. Wake the saber (hold the button ~2 s). HA discovers it automatically;
+2. Wake the saber (hold the button ~2 s). HA discovers it automatically;
    otherwise go to *Settings → Devices & services → Add integration →
    Xeno Saber BLE*.
 
