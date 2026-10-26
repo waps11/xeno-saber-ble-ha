@@ -5,6 +5,17 @@ All notable changes to Xeno Saber BLE are listed here. The project uses
 [release-please](https://github.com/googleapis/release-please) from
 [Conventional Commits](https://www.conventionalcommits.org/).
 
+## [0.3.0](https://github.com/waps11/xeno-saber-ble-ha/compare/v0.2.1...v0.3.0) (2026-10-26)
+
+
+### ⚠ BREAKING CHANGES
+
+* **services:** hold back writes to the saber's settings until tested on a saber ([#10](https://github.com/waps11/xeno-saber-ble-ha/issues/10))
+
+### Fixed
+
+* **services:** hold back writes to the saber's settings until tested on a saber ([#10](https://github.com/waps11/xeno-saber-ble-ha/issues/10)) ([d91bba6](https://github.com/waps11/xeno-saber-ble-ha/commit/d91bba66a881c81ebd423ee65f0f216b3d00d9d4))
+
 ## [0.2.1](https://github.com/waps11/xeno-saber-ble-ha/compare/v0.2.0...v0.2.1) (2026-10-25)
 
 
