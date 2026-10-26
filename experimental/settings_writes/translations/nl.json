@@ -1,0 +1,72 @@
+{
+  "services": {
+    "copy_sound_font": {
+      "name": "Soundfont kopiëren",
+      "description": "Kopieert een fontmap over een andere op de kaart van het zwaard. Het zwaard kopieert de bestanden zelf, dus het gaat snel. De kling moet uit zijn.",
+      "fields": {
+        "device_id": {
+          "name": "Zwaard",
+          "description": "Het te gebruiken zwaard."
+        },
+        "source_font": {
+          "name": "Bronfont",
+          "description": "Fontmap waaruit gekopieerd wordt."
+        },
+        "destination_font": {
+          "name": "Doelfont",
+          "description": "Fontmap die vervangen wordt."
+        },
+        "name": {
+          "name": "Naam",
+          "description": "Naam van de kopie; standaard die van het bronfont."
+        },
+        "replace": {
+          "name": "Vervangen",
+          "description": "Bestanden van het doelfont verwijderen die de kopie niet overschrijft."
+        }
+      }
+    },
+    "upload_file": {
+      "description": "Stuurt een bestand naar de kaart van het zwaard, bijvoorbeeld config.ini om de instellingen terug te zetten. De kling moet uit zijn.",
+      "fields": {
+        "destination": {
+          "name": "Bestemming",
+          "description": "Pad op het zwaard, bijvoorbeeld /3/hum (1).wav."
+        }
+      }
+    },
+    "delete_file": {
+      "description": "Verwijdert een bestand van de kaart van het zwaard. Dit kan niet ongedaan worden gemaakt.",
+      "fields": {
+        "confirm": {
+          "name": "Bevestigen",
+          "description": "Vereist om het instellingenbestand te verwijderen (config.ini of alles onder /setting): zonder dat meldt het zwaard een fout bij het opstarten."
+        }
+      }
+    },
+    "copy_file": {
+      "description": "Kopieert een bestand van de ene plek op de kaart van het zwaard naar een andere."
+    },
+    "restore_backup": {
+      "description": "Zet een back-up gemaakt met Back-up van zwaard maken (of een zip van een Xeno-SD-kaart) terug op het zwaard: de fonts en hun namen, daarna config.ini en de eigen knoptoewijzing. Fonts op het zwaard worden vervangen; ontbrekende worden aangemaakt als het de volgende vrije mappen zijn. Systeemgeluiden worden alleen op verzoek geschreven. Via Bluetooth duurt een volledige terugzetting uren; het zwaard moet uit staan.",
+      "fields": {
+        "include_settings": {
+          "name": "Instellingen",
+          "description": "config.ini en de eigen knoptoewijzing terugzetten. Geweigerd als de back-up van een bord met een andere hardwareversie komt."
+        },
+        "include_system_sounds": {
+          "name": "Systeemgeluiden",
+          "description": "Ook de gesproken meldingen en menugeluiden van de map setting terugzetten. Alleen nodig als ze gewijzigd of verloren zijn."
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "same_font": {
+      "message": "Bron en bestemming zijn hetzelfde font ({font})."
+    },
+    "backup_other_saber": {
+      "message": "De back-up komt van een bord met hardwareversie {backup}, dit zwaard is {saber}. De instellingen worden niet op een ander bord teruggezet; zet Instellingen uit om alleen de fonts terug te zetten."
+    }
+  }
+}

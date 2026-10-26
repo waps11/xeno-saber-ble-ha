@@ -316,20 +316,17 @@
     "font_empty": {
       "message": "Font {font} hat keine Sounddateien."
     },
-    "same_font": {
-      "message": "Quelle und Ziel sind derselbe Font ({font})."
-    },
     "not_enough_space": {
       "message": "Nicht genug Platz auf dem Schwert: Der Font braucht etwa {needed} MB, frei sind {free} MB. Lösche zuerst den alten Font (delete_first, nachdem du ihn exportiert hast) oder nimm einen kleineren Font."
     },
     "font_not_in_backup": {
       "message": "Font {font} ist nicht in der Sicherung (enthalten: {available})."
     },
-    "backup_other_saber": {
-      "message": "Die Sicherung stammt von einer Platine mit Hardwareversion {backup}, dieses Schwert hat {saber}. Ihre Einstellungen werden nicht auf eine andere Platine übertragen; deaktiviere Einstellungen, um nur die Fonts wiederherzustellen."
-    },
     "device_not_saber": {
       "message": "Gerät {device_id} ist kein Xeno-Schwert."
+    },
+    "settings_write_held_back": {
+      "message": "{path} gehört zu den Einstellungen des Schwerts. Sie zu ändern oder zu löschen ist in dieser Version nicht verfügbar: Es wurde nicht an einem echten Schwert getestet."
     }
   },
   "issues": {
@@ -423,7 +420,7 @@
     },
     "restore_backup": {
       "name": "Sicherung wiederherstellen",
-      "description": "Schreibt eine mit „Schwert sichern“ erstellte Sicherung (oder ein Zip einer Xeno-SD-Karte) zurück auf das Schwert: die Fonts und ihre Namen, danach config.ini und die eigene Tastenbelegung. Fonts auf dem Schwert werden ersetzt; fehlende werden angelegt, wenn es die nächsten freien Ordner sind. Systemklänge werden nur auf Wunsch geschrieben. Über Bluetooth dauert eine vollständige Wiederherstellung Stunden; die Klinge muss aus sein.",
+      "description": "Schreibt die Fonts einer mit „Schwert sichern“ erstellten Sicherung (oder eines Zips einer Xeno-SD-Karte) mit ihren Namen zurück auf das Schwert. Fonts auf dem Schwert werden ersetzt; fehlende werden angelegt, wenn es die nächsten freien Ordner sind. Die Einstellungen und Sprachansagen der Sicherung werden nicht geschrieben. Über Bluetooth dauert eine große Wiederherstellung Stunden; die Klinge muss aus sein.",
       "fields": {
         "device_id": {
           "name": "Schwert",
@@ -437,14 +434,6 @@
           "name": "Fonts",
           "description": "Wiederherzustellende Font-Ordner der Sicherung; alle, wenn leer."
         },
-        "include_settings": {
-          "name": "Einstellungen",
-          "description": "config.ini und die eigene Tastenbelegung wiederherstellen. Abgelehnt, wenn die Sicherung von einer Platine mit anderer Hardwareversion stammt."
-        },
-        "include_system_sounds": {
-          "name": "Systemklänge",
-          "description": "Auch die Sprachansagen und Menüklänge des Ordners setting wiederherstellen. Nur nötig, wenn sie geändert wurden oder verloren gingen."
-        },
         "dry_run": {
           "name": "Probelauf",
           "description": "Nur die Sicherung prüfen und zurückgeben, was geschrieben würde."
@@ -452,32 +441,6 @@
         "confirm": {
           "name": "Bestätigen",
           "description": "Erforderlich: die wiederhergestellten Fonts ersetzen die auf dem Schwert."
-        }
-      }
-    },
-    "copy_sound_font": {
-      "name": "Soundfont kopieren",
-      "description": "Kopiert einen Font-Ordner über einen anderen auf der Karte des Schwerts. Das Schwert kopiert die Dateien selbst, daher geht es schnell. Die Klinge muss aus sein.",
-      "fields": {
-        "device_id": {
-          "name": "Schwert",
-          "description": "Das zu verwendende Schwert."
-        },
-        "source_font": {
-          "name": "Quell-Font",
-          "description": "Font-Ordner, aus dem kopiert wird."
-        },
-        "destination_font": {
-          "name": "Ziel-Font",
-          "description": "Zu ersetzender Font-Ordner."
-        },
-        "name": {
-          "name": "Name",
-          "description": "Name der Kopie; standardmäßig der Name des Quell-Fonts."
-        },
-        "replace": {
-          "name": "Ersetzen",
-          "description": "Dateien des Ziel-Fonts löschen, die die Kopie nicht überschreibt."
         }
       }
     },
@@ -539,7 +502,7 @@
     },
     "upload_file": {
       "name": "Datei hochladen",
-      "description": "Sendet eine Datei auf die Karte des Schwerts, zum Beispiel config.ini, um seine Einstellungen wiederherzustellen. Die Klinge muss aus sein.",
+      "description": "Sendet eine Datei auf die Karte des Schwerts, zum Beispiel eine Sounddatei. Die Einstellungen des Schwerts (config.ini und der Ordner setting) können nicht geschrieben werden. Die Klinge muss aus sein.",
       "fields": {
         "device_id": {
           "name": "Schwert",
@@ -551,7 +514,7 @@
         },
         "destination": {
           "name": "Ziel",
-          "description": "Pfad auf dem Schwert: config.ini für die Einstellungsdatei oder /3/hum (1).wav."
+          "description": "Pfad auf dem Schwert, zum Beispiel /3/hum (1).wav."
         }
       }
     },
@@ -579,7 +542,7 @@
     },
     "copy_file": {
       "name": "Datei kopieren",
-      "description": "Kopiert eine Datei von einer Stelle der Karte des Schwerts an eine andere.",
+      "description": "Kopiert eine Datei auf der Karte des Schwerts an einen anderen Ort. Die Einstellungen des Schwerts (config.ini und der Ordner setting) können nicht überschrieben werden.",
       "fields": {
         "device_id": {
           "name": "Schwert",
@@ -597,7 +560,7 @@
     },
     "delete_file": {
       "name": "Datei löschen",
-      "description": "Löscht eine Datei von der Karte des Schwerts. Kann nicht rückgängig gemacht werden.",
+      "description": "Löscht eine Datei von der Karte des Schwerts. Das lässt sich nicht rückgängig machen. Die Einstellungen des Schwerts (config.ini und der Ordner setting) können nicht gelöscht werden.",
       "fields": {
         "device_id": {
           "name": "Schwert",
@@ -606,10 +569,6 @@
         "path": {
           "name": "Pfad",
           "description": "Datei auf dem Schwert, zum Beispiel /3/clash (9).wav."
-        },
-        "confirm": {
-          "name": "Bestätigen",
-          "description": "Erforderlich, um die Einstellungsdatei zu löschen (config.ini oder alles unter /setting): Ohne sie meldet das Schwert beim Start einen Fehler."
         }
       }
     }

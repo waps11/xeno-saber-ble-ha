@@ -316,20 +316,17 @@
     "font_empty": {
       "message": "Font {font} has no sound files."
     },
-    "same_font": {
-      "message": "The source and destination are the same font ({font})."
-    },
     "not_enough_space": {
       "message": "Not enough space on the saber: the font needs about {needed} MB and {free} MB are free. Delete the old font first (delete_first, after exporting it) or use a smaller font."
     },
     "font_not_in_backup": {
       "message": "Font {font} is not in the backup (it has: {available})."
     },
-    "backup_other_saber": {
-      "message": "The backup comes from a board with hardware version {backup}, this saber is {saber}. Its settings are not restored onto another board; turn off Settings to restore only the fonts."
-    },
     "device_not_saber": {
       "message": "Device {device_id} is not a Xeno saber."
+    },
+    "settings_write_held_back": {
+      "message": "{path} is part of the saber's settings. Changing or deleting them is not available in this release: it has not been tested on a real saber."
     }
   },
   "issues": {
@@ -423,7 +420,7 @@
     },
     "restore_backup": {
       "name": "Restore backup",
-      "description": "Writes a backup made by Back up saber (or a zip of a Xeno SD card) back to the saber: the fonts and their names, then config.ini and the custom button mapping. Fonts on the saber are replaced; missing ones are created if they are the next free folders. System sounds are only written on request. Over Bluetooth a full restore takes hours; the blade must be off.",
+      "description": "Writes the fonts of a backup made by Back up saber (or a zip of a Xeno SD card) back to the saber, with their names. Fonts on the saber are replaced; missing ones are created if they are the next free folders. The settings and voice prompts in the backup are not written. Over Bluetooth a large restore takes hours; the blade must be off.",
       "fields": {
         "device_id": {
           "name": "Saber",
@@ -437,14 +434,6 @@
           "name": "Fonts",
           "description": "Font folders of the backup to restore; all of them if empty."
         },
-        "include_settings": {
-          "name": "Settings",
-          "description": "Restore config.ini and the custom button mapping. Refused if the backup comes from a board with another hardware version."
-        },
-        "include_system_sounds": {
-          "name": "System sounds",
-          "description": "Also restore the voice prompts and menu sounds of the setting folder. Only needed if they were changed or lost."
-        },
         "dry_run": {
           "name": "Dry run",
           "description": "Only check the backup and return what would be written."
@@ -452,32 +441,6 @@
         "confirm": {
           "name": "Confirm",
           "description": "Required: the fonts restored replace the ones on the saber."
-        }
-      }
-    },
-    "copy_sound_font": {
-      "name": "Copy sound font",
-      "description": "Copies one font folder over another on the saber's card. The saber copies the files itself, so this is quick. The blade must be off.",
-      "fields": {
-        "device_id": {
-          "name": "Saber",
-          "description": "The saber to use."
-        },
-        "source_font": {
-          "name": "Source font",
-          "description": "Font folder to copy from."
-        },
-        "destination_font": {
-          "name": "Destination font",
-          "description": "Font folder to replace."
-        },
-        "name": {
-          "name": "Name",
-          "description": "Name for the copy; by default, the source font's name."
-        },
-        "replace": {
-          "name": "Replace",
-          "description": "Delete the destination font's files that the copy does not overwrite."
         }
       }
     },
@@ -539,7 +502,7 @@
     },
     "upload_file": {
       "name": "Upload file",
-      "description": "Sends a file to the saber's card, for example config.ini to restore its settings. The blade must be off.",
+      "description": "Sends a file to the saber's card, for example a sound file. The saber's settings (config.ini and the setting folder) cannot be written. The blade must be off.",
       "fields": {
         "device_id": {
           "name": "Saber",
@@ -551,7 +514,7 @@
         },
         "destination": {
           "name": "Destination",
-          "description": "Path on the saber: config.ini for the settings file, or /3/hum (1).wav."
+          "description": "Path on the saber, for example /3/hum (1).wav."
         }
       }
     },
@@ -579,7 +542,7 @@
     },
     "copy_file": {
       "name": "Copy file",
-      "description": "Copies a file from one place on the saber's card to another.",
+      "description": "Copies a file from one place on the saber's card to another. The saber's settings (config.ini and the setting folder) cannot be overwritten.",
       "fields": {
         "device_id": {
           "name": "Saber",
@@ -597,7 +560,7 @@
     },
     "delete_file": {
       "name": "Delete file",
-      "description": "Deletes a file from the saber's card. There is no undo.",
+      "description": "Deletes a file from the saber's card. There is no undo. The saber's settings (config.ini and the setting folder) cannot be deleted.",
       "fields": {
         "device_id": {
           "name": "Saber",
@@ -606,10 +569,6 @@
         "path": {
           "name": "Path",
           "description": "File on the saber, for example /3/clash (9).wav."
-        },
-        "confirm": {
-          "name": "Confirm",
-          "description": "Required to delete the settings file (config.ini or anything under /setting): without it the saber reports an error at start."
         }
       }
     }

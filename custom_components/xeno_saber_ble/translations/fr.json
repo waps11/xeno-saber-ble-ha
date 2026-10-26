@@ -316,20 +316,17 @@
     "font_empty": {
       "message": "La font {font} n'a aucun fichier son."
     },
-    "same_font": {
-      "message": "La source et la destination sont la même font ({font})."
-    },
     "not_enough_space": {
       "message": "Pas assez d'espace sur le sabre : la font demande environ {needed} Mo et il en reste {free} Mo. Supprimez d'abord l'ancienne font (delete_first, après l'avoir exportée) ou utilisez une font plus petite."
     },
     "font_not_in_backup": {
       "message": "La font {font} n'est pas dans la sauvegarde (elle contient : {available})."
     },
-    "backup_other_saber": {
-      "message": "La sauvegarde vient d'une carte de version matérielle {backup}, ce sabre est {saber}. Ses paramètres ne sont pas restaurés sur une autre carte; désactivez Paramètres pour ne restaurer que les fonts."
-    },
     "device_not_saber": {
       "message": "L'appareil {device_id} n'est pas un sabre Xeno."
+    },
+    "settings_write_held_back": {
+      "message": "{path} fait partie des paramètres du sabre. Les modifier ou les supprimer n'est pas disponible dans cette version : ce n'a pas été testé sur un vrai sabre."
     }
   },
   "issues": {
@@ -423,7 +420,7 @@
     },
     "restore_backup": {
       "name": "Restaurer une sauvegarde",
-      "description": "Réécrit sur le sabre une sauvegarde faite par Sauvegarder le sabre (ou le zip d'une carte SD Xeno) : les fonts et leurs noms, puis config.ini et l'assignation personnalisée des boutons. Les fonts du sabre sont remplacées; celles qui manquent sont créées si ce sont les prochains dossiers libres. Les sons système ne sont écrits que sur demande. Par Bluetooth, une restauration complète prend des heures; la lame doit être éteinte.",
+      "description": "Réécrit sur le sabre les fonts d'une sauvegarde faite par Sauvegarder le sabre (ou le zip d'une carte SD Xeno), avec leurs noms. Les fonts du sabre sont remplacées; celles qui manquent sont créées si ce sont les prochains dossiers libres. Les paramètres et les messages vocaux de la sauvegarde ne sont pas écrits. Par Bluetooth, une grosse restauration prend des heures; la lame doit être éteinte.",
       "fields": {
         "device_id": {
           "name": "Sabre",
@@ -437,14 +434,6 @@
           "name": "Fonts",
           "description": "Dossiers de font de la sauvegarde à restaurer; tous si vide."
         },
-        "include_settings": {
-          "name": "Paramètres",
-          "description": "Restaurer config.ini et l'assignation personnalisée des boutons. Refusé si la sauvegarde vient d'une carte d'une autre version matérielle."
-        },
-        "include_system_sounds": {
-          "name": "Sons système",
-          "description": "Restaurer aussi les messages vocaux et les sons de menu du dossier setting. Utile seulement s'ils ont été modifiés ou perdus."
-        },
         "dry_run": {
           "name": "Simulation",
           "description": "Vérifier la sauvegarde et indiquer ce qui serait écrit, sans rien écrire."
@@ -452,32 +441,6 @@
         "confirm": {
           "name": "Confirmer",
           "description": "Obligatoire : les fonts restaurées remplacent celles du sabre."
-        }
-      }
-    },
-    "copy_sound_font": {
-      "name": "Copier une font sonore",
-      "description": "Copie un dossier de font par-dessus un autre sur la carte du sabre. Le sabre copie lui-même les fichiers, c'est donc rapide. La lame doit être éteinte.",
-      "fields": {
-        "device_id": {
-          "name": "Sabre",
-          "description": "Le sabre à utiliser."
-        },
-        "source_font": {
-          "name": "Font source",
-          "description": "Dossier de font à copier."
-        },
-        "destination_font": {
-          "name": "Font de destination",
-          "description": "Dossier de font à remplacer."
-        },
-        "name": {
-          "name": "Nom",
-          "description": "Nom de la copie ; par défaut, celui de la font source."
-        },
-        "replace": {
-          "name": "Remplacer",
-          "description": "Supprimer les fichiers de la font de destination que la copie n'écrase pas."
         }
       }
     },
@@ -539,7 +502,7 @@
     },
     "upload_file": {
       "name": "Envoyer un fichier",
-      "description": "Envoie un fichier sur la carte du sabre, par exemple config.ini pour restaurer ses réglages. La lame doit être éteinte.",
+      "description": "Envoie un fichier sur la carte du sabre, par exemple un fichier son. Les paramètres du sabre (config.ini et le dossier setting) ne peuvent pas être écrits. La lame doit être éteinte.",
       "fields": {
         "device_id": {
           "name": "Sabre",
@@ -551,7 +514,7 @@
         },
         "destination": {
           "name": "Destination",
-          "description": "Chemin sur le sabre : config.ini pour le fichier de réglages, ou /3/hum (1).wav."
+          "description": "Chemin sur le sabre, par exemple /3/hum (1).wav."
         }
       }
     },
@@ -579,7 +542,7 @@
     },
     "copy_file": {
       "name": "Copier un fichier",
-      "description": "Copie un fichier d'un emplacement à un autre sur la carte du sabre.",
+      "description": "Copie un fichier d'un emplacement à un autre sur la carte du sabre. Les paramètres du sabre (config.ini et le dossier setting) ne peuvent pas être remplacés.",
       "fields": {
         "device_id": {
           "name": "Sabre",
@@ -597,7 +560,7 @@
     },
     "delete_file": {
       "name": "Supprimer un fichier",
-      "description": "Supprime un fichier de la carte du sabre. Impossible d'annuler.",
+      "description": "Supprime un fichier de la carte du sabre. Aucune annulation possible. Les paramètres du sabre (config.ini et le dossier setting) ne peuvent pas être supprimés.",
       "fields": {
         "device_id": {
           "name": "Sabre",
@@ -606,10 +569,6 @@
         "path": {
           "name": "Chemin",
           "description": "Fichier sur le sabre, par exemple /3/clash (9).wav."
-        },
-        "confirm": {
-          "name": "Confirmer",
-          "description": "Requis pour supprimer le fichier de réglages (config.ini ou tout ce qui est sous /setting) : sans lui, le sabre signale une erreur au démarrage."
         }
       }
     }

@@ -1,0 +1,72 @@
+{
+  "services": {
+    "copy_sound_font": {
+      "name": "Copiar fuente de sonido",
+      "description": "Copia una carpeta de fuente sobre otra en la tarjeta del sable. El sable copia los archivos por sí mismo, así que es rápido. La hoja debe estar apagada.",
+      "fields": {
+        "device_id": {
+          "name": "Sable",
+          "description": "El sable que se usa."
+        },
+        "source_font": {
+          "name": "Fuente de origen",
+          "description": "Carpeta de fuente que se copia."
+        },
+        "destination_font": {
+          "name": "Fuente de destino",
+          "description": "Carpeta de fuente que se reemplaza."
+        },
+        "name": {
+          "name": "Nombre",
+          "description": "Nombre de la copia; por defecto, el de la fuente de origen."
+        },
+        "replace": {
+          "name": "Reemplazar",
+          "description": "Borrar los archivos de la fuente de destino que la copia no sobrescribe."
+        }
+      }
+    },
+    "upload_file": {
+      "description": "Envía un archivo a la tarjeta del sable, por ejemplo config.ini para restaurar sus ajustes. La hoja debe estar apagada.",
+      "fields": {
+        "destination": {
+          "name": "Destino",
+          "description": "Ruta en el sable, por ejemplo /3/hum (1).wav."
+        }
+      }
+    },
+    "delete_file": {
+      "description": "Borra un archivo de la tarjeta del sable. No se puede deshacer.",
+      "fields": {
+        "confirm": {
+          "name": "Confirmar",
+          "description": "Necesario para borrar el archivo de ajustes (config.ini o cualquier cosa en /setting): sin él, el sable indica un error al arrancar."
+        }
+      }
+    },
+    "copy_file": {
+      "description": "Copia un archivo de un lugar de la tarjeta del sable a otro."
+    },
+    "restore_backup": {
+      "description": "Vuelve a escribir en el sable una copia hecha con Copia de seguridad del sable (o el zip de una tarjeta SD Xeno): las fuentes y sus nombres, y después config.ini y la asignación personalizada de botones. Las fuentes del sable se reemplazan; las que faltan se crean si son las siguientes carpetas libres. Los sonidos del sistema solo se escriben si se pide. Por Bluetooth una restauración completa tarda horas; la hoja debe estar apagada.",
+      "fields": {
+        "include_settings": {
+          "name": "Ajustes",
+          "description": "Restaurar config.ini y la asignación personalizada de botones. Se rechaza si la copia viene de una placa con otra versión de hardware."
+        },
+        "include_system_sounds": {
+          "name": "Sonidos del sistema",
+          "description": "Restaurar también los avisos de voz y sonidos de menú de la carpeta setting. Solo hace falta si se cambiaron o perdieron."
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "same_font": {
+      "message": "El origen y el destino son la misma fuente ({font})."
+    },
+    "backup_other_saber": {
+      "message": "La copia viene de una placa con versión de hardware {backup}, este sable es {saber}. Sus ajustes no se restauran en otra placa; desactiva Ajustes para restaurar solo las fuentes."
+    }
+  }
+}

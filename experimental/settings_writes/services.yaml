@@ -1,0 +1,50 @@
+# Merged into services.yaml by script/build --experimental settings_writes.
+restore_backup:
+  fields:
+    include_settings:
+      default: true
+      selector:
+        boolean:
+    include_system_sounds:
+      default: false
+      selector:
+        boolean:
+
+delete_file:
+  fields:
+    confirm:
+      default: false
+      selector:
+        boolean:
+
+copy_sound_font:
+  fields:
+    device_id:
+      required: true
+      selector:
+        device:
+          integration: xeno_saber_ble
+    source_font:
+      required: true
+      example: 3
+      selector:
+        number:
+          min: 1
+          max: 99
+          mode: box
+    destination_font:
+      required: true
+      example: 5
+      selector:
+        number:
+          min: 1
+          max: 99
+          mode: box
+    name:
+      example: Kyber Workshop
+      selector:
+        text:
+    replace:
+      default: true
+      selector:
+        boolean:

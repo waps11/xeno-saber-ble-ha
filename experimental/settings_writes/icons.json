@@ -1,0 +1,7 @@
+{
+  "services": {
+    "copy_sound_font": {
+      "service": "mdi:content-copy"
+    }
+  }
+}

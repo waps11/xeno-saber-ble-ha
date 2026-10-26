@@ -10,8 +10,9 @@
 Experimental features live in experimental/<feature>/ and are never part of
 the repository's integration folder, which is what HACS installs and what
 releases are built from. A feature folder may hold Python modules (copied into
-the integration), a services.yaml fragment (appended), and strings.json,
-translations/*.json and icons.json fragments (merged).
+the integration) and services.yaml, strings.json, translations/*.json and
+icons.json fragments, deep-merged into the integration's files: new actions,
+fields and texts are added, and texts the feature changes are replaced.
 """
 
 from __future__ import annotations
@@ -31,20 +32,31 @@ EXPERIMENTAL = ROOT / "experimental"
 JSON_FRAGMENTS = ("strings.json", "icons.json")
 
 
-def _merge(base: dict, extra: dict, where: str) -> None:
+def _merge(base: dict, extra: dict) -> None:
+    """Deep-merge a fragment: new keys are added, existing texts replaced."""
     for key, value in extra.items():
         if isinstance(value, dict) and isinstance(base.get(key), dict):
-            _merge(base[key], value, f"{where}.{key}")
-        elif key in base:
-            sys.exit(f"{where}.{key} is already defined in the integration")
+            _merge(base[key], value)
         else:
             base[key] = value
 
 
 def _merge_json(target: Path, fragment: Path) -> None:
     data = json.loads(target.read_text(encoding="utf-8"))
-    _merge(data, json.loads(fragment.read_text(encoding="utf-8")), target.name)
+    _merge(data, json.loads(fragment.read_text(encoding="utf-8")))
     target.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+
+
+def _merge_yaml(target: Path, fragment: Path) -> None:
+    try:
+        import yaml  # noqa: PLC0415 - only experimental builds need it
+    except ImportError:
+        sys.exit("experimental builds need PyYAML: pip install pyyaml")
+    data = yaml.safe_load(target.read_text(encoding="utf-8"))
+    _merge(data, yaml.safe_load(fragment.read_text(encoding="utf-8")))
+    target.write_text(
+        yaml.safe_dump(data, sort_keys=False, allow_unicode=True, width=100), encoding="utf-8"
+    )
 
 
 def add_feature(package: Path, feature: str) -> None:
@@ -57,8 +69,7 @@ def add_feature(package: Path, feature: str) -> None:
             sys.exit(f"{module.name} already exists in the integration")
         shutil.copy2(module, package / module.name)
     if (fragment := source / "services.yaml").exists():
-        with (package / "services.yaml").open("a", encoding="utf-8") as out:
-            out.write("\n" + fragment.read_text(encoding="utf-8"))
+        _merge_yaml(package / "services.yaml", fragment)
     for name in JSON_FRAGMENTS:
         if (fragment := source / name).exists():
             _merge_json(package / name, fragment)

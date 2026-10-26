@@ -84,14 +84,6 @@ restore_backup:
       selector:
         text:
           multiple: true
-    include_settings:
-      default: true
-      selector:
-        boolean:
-    include_system_sounds:
-      default: false
-      selector:
-        boolean:
     dry_run:
       default: false
       selector:
@@ -101,33 +93,6 @@ restore_backup:
       selector:
         boolean:
 
-copy_sound_font:
-  fields:
-    device_id: *device
-    source_font:
-      required: true
-      example: 3
-      selector:
-        number:
-          min: 1
-          max: 99
-          mode: box
-    destination_font:
-      required: true
-      example: 5
-      selector:
-        number:
-          min: 1
-          max: 99
-          mode: box
-    name:
-      example: Kyber Workshop
-      selector:
-        text:
-    replace:
-      default: true
-      selector:
-        boolean:
 
 list_sound_fonts:
   fields:
@@ -161,12 +126,12 @@ upload_file:
     device_id: *device
     source:
       required: true
-      example: /media/saber/config.ini
+      example: /media/saber/hum.wav
       selector:
         text:
     destination:
       required: true
-      example: config.ini
+      example: /3/hum (1).wav
       selector:
         text:
 
@@ -210,7 +175,3 @@ delete_file:
       example: /3/clash (9).wav
       selector:
         text:
-    confirm:
-      default: false
-      selector:
-        boolean:

@@ -1,0 +1,72 @@
+{
+  "services": {
+    "copy_sound_font": {
+      "name": "Kopiera ljudfont",
+      "description": "Kopierar en fontmapp över en annan på svärdets kort. Svärdet kopierar filerna själv, så det går snabbt. Klingan måste vara släckt.",
+      "fields": {
+        "device_id": {
+          "name": "Svärd",
+          "description": "Svärdet som ska användas."
+        },
+        "source_font": {
+          "name": "Källfont",
+          "description": "Fontmapp att kopiera från."
+        },
+        "destination_font": {
+          "name": "Målfont",
+          "description": "Fontmapp som ersätts."
+        },
+        "name": {
+          "name": "Namn",
+          "description": "Namn på kopian; som standard källfontens namn."
+        },
+        "replace": {
+          "name": "Ersätt",
+          "description": "Ta bort filer i målfonten som kopian inte skriver över."
+        }
+      }
+    },
+    "upload_file": {
+      "description": "Skickar en fil till svärdets kort, till exempel config.ini för att återställa dess inställningar. Klingan måste vara släckt.",
+      "fields": {
+        "destination": {
+          "name": "Mål",
+          "description": "Sökväg på svärdet, till exempel /3/hum (1).wav."
+        }
+      }
+    },
+    "delete_file": {
+      "description": "Tar bort en fil från svärdets kort. Kan inte ångras.",
+      "fields": {
+        "confirm": {
+          "name": "Bekräfta",
+          "description": "Krävs för att ta bort inställningsfilen (config.ini eller något under /setting): utan den rapporterar svärdet ett fel vid start."
+        }
+      }
+    },
+    "copy_file": {
+      "description": "Kopierar en fil från ett ställe på svärdets kort till ett annat."
+    },
+    "restore_backup": {
+      "description": "Skriver tillbaka en säkerhetskopia gjord med Säkerhetskopiera svärd (eller en zip av ett Xeno-SD-kort) till svärdet: fonterna och deras namn, sedan config.ini och den egna knapptilldelningen. Fonter på svärdet ersätts; saknade skapas om de är nästa lediga mappar. Systemljud skrivs bara på begäran. Via Bluetooth tar en fullständig återställning timmar; bladet måste vara av.",
+      "fields": {
+        "include_settings": {
+          "name": "Inställningar",
+          "description": "Återställ config.ini och den egna knapptilldelningen. Nekas om säkerhetskopian kommer från ett kort med en annan hårdvaruversion."
+        },
+        "include_system_sounds": {
+          "name": "Systemljud",
+          "description": "Återställ även röstmeddelanden och menyljud i mappen setting. Behövs bara om de ändrats eller förlorats."
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "same_font": {
+      "message": "Källa och mål är samma font ({font})."
+    },
+    "backup_other_saber": {
+      "message": "Säkerhetskopian kommer från ett kort med hårdvaruversion {backup}, detta svärd är {saber}. Dess inställningar återställs inte till ett annat kort; stäng av Inställningar för att bara återställa fonterna."
+    }
+  }
+}

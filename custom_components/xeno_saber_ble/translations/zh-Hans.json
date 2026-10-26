@@ -316,20 +316,17 @@
     "font_empty": {
       "message": "字体 {font} 没有音效文件。"
     },
-    "same_font": {
-      "message": "源和目标是同一个字体（{font}）。"
-    },
     "not_enough_space": {
       "message": "光剑空间不足：该字体约需 {needed} MB，剩余 {free} MB。请先删除旧字体（导出后使用 delete_first），或使用更小的字体。"
     },
     "font_not_in_backup": {
       "message": "备份中没有字体 {font}（包含：{available}）。"
     },
-    "backup_other_saber": {
-      "message": "备份来自硬件版本为 {backup} 的主板，而此光剑为 {saber}。其设置不会恢复到其他主板；关闭“设置”以仅恢复字体。"
-    },
     "device_not_saber": {
       "message": "设备 {device_id} 不是 Xeno 光剑。"
+    },
+    "settings_write_held_back": {
+      "message": "{path} 属于光剑的设置。此版本不提供修改或删除设置的功能：尚未在真实光剑上测试。"
     }
   },
   "issues": {
@@ -423,7 +420,7 @@
     },
     "restore_backup": {
       "name": "恢复备份",
-      "description": "将“备份光剑”创建的备份（或 Xeno SD 卡的 zip）写回光剑：先写入字体及其名称，然后是 config.ini 和自定义按键映射。光剑上的字体会被替换；缺少的字体如果是下一个空闲文件夹则会被创建。系统音效仅在要求时写入。通过蓝牙完整恢复需要数小时；剑刃必须关闭。",
+      "description": "将“备份光剑”创建的备份（或 Xeno SD 卡的 zip）中的字体连同名称写回光剑。光剑上的字体会被替换；缺少的字体如果是下一个空闲文件夹则会被创建。备份中的设置和语音提示不会写入。通过蓝牙进行大型恢复需要数小时；剑刃必须关闭。",
       "fields": {
         "device_id": {
           "name": "光剑",
@@ -437,14 +434,6 @@
           "name": "字体",
           "description": "要恢复的备份字体文件夹；留空则全部恢复。"
         },
-        "include_settings": {
-          "name": "设置",
-          "description": "恢复 config.ini 和自定义按键映射。如果备份来自不同硬件版本的主板则拒绝。"
-        },
-        "include_system_sounds": {
-          "name": "系统音效",
-          "description": "同时恢复 setting 文件夹中的语音提示和菜单音效。仅在其被修改或丢失时需要。"
-        },
         "dry_run": {
           "name": "试运行",
           "description": "仅检查备份并返回将要写入的内容。"
@@ -452,32 +441,6 @@
         "confirm": {
           "name": "确认",
           "description": "必填：恢复的字体将替换光剑上的字体。"
-        }
-      }
-    },
-    "copy_sound_font": {
-      "name": "复制音效字体",
-      "description": "在光剑存储卡上把一个字体文件夹复制覆盖到另一个。由光剑自己复制文件，所以很快。剑刃必须关闭。",
-      "fields": {
-        "device_id": {
-          "name": "光剑",
-          "description": "要使用的光剑。"
-        },
-        "source_font": {
-          "name": "源字体",
-          "description": "要复制的字体文件夹。"
-        },
-        "destination_font": {
-          "name": "目标字体",
-          "description": "要被替换的字体文件夹。"
-        },
-        "name": {
-          "name": "名称",
-          "description": "副本名称；默认使用源字体的名称。"
-        },
-        "replace": {
-          "name": "替换",
-          "description": "删除目标字体中未被副本覆盖的文件。"
         }
       }
     },
@@ -539,7 +502,7 @@
     },
     "upload_file": {
       "name": "上传文件",
-      "description": "将文件发送到光剑的存储卡，例如用 config.ini 恢复设置。剑刃必须关闭。",
+      "description": "向光剑的存储卡发送文件，例如音效文件。光剑的设置（config.ini 和 setting 文件夹）不能写入。剑刃必须关闭。",
       "fields": {
         "device_id": {
           "name": "光剑",
@@ -551,7 +514,7 @@
         },
         "destination": {
           "name": "目标",
-          "description": "光剑上的路径：设置文件为 config.ini，音效为 /3/hum (1).wav。"
+          "description": "光剑上的路径，例如 /3/hum (1).wav。"
         }
       }
     },
@@ -579,7 +542,7 @@
     },
     "copy_file": {
       "name": "复制文件",
-      "description": "在光剑存储卡上把文件从一处复制到另一处。",
+      "description": "在光剑的存储卡上将文件复制到另一个位置。光剑的设置（config.ini 和 setting 文件夹）不能被覆盖。",
       "fields": {
         "device_id": {
           "name": "光剑",
@@ -597,7 +560,7 @@
     },
     "delete_file": {
       "name": "删除文件",
-      "description": "从光剑存储卡删除文件。无法撤销。",
+      "description": "从光剑的存储卡删除文件，无法撤销。光剑的设置（config.ini 和 setting 文件夹）不能删除。",
       "fields": {
         "device_id": {
           "name": "光剑",
@@ -606,10 +569,6 @@
         "path": {
           "name": "路径",
           "description": "光剑上的文件，例如 /3/clash (9).wav。"
-        },
-        "confirm": {
-          "name": "确认",
-          "description": "删除设置文件（config.ini 或 /setting 下的任何文件）时必须打开：没有设置文件，光剑启动时会报错。"
         }
       }
     }

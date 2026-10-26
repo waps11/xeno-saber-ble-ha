@@ -1,0 +1,72 @@
+{
+  "services": {
+    "copy_sound_font": {
+      "name": "Copy sound font",
+      "description": "Copies one font folder over another on the saber's card. The saber copies the files itself, so this is quick. The blade must be off.",
+      "fields": {
+        "device_id": {
+          "name": "Saber",
+          "description": "The saber to use."
+        },
+        "source_font": {
+          "name": "Source font",
+          "description": "Font folder to copy from."
+        },
+        "destination_font": {
+          "name": "Destination font",
+          "description": "Font folder to replace."
+        },
+        "name": {
+          "name": "Name",
+          "description": "Name for the copy; by default, the source font's name."
+        },
+        "replace": {
+          "name": "Replace",
+          "description": "Delete the destination font's files that the copy does not overwrite."
+        }
+      }
+    },
+    "upload_file": {
+      "description": "Sends a file to the saber's card, for example config.ini to restore its settings. The blade must be off.",
+      "fields": {
+        "destination": {
+          "name": "Destination",
+          "description": "Path on the saber, for example /3/hum (1).wav."
+        }
+      }
+    },
+    "delete_file": {
+      "description": "Deletes a file from the saber's card. There is no undo.",
+      "fields": {
+        "confirm": {
+          "name": "Confirm",
+          "description": "Required to delete the settings file (config.ini or anything under /setting): without it the saber reports an error at start."
+        }
+      }
+    },
+    "copy_file": {
+      "description": "Copies a file from one place on the saber's card to another."
+    },
+    "restore_backup": {
+      "description": "Writes a backup made by Back up saber (or a zip of a Xeno SD card) back to the saber: the fonts and their names, then config.ini and the custom button mapping. Fonts on the saber are replaced; missing ones are created if they are the next free folders. System sounds are only written on request. Over Bluetooth a full restore takes hours; the blade must be off.",
+      "fields": {
+        "include_settings": {
+          "name": "Settings",
+          "description": "Restore config.ini and the custom button mapping. Refused if the backup comes from a board with another hardware version."
+        },
+        "include_system_sounds": {
+          "name": "System sounds",
+          "description": "Also restore the voice prompts and menu sounds of the setting folder. Only needed if they were changed or lost."
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "same_font": {
+      "message": "The source and destination are the same font ({font})."
+    },
+    "backup_other_saber": {
+      "message": "The backup comes from a board with hardware version {backup}, this saber is {saber}. Its settings are not restored onto another board; turn off Settings to restore only the fonts."
+    }
+  }
+}

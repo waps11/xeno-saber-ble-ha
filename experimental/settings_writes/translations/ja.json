@@ -1,0 +1,72 @@
+{
+  "services": {
+    "copy_sound_font": {
+      "name": "サウンドフォントをコピー",
+      "description": "セイバーのカード上で、あるフォントフォルダーを別のフォルダーに上書きコピーします。コピーはセイバー自身が行うので短時間で終わります。ブレードは消灯しておく必要があります。",
+      "fields": {
+        "device_id": {
+          "name": "セイバー",
+          "description": "使用するセイバー。"
+        },
+        "source_font": {
+          "name": "コピー元フォント",
+          "description": "コピー元のフォントフォルダー。"
+        },
+        "destination_font": {
+          "name": "コピー先フォント",
+          "description": "置き換えるフォントフォルダー。"
+        },
+        "name": {
+          "name": "名前",
+          "description": "コピーの名前（省略時はコピー元フォントの名前）。"
+        },
+        "replace": {
+          "name": "置き換え",
+          "description": "コピーで上書きされないコピー先フォントのファイルを削除します。"
+        }
+      }
+    },
+    "upload_file": {
+      "description": "セイバーのカードにファイルを送ります（例: 設定を復元する config.ini）。ブレードは消灯しておく必要があります。",
+      "fields": {
+        "destination": {
+          "name": "送信先",
+          "description": "セイバー上のパス（例：/3/hum (1).wav）。"
+        }
+      }
+    },
+    "delete_file": {
+      "description": "セイバーのカードからファイルを削除します。元に戻せません。",
+      "fields": {
+        "confirm": {
+          "name": "確認",
+          "description": "設定ファイル（config.ini または /setting 以下）の削除に必要です。設定ファイルがないとセイバーは起動時にエラーを報告します。"
+        }
+      }
+    },
+    "copy_file": {
+      "description": "セイバーのカード上でファイルを別の場所にコピーします。"
+    },
+    "restore_backup": {
+      "description": "「セイバーをバックアップ」で作成したバックアップ（または Xeno SD カードの zip）をセイバーに書き戻します：フォントとその名前、次に config.ini とカスタムボタン割り当て。セイバー上のフォントは置き換えられ、存在しないフォントは次の空きフォルダーであれば作成されます。システムサウンドは指定した場合のみ書き込まれます。Bluetooth では完全な復元に数時間かかります。ブレードはオフである必要があります。",
+      "fields": {
+        "include_settings": {
+          "name": "設定",
+          "description": "config.ini とカスタムボタン割り当てを復元します。別のハードウェアバージョンのボードのバックアップの場合は拒否されます。"
+        },
+        "include_system_sounds": {
+          "name": "システムサウンド",
+          "description": "setting フォルダーの音声案内とメニュー音も復元します。変更または消失した場合のみ必要です。"
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "same_font": {
+      "message": "コピー元とコピー先が同じフォント（{font}）です。"
+    },
+    "backup_other_saber": {
+      "message": "バックアップはハードウェアバージョン {backup} のボードのもので、このセイバーは {saber} です。設定は別のボードには復元されません。フォントのみを復元するには「設定」をオフにしてください。"
+    }
+  }
+}
