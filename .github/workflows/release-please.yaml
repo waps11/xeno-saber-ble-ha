@@ -39,11 +39,15 @@ jobs:
     needs: release-please
     if: needs.release-please.outputs.created == 'true'
     uses: ./.github/workflows/tests.yaml
+    with:
+      cache: false
 
   validate:
     needs: release-please
     if: needs.release-please.outputs.created == 'true'
     uses: ./.github/workflows/validate.yaml
+    with:
+      cache: false
 
   assets:
     needs: [release-please, tests, validate]
