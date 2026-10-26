@@ -44,10 +44,13 @@ those commits to choose the next version and write `CHANGELOG.md`:
 | `feat` | Added | minor |
 | `fix` | Fixed | patch |
 | `perf` | Changed | patch |
-| `docs` | Documentation | — |
-| `ci`, `build` | Project | — |
-| `chore`, `test`, `refactor`, `style` | not listed | — |
+| `revert` | Reverted | patch |
+| `docs`, `ci`, `build`, `chore`, `test`, `refactor`, `style` | not listed | — |
 | `!` / `BREAKING CHANGE` | ⚠ Breaking changes | minor while below 1.0 |
+
+Only the listed types lead to a release: a change to the documentation, the
+CI or the tests does not change what users install, so it waits for the next
+`feat`, `fix`, `perf` or `revert` and does not appear in the changelog.
 
 ## Releases
 

@@ -536,8 +536,9 @@ is met (target: Platinum).
 Releases are prepared by [release-please](https://github.com/googleapis/release-please)
 from [Conventional Commits](https://www.conventionalcommits.org/) messages:
 `feat:` (a new version's *Added* section, minor version), `fix:` (*Fixed*,
-patch version), `docs:`, `ci:` or `build:` (listed too), and `chore:`,
-`test:` or `refactor:` (not listed). On every push to `main` it keeps a
+patch version), `perf:` (*Changed*) and `revert:`. Other types (`docs:`,
+`ci:`, `chore:`, `test:`…) change nothing users install: they neither appear
+in the changelog nor lead to a release. On every push to `main` it keeps a
 *chore(main): release X.Y.Z* pull request up to date, with the new version in
 `manifest.json` and the CHANGELOG entry. Merging that pull request creates a draft
 release; it is published only after the tests and validation pass again on
