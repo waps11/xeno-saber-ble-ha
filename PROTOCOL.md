@@ -414,6 +414,12 @@ Behaviour to know about:
 Confirmed on the same board: `ls "/"` (18 fonts in internal memory, no
 `fontname` replies) and `df` (`[457, 479]` MiB).
 
-Not yet tested on real hardware: the other file-system commands, file transfer,
-firmware update and the `SoftwareType` / `HardwareType` changes. They follow
-the app's code exactly and are tested against a simulated saber.
+Confirmed on the same board: file transfers from the saber to the client
+(a whole font read back with `export_sound_font`).
+
+Not yet tested on real hardware: transfers to the saber, `cp`, `rm` and
+`setname`; writes to `config.ini` and the `setting/` folder; firmware update;
+and the `SoftwareType` / `HardwareType` changes. They follow the app's code
+exactly and are tested against a simulated saber. The integration does not
+ship the riskiest of them (firmware, board configuration, settings writes):
+see *Experimental features* in the README.

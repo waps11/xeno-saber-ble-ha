@@ -37,6 +37,8 @@ from .services import (
 
 _LOGGER = logging.getLogger(__name__)
 
+FEATURE = "board_actions (firmware update and board configuration)"
+
 ATTR_FILE = "file"
 ATTR_TYPE = "type"
 ATTR_BUTTONS = "buttons"

@@ -316,20 +316,17 @@
     "font_empty": {
       "message": "Il font {font} non ha file audio."
     },
-    "same_font": {
-      "message": "Origine e destinazione sono lo stesso font ({font})."
-    },
     "not_enough_space": {
       "message": "Spazio insufficiente sulla spada: il font richiede circa {needed} MB e ne restano {free} MB. Elimina prima il vecchio font (delete_first, dopo averlo esportato) oppure usa un font più piccolo."
     },
     "font_not_in_backup": {
       "message": "Il font {font} non è nel backup (contiene: {available})."
     },
-    "backup_other_saber": {
-      "message": "Il backup proviene da una scheda con versione hardware {backup}, questa spada è {saber}. Le sue impostazioni non vengono ripristinate su un'altra scheda; disattiva Impostazioni per ripristinare solo i font."
-    },
     "device_not_saber": {
       "message": "Il dispositivo {device_id} non è una spada Xeno."
+    },
+    "settings_write_held_back": {
+      "message": "{path} fa parte delle impostazioni della spada. Modificarle o eliminarle non è disponibile in questa versione: non è stato provato su una spada reale."
     }
   },
   "issues": {
@@ -423,7 +420,7 @@
     },
     "restore_backup": {
       "name": "Ripristina backup",
-      "description": "Riscrive sulla spada un backup creato con Backup della spada (o lo zip di una scheda SD Xeno): i font e i loro nomi, poi config.ini e la mappatura personalizzata dei pulsanti. I font sulla spada vengono sostituiti; quelli mancanti vengono creati se sono le prossime cartelle libere. I suoni di sistema sono scritti solo su richiesta. Via Bluetooth un ripristino completo richiede ore; la lama deve essere spenta.",
+      "description": "Riscrive sulla spada i font di un backup creato con Backup della spada (o lo zip di una scheda SD Xeno), con i loro nomi. I font sulla spada vengono sostituiti; quelli mancanti vengono creati se sono le prossime cartelle libere. Le impostazioni e i messaggi vocali del backup non vengono scritti. Via Bluetooth un ripristino grande richiede ore; la lama deve essere spenta.",
       "fields": {
         "device_id": {
           "name": "Spada",
@@ -437,14 +434,6 @@
           "name": "Font",
           "description": "Cartelle font del backup da ripristinare; tutte se vuoto."
         },
-        "include_settings": {
-          "name": "Impostazioni",
-          "description": "Ripristina config.ini e la mappatura personalizzata dei pulsanti. Rifiutato se il backup proviene da una scheda con un'altra versione hardware."
-        },
-        "include_system_sounds": {
-          "name": "Suoni di sistema",
-          "description": "Ripristina anche i messaggi vocali e i suoni di menu della cartella setting. Serve solo se sono stati modificati o persi."
-        },
         "dry_run": {
           "name": "Simulazione",
           "description": "Controlla solo il backup e restituisce ciò che verrebbe scritto."
@@ -452,32 +441,6 @@
         "confirm": {
           "name": "Conferma",
           "description": "Obbligatorio: i font ripristinati sostituiscono quelli sulla spada."
-        }
-      }
-    },
-    "copy_sound_font": {
-      "name": "Copia font sonoro",
-      "description": "Copia una cartella font sopra un'altra sulla scheda della spada. La spada copia i file da sola, quindi è veloce. La lama deve essere spenta.",
-      "fields": {
-        "device_id": {
-          "name": "Spada",
-          "description": "La spada da usare."
-        },
-        "source_font": {
-          "name": "Font di origine",
-          "description": "Cartella font da copiare."
-        },
-        "destination_font": {
-          "name": "Font di destinazione",
-          "description": "Cartella font da sostituire."
-        },
-        "name": {
-          "name": "Nome",
-          "description": "Nome della copia; per impostazione predefinita quello del font di origine."
-        },
-        "replace": {
-          "name": "Sostituisci",
-          "description": "Elimina i file del font di destinazione che la copia non sovrascrive."
         }
       }
     },
@@ -539,7 +502,7 @@
     },
     "upload_file": {
       "name": "Carica file",
-      "description": "Invia un file alla scheda della spada, ad esempio config.ini per ripristinarne le impostazioni. La lama deve essere spenta.",
+      "description": "Invia un file alla scheda della spada, per esempio un file audio. Le impostazioni della spada (config.ini e la cartella setting) non possono essere scritte. La lama deve essere spenta.",
       "fields": {
         "device_id": {
           "name": "Spada",
@@ -551,7 +514,7 @@
         },
         "destination": {
           "name": "Destinazione",
-          "description": "Percorso sulla spada: config.ini per il file delle impostazioni, oppure /3/hum (1).wav."
+          "description": "Percorso sulla spada, per esempio /3/hum (1).wav."
         }
       }
     },
@@ -579,7 +542,7 @@
     },
     "copy_file": {
       "name": "Copia file",
-      "description": "Copia un file da un punto all'altro della scheda della spada.",
+      "description": "Copia un file da una posizione a un'altra della scheda della spada. Le impostazioni della spada (config.ini e la cartella setting) non possono essere sovrascritte.",
       "fields": {
         "device_id": {
           "name": "Spada",
@@ -597,7 +560,7 @@
     },
     "delete_file": {
       "name": "Elimina file",
-      "description": "Elimina un file dalla scheda della spada. Non si può annullare.",
+      "description": "Elimina un file dalla scheda della spada. Non si può annullare. Le impostazioni della spada (config.ini e la cartella setting) non possono essere eliminate.",
       "fields": {
         "device_id": {
           "name": "Spada",
@@ -606,10 +569,6 @@
         "path": {
           "name": "Percorso",
           "description": "File sulla spada, ad esempio /3/clash (9).wav."
-        },
-        "confirm": {
-          "name": "Conferma",
-          "description": "Necessario per eliminare il file delle impostazioni (config.ini o qualsiasi file in /setting): senza di esso la spada segnala un errore all'avvio."
         }
       }
     }

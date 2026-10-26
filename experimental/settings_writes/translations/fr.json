@@ -1,0 +1,72 @@
+{
+  "services": {
+    "copy_sound_font": {
+      "name": "Copier une font sonore",
+      "description": "Copie un dossier de font par-dessus un autre sur la carte du sabre. Le sabre copie lui-même les fichiers, c'est donc rapide. La lame doit être éteinte.",
+      "fields": {
+        "device_id": {
+          "name": "Sabre",
+          "description": "Le sabre à utiliser."
+        },
+        "source_font": {
+          "name": "Font source",
+          "description": "Dossier de font à copier."
+        },
+        "destination_font": {
+          "name": "Font de destination",
+          "description": "Dossier de font à remplacer."
+        },
+        "name": {
+          "name": "Nom",
+          "description": "Nom de la copie ; par défaut, celui de la font source."
+        },
+        "replace": {
+          "name": "Remplacer",
+          "description": "Supprimer les fichiers de la font de destination que la copie n'écrase pas."
+        }
+      }
+    },
+    "upload_file": {
+      "description": "Envoie un fichier sur la carte du sabre, par exemple config.ini pour restaurer ses réglages. La lame doit être éteinte.",
+      "fields": {
+        "destination": {
+          "name": "Destination",
+          "description": "Chemin sur le sabre, par exemple /3/hum (1).wav."
+        }
+      }
+    },
+    "delete_file": {
+      "description": "Supprime un fichier de la carte du sabre. Impossible d'annuler.",
+      "fields": {
+        "confirm": {
+          "name": "Confirmer",
+          "description": "Requis pour supprimer le fichier de réglages (config.ini ou tout ce qui est sous /setting) : sans lui, le sabre signale une erreur au démarrage."
+        }
+      }
+    },
+    "copy_file": {
+      "description": "Copie un fichier d'un emplacement à un autre sur la carte du sabre."
+    },
+    "restore_backup": {
+      "description": "Réécrit sur le sabre une sauvegarde faite par Sauvegarder le sabre (ou le zip d'une carte SD Xeno) : les fonts et leurs noms, puis config.ini et l'assignation personnalisée des boutons. Les fonts du sabre sont remplacées; celles qui manquent sont créées si ce sont les prochains dossiers libres. Les sons système ne sont écrits que sur demande. Par Bluetooth, une restauration complète prend des heures; la lame doit être éteinte.",
+      "fields": {
+        "include_settings": {
+          "name": "Paramètres",
+          "description": "Restaurer config.ini et l'assignation personnalisée des boutons. Refusé si la sauvegarde vient d'une carte d'une autre version matérielle."
+        },
+        "include_system_sounds": {
+          "name": "Sons système",
+          "description": "Restaurer aussi les messages vocaux et les sons de menu du dossier setting. Utile seulement s'ils ont été modifiés ou perdus."
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "same_font": {
+      "message": "La source et la destination sont la même font ({font})."
+    },
+    "backup_other_saber": {
+      "message": "La sauvegarde vient d'une carte de version matérielle {backup}, ce sabre est {saber}. Ses paramètres ne sont pas restaurés sur une autre carte; désactivez Paramètres pour ne restaurer que les fonts."
+    }
+  }
+}

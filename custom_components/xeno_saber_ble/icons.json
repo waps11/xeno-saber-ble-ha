@@ -220,9 +220,6 @@
     "copy_file": {
       "service": "mdi:file-multiple"
     },
-    "copy_sound_font": {
-      "service": "mdi:content-copy"
-    },
     "delete_file": {
       "service": "mdi:file-remove"
     },

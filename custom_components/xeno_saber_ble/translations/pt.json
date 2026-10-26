@@ -316,20 +316,17 @@
     "font_empty": {
       "message": "A fonte {font} não tem ficheiros de som."
     },
-    "same_font": {
-      "message": "A origem e o destino são a mesma fonte ({font})."
-    },
     "not_enough_space": {
       "message": "Espaço insuficiente no sabre: a fonte precisa de cerca de {needed} MB e há {free} MB livres. Apague primeiro a fonte antiga (delete_first, depois de a exportar) ou use uma fonte mais pequena."
     },
     "font_not_in_backup": {
       "message": "A fonte {font} não está na cópia (contém: {available})."
     },
-    "backup_other_saber": {
-      "message": "A cópia vem de uma placa com versão de hardware {backup}, este sabre é {saber}. As definições não são restauradas noutra placa; desative Definições para restaurar só as fontes."
-    },
     "device_not_saber": {
       "message": "O dispositivo {device_id} não é um sabre Xeno."
+    },
+    "settings_write_held_back": {
+      "message": "{path} faz parte das definições do sabre. Alterá-las ou apagá-las não está disponível nesta versão: não foi testado num sabre real."
     }
   },
   "issues": {
@@ -423,7 +420,7 @@
     },
     "restore_backup": {
       "name": "Restaurar cópia de segurança",
-      "description": "Volta a escrever no sabre uma cópia feita com Fazer cópia de segurança do sabre (ou o zip de um cartão SD Xeno): as fontes e os seus nomes, depois config.ini e a atribuição personalizada de botões. As fontes do sabre são substituídas; as que faltam são criadas se forem as próximas pastas livres. Os sons de sistema só são escritos a pedido. Por Bluetooth, um restauro completo demora horas; a lâmina tem de estar desligada.",
+      "description": "Volta a escrever no sabre as fontes de uma cópia feita com Fazer cópia de segurança do sabre (ou o zip de um cartão SD Xeno), com os seus nomes. As fontes do sabre são substituídas; as que faltam são criadas se forem as próximas pastas livres. As definições e os avisos de voz da cópia não são escritos. Por Bluetooth, um restauro grande demora horas; a lâmina tem de estar desligada.",
       "fields": {
         "device_id": {
           "name": "Sabre",
@@ -437,14 +434,6 @@
           "name": "Fontes",
           "description": "Pastas de fonte da cópia a restaurar; todas se vazio."
         },
-        "include_settings": {
-          "name": "Definições",
-          "description": "Restaurar config.ini e a atribuição personalizada de botões. Recusado se a cópia vier de uma placa com outra versão de hardware."
-        },
-        "include_system_sounds": {
-          "name": "Sons de sistema",
-          "description": "Restaurar também os avisos de voz e sons de menu da pasta setting. Só é preciso se tiverem sido alterados ou perdidos."
-        },
         "dry_run": {
           "name": "Simulação",
           "description": "Apenas verificar a cópia e devolver o que seria escrito."
@@ -452,32 +441,6 @@
         "confirm": {
           "name": "Confirmar",
           "description": "Obrigatório: as fontes restauradas substituem as do sabre."
-        }
-      }
-    },
-    "copy_sound_font": {
-      "name": "Copiar fonte de som",
-      "description": "Copia uma pasta de fonte por cima de outra no cartão do sabre. O próprio sabre copia os ficheiros, por isso é rápido. A lâmina tem de estar desligada.",
-      "fields": {
-        "device_id": {
-          "name": "Sabre",
-          "description": "O sabre a usar."
-        },
-        "source_font": {
-          "name": "Fonte de origem",
-          "description": "Pasta de fonte a copiar."
-        },
-        "destination_font": {
-          "name": "Fonte de destino",
-          "description": "Pasta de fonte a substituir."
-        },
-        "name": {
-          "name": "Nome",
-          "description": "Nome da cópia; por omissão, o da fonte de origem."
-        },
-        "replace": {
-          "name": "Substituir",
-          "description": "Apagar os ficheiros da fonte de destino que a cópia não substitui."
         }
       }
     },
@@ -539,7 +502,7 @@
     },
     "upload_file": {
       "name": "Enviar ficheiro",
-      "description": "Envia um ficheiro para o cartão do sabre, por exemplo config.ini para repor as definições. A lâmina tem de estar desligada.",
+      "description": "Envia um ficheiro para o cartão do sabre, por exemplo um ficheiro de som. As definições do sabre (config.ini e a pasta setting) não podem ser escritas. A lâmina tem de estar desligada.",
       "fields": {
         "device_id": {
           "name": "Sabre",
@@ -551,7 +514,7 @@
         },
         "destination": {
           "name": "Destino",
-          "description": "Caminho no sabre: config.ini para o ficheiro de definições, ou /3/hum (1).wav."
+          "description": "Caminho no sabre, por exemplo /3/hum (1).wav."
         }
       }
     },
@@ -579,7 +542,7 @@
     },
     "copy_file": {
       "name": "Copiar ficheiro",
-      "description": "Copia um ficheiro de um local do cartão do sabre para outro.",
+      "description": "Copia um ficheiro de um local para outro no cartão do sabre. As definições do sabre (config.ini e a pasta setting) não podem ser substituídas.",
       "fields": {
         "device_id": {
           "name": "Sabre",
@@ -597,7 +560,7 @@
     },
     "delete_file": {
       "name": "Apagar ficheiro",
-      "description": "Apaga um ficheiro do cartão do sabre. Não é possível anular.",
+      "description": "Apaga um ficheiro do cartão do sabre. Não é possível anular. As definições do sabre (config.ini e a pasta setting) não podem ser apagadas.",
       "fields": {
         "device_id": {
           "name": "Sabre",
@@ -606,10 +569,6 @@
         "path": {
           "name": "Caminho",
           "description": "Ficheiro no sabre, por exemplo /3/clash (9).wav."
-        },
-        "confirm": {
-          "name": "Confirmar",
-          "description": "Necessário para apagar o ficheiro de definições (config.ini ou qualquer coisa em /setting): sem ele, o sabre indica um erro ao arrancar."
         }
       }
     }

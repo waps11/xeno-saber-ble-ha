@@ -1,0 +1,72 @@
+{
+  "services": {
+    "copy_sound_font": {
+      "name": "Kopiuj czcionkę dźwiękową",
+      "description": "Kopiuje folder czcionki na inny na karcie miecza. Miecz sam kopiuje pliki, więc trwa to krótko. Ostrze musi być wyłączone.",
+      "fields": {
+        "device_id": {
+          "name": "Miecz",
+          "description": "Miecz, którego użyć."
+        },
+        "source_font": {
+          "name": "Czcionka źródłowa",
+          "description": "Folder czcionki do skopiowania."
+        },
+        "destination_font": {
+          "name": "Czcionka docelowa",
+          "description": "Folder czcionki do zastąpienia."
+        },
+        "name": {
+          "name": "Nazwa",
+          "description": "Nazwa kopii; domyślnie nazwa czcionki źródłowej."
+        },
+        "replace": {
+          "name": "Zastąp",
+          "description": "Usuń pliki czcionki docelowej, których kopia nie nadpisuje."
+        }
+      }
+    },
+    "upload_file": {
+      "description": "Wysyła plik na kartę miecza, na przykład config.ini, aby przywrócić jego ustawienia. Ostrze musi być wyłączone.",
+      "fields": {
+        "destination": {
+          "name": "Cel",
+          "description": "Ścieżka na mieczu, na przykład /3/hum (1).wav."
+        }
+      }
+    },
+    "delete_file": {
+      "description": "Usuwa plik z karty miecza. Nie można tego cofnąć.",
+      "fields": {
+        "confirm": {
+          "name": "Potwierdź",
+          "description": "Wymagane do usunięcia pliku ustawień (config.ini lub czegokolwiek w /setting): bez niego miecz zgłasza błąd przy uruchomieniu."
+        }
+      }
+    },
+    "copy_file": {
+      "description": "Kopiuje plik z jednego miejsca na karcie miecza w inne."
+    },
+    "restore_backup": {
+      "description": "Zapisuje z powrotem na mieczu kopię utworzoną przez Kopia zapasowa miecza (lub zip karty SD Xeno): czcionki i ich nazwy, a potem config.ini i własne przypisanie przycisków. Czcionki na mieczu są zastępowane; brakujące są tworzone, jeśli są kolejnymi wolnymi folderami. Dźwięki systemowe są zapisywane tylko na żądanie. Przez Bluetooth pełne przywracanie trwa godziny; ostrze musi być wyłączone.",
+      "fields": {
+        "include_settings": {
+          "name": "Ustawienia",
+          "description": "Przywróć config.ini i własne przypisanie przycisków. Odrzucane, jeśli kopia pochodzi z płytki o innej wersji sprzętu."
+        },
+        "include_system_sounds": {
+          "name": "Dźwięki systemowe",
+          "description": "Przywróć także komunikaty głosowe i dźwięki menu z folderu setting. Potrzebne tylko, jeśli zostały zmienione lub utracone."
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "same_font": {
+      "message": "Źródło i cel to ta sama czcionka ({font})."
+    },
+    "backup_other_saber": {
+      "message": "Kopia pochodzi z płytki w wersji sprzętu {backup}, ten miecz to {saber}. Jej ustawienia nie są przywracane na inną płytkę; wyłącz Ustawienia, aby przywrócić tylko czcionki."
+    }
+  }
+}

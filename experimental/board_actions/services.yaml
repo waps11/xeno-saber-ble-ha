@@ -1,4 +1,4 @@
-# Appended to services.yaml by script/build --experimental board_actions.
+# Merged into services.yaml by script/build --experimental board_actions.
 update_firmware:
   fields:
     device_id:

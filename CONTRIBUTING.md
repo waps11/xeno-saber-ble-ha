@@ -62,6 +62,9 @@ the draft by hand.
 
 ## Experimental features
 
-Anything that writes firmware or board settings, or is otherwise not yet
-verified on a real saber, goes in `experimental/<feature>/`, never in
-`custom_components/`: see *Experimental features* in the README.
+Anything that writes firmware, the board configuration or the saber's
+settings, or is otherwise not yet verified on a real saber, goes in
+`experimental/<feature>/`, never in `custom_components/`. A feature folder holds
+its Python module, loaded at the end of `services.py`, and the services.yaml,
+strings, translations and icons fragments `script/build` merges in: see
+*Experimental features (at your own risk)* in the README.

@@ -112,18 +112,19 @@ deleting the saber's firmware update files (`update.bin`…) is refused.
 |---|---|
 | `xeno_saber_ble.upload_sound_font` | Sends a folder or a `.zip` of WAVs to font folder *N*, replacing that font. Xeno (`clash (1).wav`), Proffie (`clsh01.wav`, `clsh/clsh01.wav`) and simple (`clash1.wav`) names are recognised and renamed; files must be 44.1 kHz, 16-bit, mono. `dry_run` shows the renaming without sending anything. Checks free space first; `delete_first` frees the old font's room (export it first). The next free font number adds a new font, as in the app. Slow: count several minutes per megabyte. |
 | `xeno_saber_ble.backup_saber` | Full backup into one `.zip`: every font (or the ones listed in `fonts`), `config.ini`, the custom button mapping if installed, the ~430 system sounds (voice prompts; the ones the firmware lacks are skipped) and `xeno_backup.json` (versions, current settings, font list). Laid out like a Xeno SD card (`1/`, `2/`…, `setting/`). A full saber takes hours over Bluetooth; the zip grows as `.part` meanwhile. |
-| `xeno_saber_ble.restore_backup` | Writes a `backup_saber` zip (or a zip of a Xeno SD card) back: each font is replaced and renamed as in the backup, missing folders are created if they are the next free ones, then `config.ini` and the custom button mapping are written last. `fonts` restricts it to some folders, `include_settings: false` keeps the current settings (settings of a board with another hardware version are refused), `include_system_sounds` (off by default) rewrites the voice prompts. Needs `confirm: true`; `dry_run: true` only returns what would be written. |
+| `xeno_saber_ble.restore_backup` | Writes the fonts of a `backup_saber` zip (or of a zip of a Xeno SD card) back: each font is replaced and renamed as in the backup, and missing folders are created if they are the next free ones. `fonts` restricts it to some folders. The settings and voice prompts in the backup are not written; the response lists them under `not_restored`. Needs `confirm: true`; `dry_run: true` only returns what would be written. |
 | `xeno_saber_ble.export_sound_font` | Copies every file of font *N* from the card into a `.zip` on the HA host (backup, editing). `upload_sound_font` takes that zip back. As slow as an upload: the zip grows as `<name>.zip.part` and gets its final name when the font is complete. |
-| `xeno_saber_ble.copy_sound_font` | Copies font *A* over font *B* on the card (the saber copies the files itself, so it is quick), and gives the copy the source's name unless you set one |
 | `xeno_saber_ble.list_sound_fonts` | Font folders, their names (when the saber reports them) and storage used/total/free in MB |
 | `xeno_saber_ble.list_sound_files` | The files of one font, by type |
 | `xeno_saber_ble.rename_sound_font` | Renames a font |
 | `xeno_saber_ble.play_sound` | Plays a file from the card, or stops |
-| `xeno_saber_ble.upload_file` / `download_file` | Copies a file to / from the card, for example `config.ini` to back up or restore the settings |
-| `xeno_saber_ble.copy_file` / `delete_file` | Copies or deletes a file on the card |
+| `xeno_saber_ble.upload_file` / `download_file` | Copies a file to / from the card. `download_file` reads any file, `config.ini` included; `upload_file` does not write the saber's settings (`config.ini`, `setting/`) |
+| `xeno_saber_ble.copy_file` / `delete_file` | Copies or deletes a file on the card, except the saber's settings (`config.ini`, `setting/`) |
 
-Firmware updates and board configuration (Pixel/RGB, wiring, buttons) are not
-available: see *Known limitations*.
+Firmware updates, board configuration (Pixel/RGB, wiring, buttons), writing
+the saber's settings and `copy_sound_font` are held back until they have been
+tested on a real saber: see
+[Experimental features](#experimental-features-at-your-own-risk).
 
 Example, replacing font 3 and naming it:
 
@@ -400,20 +401,95 @@ reconnection, so a normal log is enough to see when the saber dropped out.
 - **Security**: the protocol has no real authentication (a static password
   shared by every saber). Anyone in BLE range can control the saber; this
   integration does not create that weakness, it documents it.
-- **No firmware update or board configuration**: updating the firmware, and
-  switching the blade firmware (Pixel/RGB), the board wiring or the button
-  count, are held back until they have been tested on a real saber, since a
-  mistake there can leave it unusable. They are not part of the integration;
-  developers can build a test package that includes them (see *Experimental
-  features*). File transfers, sound fonts and backups are confirmed on a real
-  saber.
+- **Held back until tested on a real saber**: updating the firmware;
+  changing the board configuration (Pixel/RGB blade firmware, wiring, button
+  count); writing or deleting the saber's settings (`config.ini`, the custom
+  button mapping and the voice prompts of the `setting/` folder), including
+  restoring them from a backup; and `copy_sound_font`. A mistake there can
+  leave the saber unusable or showing "error" at boot. They are not part of
+  the integration: see
+  [Experimental features](#experimental-features-at-your-own-risk) to try
+  them at your own risk.
+- **Confirmed on a real saber** (firmware `DMN_XENO_B_SV1.4.0`): the
+  connection and live state, the blade, color, volume and brightness, listing
+  the fonts and the free space, and copying a font from the saber to Home
+  Assistant (`export_sound_font`). Writing fonts and files to the saber
+  (`upload_sound_font`, `rename_sound_font`, `copy_file`, `delete_file`,
+  restoring fonts) follows the app's protocol and passes the tests against a
+  simulated saber; it is being confirmed on a real one.
 - **Custom button and gesture mappings** (the app's function editor) have no
   editor in Home Assistant yet. Their file format is documented in section 8
-  of [PROTOCOL.md](PROTOCOL.md). `backup_saber` and `restore_backup` save
-  and put back the installed mapping.
+  of [PROTOCOL.md](PROTOCOL.md). `backup_saber` saves the installed mapping;
+  writing it back needs the `settings_writes` experimental feature.
 - **Color sync and keepalive keep the radio busy**: frequent writes keep the
   saber awake (see the keepalive warning above) and share airtime with any
   other device on the same Bluetooth proxy.
+
+## Experimental features (at your own risk)
+
+> [!CAUTION]
+> These features are **not part of the integration**. They follow the
+> official app's code but have only been tested against a simulated saber.
+> A wrong write can leave the saber unusable, or showing "error" at boot until
+> its settings are repaired. Use them only if you accept that risk: back up
+> first (`backup_saber`), keep the saber charged, close to the adapter and
+> untouched while they run.
+
+| Feature | What it adds | Risk |
+|---|---|---|
+| `board_actions` | `update_firmware` (sends a vendor `update.bin`; the saber installs it and reboots; needs `confirm: true` and 30 % battery), `set_blade_firmware` (Pixel or RGB, then reboots), `set_hardware_type` (board wiring and button count, then reboots; the app warns this needs soldering) | A wrong file, type or timing can leave the saber unusable. A firmware newer than the tested one may also stop this integration from working. |
+| `settings_writes` | `upload_file`, `copy_file` and `delete_file` on `config.ini` and the `setting/` folder (deleting needs `confirm: true`); the `restore_backup` options `include_settings` (`config.ini` and the custom button mapping; refused for a backup of another board) and `include_system_sounds` (the voice prompts); the `copy_sound_font` action (copies font *A* over font *B*, on the saber) | A bad `config.ini` or mapping can make the saber show "error" at boot. `copy_sound_font` replaces the destination font's sounds. |
+
+The actions stay reserved to administrators. Home Assistant logs
+`Experimental feature enabled: …` at startup for each feature in use.
+
+### Installing an experimental build
+
+You need a computer with `git`, Python 3.10 or later and PyYAML
+(`pip install pyyaml`), and access to Home Assistant's configuration folder
+(Samba share, SSH or the File editor add-on).
+
+1. Get the sources of the version you have installed (it is shown under
+   *Settings → Devices & services → Xeno Saber BLE*), for example 0.3.0:
+
+   ```bash
+   git clone --branch v0.3.0 https://github.com/waps11/xeno-saber-ble-ha.git
+   cd xeno-saber-ble-ha
+   ```
+
+2. Build the package with the features you want, one or both:
+
+   ```bash
+   python3 script/build --experimental board_actions --experimental settings_writes
+   ```
+
+   This writes `dist/xeno_saber_ble-<version>-experimental.zip`.
+3. In Home Assistant's configuration folder, delete
+   `custom_components/xeno_saber_ble/`, then unzip the package there: you get
+   `custom_components/xeno_saber_ble/` again, with the features added.
+4. Restart Home Assistant and check the log for
+   `Experimental feature enabled`. The new actions and options appear in
+   *Developer tools → Actions*.
+
+### Going back to the standard integration
+
+In HACS, open Xeno Saber BLE → ⋮ → **Redownload** (or unzip the release's
+`xeno_saber_ble-<version>.zip` by hand), then restart Home Assistant. An
+update through HACS also replaces an experimental build with the standard
+one: build again after each update to keep the features.
+
+### Reporting results
+
+Open an issue with `[experimental]` in its title, the feature, the
+diagnostics file and what happened, good or bad. Results on a real saber are
+what let a feature move into the integration.
+
+For developers: experimental features live in `experimental/<feature>/`,
+outside `custom_components/`, so neither HACS nor the releases ship them.
+`script/check` type-checks and runs hassfest on the experimental build,
+`tests/ha/test_experimental_*.py` cover each feature, and
+`tests/test_build.py` checks that the release package contains none of it
+and that the experimental one loads.
 
 ## Removal
 
@@ -454,24 +530,6 @@ instance. GitHub Actions runs them on the oldest supported Home Assistant
 Home Assistant's
 [Integration Quality Scale](https://developers.home-assistant.io/docs/core/integration-quality-scale/)
 is met (target: Platinum).
-
-## Experimental features
-
-Features that are not ready for users live in `experimental/<feature>/`,
-outside the integration folder, so neither HACS nor the releases ship them.
-To try one on your own Home Assistant, build a test package:
-
-```bash
-script/build --experimental board_actions          # dist/xeno_saber_ble-<version>-experimental.zip
-script/build --experimental board_actions --dir /config/custom_components   # or straight into a config folder
-```
-
-| Feature | What it adds | Status |
-|---|---|---|
-| `board_actions` | `update_firmware`, `set_blade_firmware`, `set_hardware_type` (administrators only, each needs `confirm: true`) | Tested against a simulated saber only. A wrong file, type or timing can leave the saber unusable. |
-
-`script/check` type-checks and validates the experimental build as well, and
-the tests cover it.
 
 ## Releases
 

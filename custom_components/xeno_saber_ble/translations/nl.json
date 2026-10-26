@@ -316,20 +316,17 @@
     "font_empty": {
       "message": "Font {font} heeft geen geluidsbestanden."
     },
-    "same_font": {
-      "message": "Bron en bestemming zijn hetzelfde font ({font})."
-    },
     "not_enough_space": {
       "message": "Niet genoeg ruimte op het zwaard: het font heeft ongeveer {needed} MB nodig en er is {free} MB vrij. Verwijder eerst het oude font (delete_first, na het exporteren) of gebruik een kleiner font."
     },
     "font_not_in_backup": {
       "message": "Font {font} zit niet in de back-up (die bevat: {available})."
     },
-    "backup_other_saber": {
-      "message": "De back-up komt van een bord met hardwareversie {backup}, dit zwaard is {saber}. De instellingen worden niet op een ander bord teruggezet; zet Instellingen uit om alleen de fonts terug te zetten."
-    },
     "device_not_saber": {
       "message": "Apparaat {device_id} is geen Xeno-zwaard."
+    },
+    "settings_write_held_back": {
+      "message": "{path} hoort bij de instellingen van het zwaard. Ze wijzigen of verwijderen is in deze versie niet beschikbaar: het is niet getest op een echt zwaard."
     }
   },
   "issues": {
@@ -423,7 +420,7 @@
     },
     "restore_backup": {
       "name": "Back-up terugzetten",
-      "description": "Zet een back-up gemaakt met Back-up van zwaard maken (of een zip van een Xeno-SD-kaart) terug op het zwaard: de fonts en hun namen, daarna config.ini en de eigen knoptoewijzing. Fonts op het zwaard worden vervangen; ontbrekende worden aangemaakt als het de volgende vrije mappen zijn. Systeemgeluiden worden alleen op verzoek geschreven. Via Bluetooth duurt een volledige terugzetting uren; het zwaard moet uit staan.",
+      "description": "Zet de fonts van een back-up gemaakt met Back-up van zwaard maken (of een zip van een Xeno-SD-kaart) met hun namen terug op het zwaard. Fonts op het zwaard worden vervangen; ontbrekende worden aangemaakt als het de volgende vrije mappen zijn. De instellingen en gesproken meldingen in de back-up worden niet geschreven. Via Bluetooth duurt een grote terugzetting uren; het zwaard moet uit staan.",
       "fields": {
         "device_id": {
           "name": "Zwaard",
@@ -437,14 +434,6 @@
           "name": "Fonts",
           "description": "Terug te zetten fontmappen uit de back-up; alle als leeg."
         },
-        "include_settings": {
-          "name": "Instellingen",
-          "description": "config.ini en de eigen knoptoewijzing terugzetten. Geweigerd als de back-up van een bord met een andere hardwareversie komt."
-        },
-        "include_system_sounds": {
-          "name": "Systeemgeluiden",
-          "description": "Ook de gesproken meldingen en menugeluiden van de map setting terugzetten. Alleen nodig als ze gewijzigd of verloren zijn."
-        },
         "dry_run": {
           "name": "Proefrun",
           "description": "Alleen de back-up controleren en teruggeven wat geschreven zou worden."
@@ -452,32 +441,6 @@
         "confirm": {
           "name": "Bevestigen",
           "description": "Vereist: de teruggezette fonts vervangen die op het zwaard."
-        }
-      }
-    },
-    "copy_sound_font": {
-      "name": "Soundfont kopiëren",
-      "description": "Kopieert een fontmap over een andere op de kaart van het zwaard. Het zwaard kopieert de bestanden zelf, dus het gaat snel. De kling moet uit zijn.",
-      "fields": {
-        "device_id": {
-          "name": "Zwaard",
-          "description": "Het te gebruiken zwaard."
-        },
-        "source_font": {
-          "name": "Bronfont",
-          "description": "Fontmap waaruit gekopieerd wordt."
-        },
-        "destination_font": {
-          "name": "Doelfont",
-          "description": "Fontmap die vervangen wordt."
-        },
-        "name": {
-          "name": "Naam",
-          "description": "Naam van de kopie; standaard die van het bronfont."
-        },
-        "replace": {
-          "name": "Vervangen",
-          "description": "Bestanden van het doelfont verwijderen die de kopie niet overschrijft."
         }
       }
     },
@@ -539,7 +502,7 @@
     },
     "upload_file": {
       "name": "Bestand uploaden",
-      "description": "Stuurt een bestand naar de kaart van het zwaard, bijvoorbeeld config.ini om de instellingen terug te zetten. De kling moet uit zijn.",
+      "description": "Stuurt een bestand naar de kaart van het zwaard, bijvoorbeeld een geluidsbestand. De instellingen van het zwaard (config.ini en de map setting) kunnen niet worden geschreven. Het zwaard moet uit staan.",
       "fields": {
         "device_id": {
           "name": "Zwaard",
@@ -551,7 +514,7 @@
         },
         "destination": {
           "name": "Bestemming",
-          "description": "Pad op het zwaard: config.ini voor het instellingenbestand, of /3/hum (1).wav."
+          "description": "Pad op het zwaard, bijvoorbeeld /3/hum (1).wav."
         }
       }
     },
@@ -579,7 +542,7 @@
     },
     "copy_file": {
       "name": "Bestand kopiëren",
-      "description": "Kopieert een bestand van de ene plek op de kaart van het zwaard naar een andere.",
+      "description": "Kopieert een bestand op de kaart van het zwaard naar een andere plek. De instellingen van het zwaard (config.ini en de map setting) kunnen niet worden overschreven.",
       "fields": {
         "device_id": {
           "name": "Zwaard",
@@ -597,7 +560,7 @@
     },
     "delete_file": {
       "name": "Bestand verwijderen",
-      "description": "Verwijdert een bestand van de kaart van het zwaard. Dit kan niet ongedaan worden gemaakt.",
+      "description": "Verwijdert een bestand van de kaart van het zwaard. Dit kan niet ongedaan worden gemaakt. De instellingen van het zwaard (config.ini en de map setting) kunnen niet worden verwijderd.",
       "fields": {
         "device_id": {
           "name": "Zwaard",
@@ -606,10 +569,6 @@
         "path": {
           "name": "Pad",
           "description": "Bestand op het zwaard, bijvoorbeeld /3/clash (9).wav."
-        },
-        "confirm": {
-          "name": "Bevestigen",
-          "description": "Vereist om het instellingenbestand te verwijderen (config.ini of alles onder /setting): zonder dat meldt het zwaard een fout bij het opstarten."
         }
       }
     }

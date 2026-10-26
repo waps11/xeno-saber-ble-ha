@@ -316,20 +316,17 @@
     "font_empty": {
       "message": "Czcionka {font} nie ma plików dźwiękowych."
     },
-    "same_font": {
-      "message": "Źródło i cel to ta sama czcionka ({font})."
-    },
     "not_enough_space": {
       "message": "Za mało miejsca na mieczu: czcionka potrzebuje około {needed} MB, a wolne jest {free} MB. Najpierw usuń starą czcionkę (delete_first, po jej wyeksportowaniu) albo użyj mniejszej czcionki."
     },
     "font_not_in_backup": {
       "message": "Czcionki {font} nie ma w kopii (zawiera: {available})."
     },
-    "backup_other_saber": {
-      "message": "Kopia pochodzi z płytki w wersji sprzętu {backup}, ten miecz to {saber}. Jej ustawienia nie są przywracane na inną płytkę; wyłącz Ustawienia, aby przywrócić tylko czcionki."
-    },
     "device_not_saber": {
       "message": "Urządzenie {device_id} nie jest mieczem Xeno."
+    },
+    "settings_write_held_back": {
+      "message": "{path} należy do ustawień miecza. Ich zmiana lub usunięcie nie jest dostępne w tej wersji: nie zostało przetestowane na prawdziwym mieczu."
     }
   },
   "issues": {
@@ -423,7 +420,7 @@
     },
     "restore_backup": {
       "name": "Przywróć kopię zapasową",
-      "description": "Zapisuje z powrotem na mieczu kopię utworzoną przez Kopia zapasowa miecza (lub zip karty SD Xeno): czcionki i ich nazwy, a potem config.ini i własne przypisanie przycisków. Czcionki na mieczu są zastępowane; brakujące są tworzone, jeśli są kolejnymi wolnymi folderami. Dźwięki systemowe są zapisywane tylko na żądanie. Przez Bluetooth pełne przywracanie trwa godziny; ostrze musi być wyłączone.",
+      "description": "Zapisuje z powrotem na mieczu czcionki z kopii utworzonej przez Kopia zapasowa miecza (lub zip karty SD Xeno), wraz z ich nazwami. Czcionki na mieczu są zastępowane; brakujące są tworzone, jeśli są kolejnymi wolnymi folderami. Ustawienia i komunikaty głosowe z kopii nie są zapisywane. Przez Bluetooth duże przywracanie trwa godziny; ostrze musi być wyłączone.",
       "fields": {
         "device_id": {
           "name": "Miecz",
@@ -437,14 +434,6 @@
           "name": "Czcionki",
           "description": "Foldery czcionek z kopii do przywrócenia; wszystkie, jeśli puste."
         },
-        "include_settings": {
-          "name": "Ustawienia",
-          "description": "Przywróć config.ini i własne przypisanie przycisków. Odrzucane, jeśli kopia pochodzi z płytki o innej wersji sprzętu."
-        },
-        "include_system_sounds": {
-          "name": "Dźwięki systemowe",
-          "description": "Przywróć także komunikaty głosowe i dźwięki menu z folderu setting. Potrzebne tylko, jeśli zostały zmienione lub utracone."
-        },
         "dry_run": {
           "name": "Próba",
           "description": "Tylko sprawdź kopię i zwróć, co zostałoby zapisane."
@@ -452,32 +441,6 @@
         "confirm": {
           "name": "Potwierdź",
           "description": "Wymagane: przywrócone czcionki zastępują te na mieczu."
-        }
-      }
-    },
-    "copy_sound_font": {
-      "name": "Kopiuj czcionkę dźwiękową",
-      "description": "Kopiuje folder czcionki na inny na karcie miecza. Miecz sam kopiuje pliki, więc trwa to krótko. Ostrze musi być wyłączone.",
-      "fields": {
-        "device_id": {
-          "name": "Miecz",
-          "description": "Miecz, którego użyć."
-        },
-        "source_font": {
-          "name": "Czcionka źródłowa",
-          "description": "Folder czcionki do skopiowania."
-        },
-        "destination_font": {
-          "name": "Czcionka docelowa",
-          "description": "Folder czcionki do zastąpienia."
-        },
-        "name": {
-          "name": "Nazwa",
-          "description": "Nazwa kopii; domyślnie nazwa czcionki źródłowej."
-        },
-        "replace": {
-          "name": "Zastąp",
-          "description": "Usuń pliki czcionki docelowej, których kopia nie nadpisuje."
         }
       }
     },
@@ -539,7 +502,7 @@
     },
     "upload_file": {
       "name": "Wyślij plik",
-      "description": "Wysyła plik na kartę miecza, na przykład config.ini, aby przywrócić jego ustawienia. Ostrze musi być wyłączone.",
+      "description": "Wysyła plik na kartę miecza, na przykład plik dźwiękowy. Ustawień miecza (config.ini i folder setting) nie można zapisywać. Ostrze musi być wyłączone.",
       "fields": {
         "device_id": {
           "name": "Miecz",
@@ -551,7 +514,7 @@
         },
         "destination": {
           "name": "Cel",
-          "description": "Ścieżka na mieczu: config.ini dla pliku ustawień albo /3/hum (1).wav."
+          "description": "Ścieżka na mieczu, na przykład /3/hum (1).wav."
         }
       }
     },
@@ -579,7 +542,7 @@
     },
     "copy_file": {
       "name": "Kopiuj plik",
-      "description": "Kopiuje plik z jednego miejsca na karcie miecza w inne.",
+      "description": "Kopiuje plik w inne miejsce na karcie miecza. Ustawień miecza (config.ini i folder setting) nie można nadpisywać.",
       "fields": {
         "device_id": {
           "name": "Miecz",
@@ -597,7 +560,7 @@
     },
     "delete_file": {
       "name": "Usuń plik",
-      "description": "Usuwa plik z karty miecza. Nie można tego cofnąć.",
+      "description": "Usuwa plik z karty miecza. Nie można tego cofnąć. Ustawień miecza (config.ini i folder setting) nie można usuwać.",
       "fields": {
         "device_id": {
           "name": "Miecz",
@@ -606,10 +569,6 @@
         "path": {
           "name": "Ścieżka",
           "description": "Plik na mieczu, na przykład /3/clash (9).wav."
-        },
-        "confirm": {
-          "name": "Potwierdź",
-          "description": "Wymagane do usunięcia pliku ustawień (config.ini lub czegokolwiek w /setting): bez niego miecz zgłasza błąd przy uruchomieniu."
         }
       }
     }

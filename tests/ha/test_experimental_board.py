@@ -5,10 +5,8 @@ way ``script/build --experimental board_actions`` adds it.
 """
 
 from collections.abc import Iterator
-import importlib.util
 from pathlib import Path
 import sys
-from unittest.mock import patch
 
 import pytest
 
@@ -18,24 +16,18 @@ from homeassistant.exceptions import Unauthorized
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from test_services import DATA, _call, _device_id, _expect_invalid, _setup
 
+import experimental
+
 from custom_components.xeno_saber_ble import services
 from custom_components.xeno_saber_ble.const import DOMAIN
 
-BOARD = Path(__file__).resolve().parents[2] / "experimental" / "board_actions" / "board.py"
 BOARD_ACTIONS = {"update_firmware", "set_blade_firmware", "set_hardware_type"}
 
 
 @pytest.fixture
 def board_module() -> Iterator[object]:
-    name = "custom_components.xeno_saber_ble.board"
-    spec = importlib.util.spec_from_file_location(name, BOARD)
-    assert spec is not None and spec.loader is not None
-    module = importlib.util.module_from_spec(spec)
-    sys.modules[name] = module
-    spec.loader.exec_module(module)
-    with patch.object(services, "_board", module):
-        yield module
-    sys.modules.pop(name, None)
+    with experimental.enabled("board_actions") as modules:
+        yield modules["board_actions"]
 
 
 @pytest.fixture

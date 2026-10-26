@@ -34,20 +34,6 @@ from . import protocol as p, soundfont
 from .const import DOMAIN
 from .device import XenoSaber, XenoSaberError
 
-
-def _experimental(name: str) -> ModuleType | None:
-    """A module only packages built with ``script/build --experimental`` contain."""
-    module = f"{__package__}.{name}"
-    try:
-        return importlib.import_module(module)
-    except ModuleNotFoundError as err:
-        if err.name != module:
-            raise
-        return None
-
-
-_board = _experimental("board")  # firmware and board configuration actions
-
 if TYPE_CHECKING:
     from . import XenoConfigEntry
 
@@ -65,18 +51,14 @@ ATTR_REPLACE = "replace"
 ATTR_DRY_RUN = "dry_run"
 ATTR_PATH = "path"
 ATTR_CONFIRM = "confirm"
-ATTR_SOURCE_FONT = "source_font"
-ATTR_DESTINATION_FONT = "destination_font"
 ATTR_DELETE_FIRST = "delete_first"
 ATTR_FONTS = "fonts"
 ATTR_SYSTEM_SOUNDS = "include_system_sounds"
-ATTR_SETTINGS = "include_settings"
 
 SERVICE_UPLOAD_FILE = "upload_file"
 SERVICE_DOWNLOAD_FILE = "download_file"
 SERVICE_UPLOAD_SOUND_FONT = "upload_sound_font"
 SERVICE_EXPORT_SOUND_FONT = "export_sound_font"
-SERVICE_COPY_SOUND_FONT = "copy_sound_font"
 SERVICE_BACKUP = "backup_saber"
 SERVICE_RESTORE = "restore_backup"
 SERVICE_LIST_SOUND_FONTS = "list_sound_fonts"
@@ -89,7 +71,9 @@ SERVICE_PLAY_SOUND = "play_sound"
 # Writing these makes the saber install firmware at its next start.
 _PROTECTED = frozenset({"update.bin", "update_factory.bin", "update_factory.ini"})
 
-# Deleting these leaves the saber without settings ("error" at boot).
+# The saber's settings: config.ini and the setting/ folder (custom button
+# mapping, voice prompts). A bad write or a deletion can leave it showing
+# "error" at boot, so only the settings_writes experimental build changes them.
 _SETTINGS = re.compile(r"^/?(setting/|config\.ini$)", re.IGNORECASE)
 # Paths on the saber end up inside a JSON string and a 128-byte header.
 _SABER_PATH = re.compile(r'^[^"\\\x00-\x1f]{1,100}$')
@@ -149,15 +133,6 @@ SCHEMAS: dict[str, vol.Schema] = {
             vol.Optional(ATTR_OVERWRITE, default=False): cv.boolean,
         }
     ),
-    SERVICE_COPY_SOUND_FONT: vol.Schema(
-        {
-            **_ENTRY,
-            vol.Required(ATTR_SOURCE_FONT): _FONT_NUMBER,
-            vol.Required(ATTR_DESTINATION_FONT): _FONT_NUMBER,
-            vol.Optional(ATTR_NAME): _font_name,
-            vol.Optional(ATTR_REPLACE, default=True): cv.boolean,
-        }
-    ),
     SERVICE_BACKUP: vol.Schema(
         {
             **_ENTRY,
@@ -172,8 +147,6 @@ SCHEMAS: dict[str, vol.Schema] = {
             **_ENTRY,
             vol.Required(ATTR_SOURCE): cv.string,
             vol.Optional(ATTR_FONTS): vol.All(cv.ensure_list, [_FONT_NUMBER]),
-            vol.Optional(ATTR_SETTINGS, default=True): cv.boolean,
-            vol.Optional(ATTR_SYSTEM_SOUNDS, default=False): cv.boolean,
             vol.Optional(ATTR_DRY_RUN, default=False): cv.boolean,
             vol.Optional(ATTR_CONFIRM, default=False): cv.boolean,
         }
@@ -193,7 +166,6 @@ SCHEMAS: dict[str, vol.Schema] = {
         {
             **_ENTRY,
             vol.Required(ATTR_PATH): _saber_path,
-            vol.Optional(ATTR_CONFIRM, default=False): cv.boolean,
         }
     ),
     SERVICE_COPY_FILE: vol.Schema(
@@ -286,6 +258,11 @@ async def _require_blade_off(saber: XenoSaber) -> None:
         raise _invalid("blade_must_be_off")
 
 
+def _require_settings_writes(path: str) -> None:
+    if _SETTINGS.match(path) and _settings_writes is None:
+        raise _invalid("settings_write_held_back", path=path)
+
+
 def _require_confirm(call: ServiceCall) -> None:
     if call.data.get(ATTR_CONFIRM) is not True:
         raise _invalid("confirm_required")
@@ -301,6 +278,7 @@ async def _upload_file(hass: HomeAssistant, call: ServiceCall) -> ServiceRespons
     destination: str = call.data[ATTR_DESTINATION]
     if destination.strip("/").lower() in _PROTECTED:
         raise _invalid("firmware_file_protected", path=destination)
+    _require_settings_writes(destination)
     source = await _local_path(hass, call.data[ATTR_SOURCE], kind="file")
     await _require_blade_off(saber)
     data = await _read(hass, source)
@@ -324,6 +302,7 @@ async def _delete_file(hass: HomeAssistant, call: ServiceCall) -> ServiceRespons
     saber = _saber(hass, call)
     path: str = call.data[ATTR_PATH]
     if _SETTINGS.match(path):
+        _require_settings_writes(path)
         _require_confirm(call)
     if not await _on_saber(saber.file_command(p.FILE_RM, path)):
         raise HomeAssistantError(
@@ -340,6 +319,7 @@ async def _copy_file(hass: HomeAssistant, call: ServiceCall) -> ServiceResponse:
     destination: str = call.data[ATTR_DESTINATION]
     if destination.strip("/").lower() in _PROTECTED:
         raise _invalid("firmware_file_protected", path=destination)
+    _require_settings_writes(destination)
     if not await _on_saber(saber.file_command(p.FILE_CP, [source, destination])):
         raise HomeAssistantError(
             translation_domain=DOMAIN,
@@ -690,13 +670,6 @@ async def _backup_saber(hass: HomeAssistant, call: ServiceCall) -> ServiceRespon
     }
 
 
-# Where each settings file of a backup goes on the saber (as the app writes them).
-_RESTORE_SETTINGS = {
-    "config.ini": "config.ini",
-    "customfunction.diy": "/setting/customfunction.diy",
-}
-
-
 async def _restore_backup(hass: HomeAssistant, call: ServiceCall) -> ServiceResponse:
     saber = _saber(hass, call)
     source = await _local_path(hass, call.data[ATTR_SOURCE], kind="file")
@@ -713,14 +686,13 @@ async def _restore_backup(hass: HomeAssistant, call: ServiceCall) -> ServiceResp
                 font=font,
                 available=", ".join(str(n) for n in sorted(index.fonts)) or "-",
             )
-    settings = index.settings if call.data[ATTR_SETTINGS] else []
-    system = index.system if call.data[ATTR_SYSTEM_SOUNDS] else []
+    # Settings and system sounds are only written by the settings_writes
+    # experimental build; the standard one restores the fonts.
+    settings: list[str] = []
+    system: list[str] = []
+    if _settings_writes is not None:
+        settings, system = _settings_writes.plan(call, index, saber)
     backup_saber = index.manifest.get("saber")
-    backup_hw = backup_saber.get("hardware_version") if isinstance(backup_saber, dict) else None
-    current_hw = saber.state.get(p.KEY_HW_VERSION)
-    if settings and backup_hw and current_hw and backup_hw != current_hw:
-        # Settings of another board could leave this one misconfigured.
-        raise _invalid("backup_other_saber", backup=backup_hw, saber=current_hw)
 
     # Fonts missing on the saber are created in order, like the app does.
     fonts = await _on_saber(saber.list_fonts())
@@ -757,6 +729,10 @@ async def _restore_backup(hass: HomeAssistant, call: ServiceCall) -> ServiceResp
         },
         "settings": settings,
         "system_sounds": len(system),
+        "not_restored": {
+            "settings": [n for n in index.settings if n not in settings],
+            "system_sounds": len(index.system) - len(system),
+        },
         "ignored": index.ignored,
         "backup_software_version": (
             backup_saber.get("software_version") if isinstance(backup_saber, dict) else None
@@ -797,17 +773,8 @@ async def _restore_backup(hass: HomeAssistant, call: ServiceCall) -> ServiceResp
                 font_name = font_names[font]
                 if font_name:
                     await _on_saber(saber.file_command(p.FILE_SETNAME, [f"/{font}", font_name]))
-            if system:
-                await _require_space(saber, sum(index.sizes[f"setting/{n}"] for n in system))
-            for file_name in system:
-                data = await hass.async_add_executor_job(archive.read, f"setting/{file_name}")
-                await _on_saber(saber.send_file(f"/setting/{file_name}", data))
-                saber.batch_step()
-            for file_name in settings:  # last: the saber may apply them straight away
-                data = await hass.async_add_executor_job(archive.read, f"setting/{file_name}")
-                target = _RESTORE_SETTINGS[file_name]
-                await _on_saber(saber.send_file(target, data, header_name=target))
-                saber.batch_step()
+            if _settings_writes is not None:
+                await _settings_writes.write(hass, saber, archive, index, settings, system)
     finally:
         await hass.async_add_executor_job(archive.close)
     return {**plan, "restored": True}
@@ -819,45 +786,6 @@ def _series(name: str) -> str | None:
     return match.group(1) if match else None
 
 
-async def _copy_sound_font(hass: HomeAssistant, call: ServiceCall) -> ServiceResponse:
-    saber = _saber(hass, call)
-    source: int = call.data[ATTR_SOURCE_FONT]
-    destination: int = call.data[ATTR_DESTINATION_FONT]
-    if source == destination:
-        raise _invalid("same_font", font=source)
-    await _require_blade_off(saber)
-    fonts = await _existing_font(saber, source)
-    await _existing_font(saber, destination)
-    files = _font_files(await _on_saber(saber.list_sounds(source)))
-    if not files:
-        raise _invalid("font_empty", font=source)
-    old = await _on_saber(saber.list_sounds(destination)) if call.data[ATTR_REPLACE] else {}
-    with saber.batch_progress(len(files)):
-        for item in files:
-            src, dst = f"/{source}/{item.target_name}", f"/{destination}/{item.target_name}"
-            if not await _on_saber(saber.file_command(p.FILE_CP, [src, dst])):
-                raise HomeAssistantError(
-                    translation_domain=DOMAIN,
-                    translation_key="saber_refused",
-                    translation_placeholders={"operation": f"cp {src} {dst}"},
-                )
-            saber.batch_step()
-    deleted: list[Any] = []
-    for leftover in soundfont.leftovers(old, files):
-        if await _on_saber(saber.file_command(p.FILE_RM, f"/{destination}/{leftover}")):
-            deleted.append(leftover)
-    name: str | None = call.data.get(ATTR_NAME) or fonts[source]
-    if name:
-        await _on_saber(saber.file_command(p.FILE_SETNAME, [f"/{destination}", name]))
-    return {
-        "source_font": source,
-        "destination_font": destination,
-        "files": len(files),
-        "deleted": deleted,
-        "name": name,
-    }
-
-
 # --------------------------------------------------------------- registration
 Handler = Callable[[HomeAssistant, ServiceCall], Awaitable[ServiceResponse]]
 
@@ -866,7 +794,6 @@ HANDLERS: dict[str, tuple[Handler, SupportsResponse]] = {
     SERVICE_DOWNLOAD_FILE: (_download_file, SupportsResponse.OPTIONAL),
     SERVICE_UPLOAD_SOUND_FONT: (_upload_sound_font, SupportsResponse.OPTIONAL),
     SERVICE_EXPORT_SOUND_FONT: (_export_sound_font, SupportsResponse.OPTIONAL),
-    SERVICE_COPY_SOUND_FONT: (_copy_sound_font, SupportsResponse.OPTIONAL),
     SERVICE_BACKUP: (_backup_saber, SupportsResponse.OPTIONAL),
     SERVICE_RESTORE: (_restore_backup, SupportsResponse.OPTIONAL),
     SERVICE_LIST_SOUND_FONTS: (_list_sound_fonts, SupportsResponse.ONLY),
@@ -889,10 +816,10 @@ def async_setup_services(hass: HomeAssistant) -> None:
     """Register the integration's actions (once, not per saber)."""
     handlers = dict(HANDLERS)
     schemas = dict(SCHEMAS)
-    if _board is not None:  # experimental build: untested on a real saber
-        _LOGGER.warning("Experimental firmware and board configuration actions are enabled")
-        handlers.update(_board.HANDLERS)
-        schemas.update(_board.SCHEMAS)
+    for module in _EXPERIMENTAL:  # experimental build: untested on a real saber
+        _LOGGER.warning("Experimental feature enabled: %s", module.FEATURE)
+        handlers.update(module.HANDLERS)
+        schemas.update(module.SCHEMAS)
     for name, (handler, supports_response) in handlers.items():
 
         async def _call(call: ServiceCall, handler: Handler = handler) -> ServiceResponse:
@@ -906,3 +833,22 @@ def async_setup_services(hass: HomeAssistant) -> None:
             async_register_admin_service(
                 hass, DOMAIN, name, _call, schema=schemas[name], supports_response=supports_response
             )
+
+
+def _experimental(name: str) -> ModuleType | None:
+    """A module only packages built with ``script/build --experimental`` contain.
+
+    Imported last, once everything it may use from this module is defined.
+    """
+    module = f"{__package__}.{name}"
+    try:
+        return importlib.import_module(module)
+    except ModuleNotFoundError as err:
+        if err.name != module:
+            raise
+        return None
+
+
+_board = _experimental("board")  # firmware and board configuration
+_settings_writes = _experimental("settings_writes")  # settings files, copy_sound_font
+_EXPERIMENTAL = [m for m in (_board, _settings_writes) if m is not None]
