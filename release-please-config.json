@@ -25,15 +25,18 @@
     },
     {
       "type": "docs",
-      "section": "Documentation"
+      "section": "Documentation",
+      "hidden": true
     },
     {
       "type": "ci",
-      "section": "Project"
+      "section": "Project",
+      "hidden": true
     },
     {
       "type": "build",
-      "section": "Project"
+      "section": "Project",
+      "hidden": true
     },
     {
       "type": "refactor",
