@@ -1,8 +1,8 @@
 # Test and lint dependencies for the newest supported Home Assistant (CI and
 # local: pip install -r requirements_test.txt && script/check).
 # The plugin pins the matching Home Assistant release, pytest and pytest-cov.
-pytest-homeassistant-custom-component==0.13.373
-ruff==0.17.1
+pytest-homeassistant-custom-component==0.13.375
+ruff==0.17.3
 mypy==2.4.0
 # Requirements of the bluetooth and usb components this integration depends on,
 # at the versions that Home Assistant release pins (the plugin does not install them).
